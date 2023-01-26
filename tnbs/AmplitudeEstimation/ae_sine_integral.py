@@ -30,91 +30,106 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     Return
     ----------
 
-    metrics : pandas DataFrame
-        DataFrame with the metrics of the benchmark
     pdf : pandas DataFrame
         DataFrame with the complete information of the benchmark
     """
 
+    #Local copy for AE configuration dictionary
     ae_dictionary_ = deepcopy(ae_dictionary)
 
     start_time = time.time()
 
-    #start = [0.0, 3.0*np.pi/4.0, np.pi]
-    #end = [3.0*np.pi/8.0, 9.0*np.pi/8.0, 5.0*np.pi/4.0]
-    start = [0.0, np.pi]
-    end = [3.0*np.pi/8.0, 5.0*np.pi/4.0]
-    #The sine function
+    #Section 2.1: Function for integration
     function = np.sin
 
+    #Section 2.1: Integration Intervals
+    start = [0.0, np.pi]
+    end = [3.0*np.pi/8.0, 5.0*np.pi/4.0]
     if interval not in [0, 1]:
         raise ValueError("interval MUST BE 0 or 1")
-
-    #Getting the domain integration limits
     a_ = start[interval]
     b_ = end[interval]
-    #Computing exact integral
+    #Section 2.1: Computing exact integral
     exact_integral = np.cos(a_) - np.cos(b_)
-    #Discretizing the domain integration
+
+    #Section 2.2: Domain discretization
     domain_x = np.linspace(a_, b_, 2 ** n_qbits + 1)
-    #Discretization of the sine function
+
+    #Section 2.3: Function discretization
     f_x = []
-    #x_ = []
     for i in range(1, len(domain_x)):
         step_f = (function(domain_x[i]) + function(domain_x[i-1]))/2.0
         f_x.append(step_f)
         #x_.append((domain_x[i] + domain_x[i-1])/2.0)
     f_x = np.array(f_x)
-    #x_ = np.array(x_)
-    #Normalisation constant
+
+    #Section 2.4: Array Normalisation
     normalization = np.max(np.abs(f_x)) + 1e-8
-    #Normalization of the Riemann array
     f_norm_x = f_x/normalization
-    #Encoding dictionary
-    encoding_dict = {
+
+    #Sections 2.5 and 2.6: Integral computation using AE techniques
+
+    #Section 3.2.3: configuring input dictionary for q_solve_integral
+    q_solve_configuration = {
         "array_function" : f_norm_x,
         "array_probability" : None,
         "encoding" : 2
     }
+    #Now added the AE configuration.
+    #The ae_dictionary_ has a local copy of the AE configuration.
+    q_solve_configuration.update(ae_dictionary_)
+    #The q_solve_integral needs a QPU object.
+    q_solve_configuration["qpu"] = get_qpu(q_solve_configuration["qpu"])
+    #Compute the integral using AE algorithms!!
+    solution, solver_object = q_solve_integral(**q_solve_configuration)
 
-    #Updating the ae configuration with the encoding configuration
-    ae_dictionary_.update(encoding_dict)
-    ae_dictionary_["qpu"] = get_qpu(ae_dictionary_["qpu"])
-
-    #EXECUTE COMPUTATION
-    solution, solver_object = q_solve_integral(**ae_dictionary_)
-    #Amplitude Estimation computed integral estimator
+    #Section 3.2.3: eq (3.7). It is an adapatation of eq (2.22)
     estimator_s = normalization * (b_ - a_) * solution / (2 ** n_qbits)
-    #Metrics computation
+
+    #Section 2.7: Getting the metrics
     absolute_error = np.abs(estimator_s["ae"] - exact_integral)
     relative_error = absolute_error / exact_integral
     oracle_calls = solver_object.oracle_calls
+
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    ae_dictionary_.pop('array_function')
-    ae_dictionary_.pop('array_probability')
+    #ae_dictionary_.pop('array_function')
+    #ae_dictionary_.pop('array_probability')
 
+    #Section 4.2: Creating the output pandas DataFrame for using
+    #properly the KERNEL_BENCHMARK class
+
+    #Adding the complete AE configuration
     pdf = pd.DataFrame([ae_dictionary_])
+
+    #Adding information about the computed integral
     pdf["interval"] = interval
     pdf["n_qbits"] = n_qbits
     pdf["a_"] = a_
     pdf["b_"] = b_
-    wanted_columns = pdf.columns
-    #Store the integral from q_solve_integral
+
+    #Adding the output from q_solve_integral
     pdf = pd.concat([pdf, solution], axis=1)
-    #the desired integral
+
+    #Adding the AE computation of the integral
     integral_columns = ["integral_" + col for col in solution.columns]
     pdf[integral_columns] = estimator_s
+
+    #Adding information about the integral that must be computed
     pdf["exact_integral"] = exact_integral
-    #Sum of Riemann array
     pdf["riemann_sum"] = (b_ - a_) * np.sum(f_x) / (2 ** n_qbits)
+
+    #Adding the normalization constant
     pdf["normalization"] = normalization
+
     #Error vs exact integral
     pdf["absolute_error_exact"] = absolute_error
     pdf["relative_error_exact"] = relative_error
+
     #Error vs Riemann Sum
     pdf["absolute_error_sum"] = np.abs(pdf["integral_ae"] - pdf["riemann_sum"])
+
     #Error by Riemann aproximation to Integral
     pdf["absolute_riemann_error"] = np.abs(
         pdf["riemann_sum"] - pdf["exact_integral"])
@@ -123,15 +138,11 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     pdf["run_time"] = solver_object.run_time
     pdf["quantum_time"] = solver_object.quantum_time
 
-    columns_metrics = [
-        "absolute_error_exact", "relative_error_exact", "absolute_error_sum",
-        "absolute_riemann_error", "oracle_calls",
-        "elapsed_time", "run_time", "quantum_time"
-    ]
-    metrics = pdf[
-        list(wanted_columns) + columns_metrics
-    ]
-    return metrics, pdf
+    #pdf will have a complete output for trazability.
+    #Columns for the metric according to 2.7 and 2.8 will be:
+    #[absolute_error_sum, oracle_calls,
+    #elapsed_time, run_time, quantum_time]
+    return pdf
 
 def select_ae(ae_method):
     """
@@ -162,6 +173,8 @@ def select_ae(ae_method):
         lista_ae_.append("jsons/integral_cqpeae_configuration.json")
     elif ae_method == "IQPEAE":
         lista_ae_.append("jsons/integral_iqpeae_configuration.json")
+    elif ae_method == "MCAE":
+        lista_ae_.append("jsons/integral_mcae_configuration.json")
     else:
         raise ValueError("ae_method MUST BE: MLAE, IQAE, RQAE, CQPEAE or IQPEAE")
 
@@ -177,131 +190,15 @@ def select_ae(ae_method):
             "Please change the correspondent json!!"
         raise ValueError(text)
     ae_configuration = final_list_[0]
-    del ae_configuration["integral"]
-    del ae_configuration["number_of_tests"]
     return ae_configuration
 
-def run_id(
-    n_qbits,
-    ae_problem,
-    id_name,
-    qpu=None,
-    file_name=None,
-    folder_name=None,
-    save=False
-):
-    ae_problem.update({"qpu": qpu})
-    ae_problem.update({"save": save})
-    integral = ae_problem['integral']
-    ae_problem.pop('integral')
-    if save:
-        if folder_name is None:
-            raise ValueError("folder_name is None!")
-        if file_name is None:
-            file_name = ae_problem["ae_type"] + "_{}.csv".format(id_name)
-        metrics_file_name = folder_name + 'metrics_n_qbits_' \
-            + str(n_qbits) + '_' + file_name
-        file_name = folder_name + 'n_qbits_' + str(n_qbits) + '_' + file_name
-    list_of_metrics = []
-    for i in range(ae_problem["number_of_tests"]):
-        ae_problem.update({"file_name": file_name})
-        metrics, pdf = sine_integral(n_qbits, integral, ae_problem)
-        print(pdf)
-        list_of_metrics.append(pdf)
-        if save:
-            with open(file_name, "a") as f_pointer:
-                pdf.to_csv(
-                    f_pointer,
-                    mode="a",
-                    header=f_pointer.tell() == 0,
-                    sep=';'
-                )
-    metrics_pdf = pd.concat(list_of_metrics)
-    return metrics_pdf
-
-def run_staff(
-    n_qbits,
-    ae_problem_list,
-    file_name=None,
-    folder_name=None,
-    qpu=None,
-    save=False
-):
-    list_of_pdfs = []
-    for i, step in enumerate(ae_problem_list):
-        step_pdf = run_id(
-            n_qbits,
-            step,
-            i,
-            file_name=file_name,
-            folder_name=folder_name,
-            qpu=qpu,
-            save=save)
-        list_of_pdfs.append(step_pdf)
-    price_pdf = pd.concat(list_of_pdfs)
-    return price_pdf
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--folder",
-        dest="folder_path",
-        type=str,
-        help="Path for storing folder",
-        default="./",
-    )
-    parser.add_argument(
-        "--name",
-        dest="file_name",
-        type=str,
-        help="Name for storing csv. Only applies for --all",
-        default=None,
-    )
-    parser.add_argument(
-        "--count",
-        dest="count",
-        default=False,
-        action="store_true",
-        help="For counting elements on the list",
-    )
-    parser.add_argument(
-        "--list",
-        dest="list",
-        default=False,
-        action="store_true",
-        help="For listing "
-    )
-    parser.add_argument(
-        "-qpu",
-        dest="qpu",
-        type=str,
-        default="python",
-        help="QPU for simulation: [qlmass, python, c]",
-    )
-    parser.add_argument(
-        "--all",
-        dest="all",
-        default=False,
-        action="store_true",
-        help="For executing complete list",
-    )
-    parser.add_argument(
-        "--exe",
-        dest="execution",
-        default=False,
-        action="store_true",
-        help="For executing program",
-    )
-    parser.add_argument(
-        "-id",
-        dest="id",
-        type=int,
-        help="For executing only one element of the list",
-        default=None,
-    )
+    #Arguments for execution
     parser.add_argument(
         "-n_qbits",
         dest="n_qbits",
@@ -310,47 +207,45 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
-        "--MLAE",
-        dest="mlae_var",
-        default=False,
-        action="store_true",
-        help="For adding MLAE staff",
+        "-interval",
+        dest="interval",
+        type=int,
+        help="Integration Interval. valid Values 0 or 1",
+        default=None,
     )
     parser.add_argument(
-        "--IQAE",
-        dest="iqae_var",
-        default=False,
-        action="store_true",
-        help="For adding IQAE staff",
+        "-repetitions",
+        dest="repetitions",
+        type=int,
+        help="Number of repetitions the integral will be computed. Default: 1",
+        default=1,
     )
+    #AE algorithm configuration arguments
     parser.add_argument(
-        "--RQAE",
-        dest="rqae_var",
-        default=False,
-        action="store_true",
-        help="For adding RQAE staff",
+        "-ae_type",
+        dest="ae_type",
+        type=str,
+        default=None,
+        help="AE algorithm for integral kernel: "+
+            "[MLAE, IQAE, RQAE, MCAE, CQPEAE, IQPEAE]",
     )
+    #For information about the configuation
     parser.add_argument(
-        "--CQPEAE",
-        dest="cqpeae_var",
+        "--print",
+        dest="print",
         default=False,
         action="store_true",
-        help="For adding CQPEAE staff",
+        help="For printing the AE algorihtm configuration."
     )
+    #QPU argument
     parser.add_argument(
-        "--IQPEAE",
-        dest="iqpeae_var",
-        default=False,
-        action="store_true",
-        help="For adding IQPEAE staff",
+        "-qpu",
+        dest="qpu",
+        type=str,
+        default="python",
+        help="QPU for simulation: [qlmass, python, c]",
     )
-    parser.add_argument(
-        "--MCAE",
-        dest="mcae_var",
-        default=False,
-        action="store_true",
-        help="For adding MCAE staff",
-    )
+    #Saving results arguments
     parser.add_argument(
         "--save",
         dest="save",
@@ -358,62 +253,52 @@ if __name__ == "__main__":
         action="store_true",
         help="For saving results",
     )
+    parser.add_argument(
+        "--folder",
+        dest="folder_path",
+        type=str,
+        help="Path for storing folder",
+        default="./",
+    )
+    #Execution argument
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
+    )
     args = parser.parse_args()
     print(args)
 
-    lista_ae = []
-    if args.mlae_var:
-        lista_ae.append("jsons/integral_mlae_configuration.json")
-    if args.iqae_var:
-        lista_ae.append("jsons/integral_iqae_configuration.json")
-    if args.rqae_var:
-        lista_ae.append("jsons/integral_rqae_configuration.json")
-    if args.cqpeae_var:
-        lista_ae.append("jsons/integral_cqpeae_configuration.json")
-    if args.iqpeae_var:
-        lista_ae.append("jsons/integral_iqpeae_configuration.json")
-    if args.mcae_var:
-        lista_ae.append("jsons/integral_mcae_configuration.json")
+    ae_configuration = select_ae(args.ae_type)
+    ae_configuration.update({"qpu":args.qpu})
 
-    ae_list = []
-    for ae_json in lista_ae:
-        with open(ae_json) as json_file:
-            ae_list = ae_list + json.load(json_file)
+    if args.print:
+        print(ae_configuration)
 
-    #Creates the complete configuration for AE solvers
-    final_list = combination_for_list(ae_list)
-
-    if args.count:
-        print(len(final_list))
-    if args.list:
-        if args.id is not None:
-            print(final_list[args.id])
-        else:
-            print(final_list)
     if args.execution:
-        if args.n_qbits is None:
-            raise ValueError("n_qbits CAN NOT BE None")
-        if args.all:
-            print(
-                run_staff(
-                    args.n_qbits,
-                    final_list,
-                    file_name=args.file_name,
-                    folder_name=args.folder_path,
-                    qpu=args.qpu,
-                    save=args.save,
-                )
+        list_of_pdfs = []
+        for i in range(args.repetitions):
+            step_pdf = sine_integral(
+                args.n_qbits,
+                args.interval,
+                ae_configuration
             )
-        else:
-            if args.id is not None:
-                print(
-                    run_id(
-                        args.n_qbits,
-                        final_list[args.id],
-                        args.id,
-                        file_name=args.file_name,
-                        folder_name=args.folder_path,
-                        qpu=args.qpu,
-                        save=args.save,
-                    )
+            list_of_pdfs.append(step_pdf)
+        pdf = pd.concat(list_of_pdfs)
+        pdf.reset_index(drop=True, inplace=True)
+        print(pdf)
+        if args.save:
+            if args.folder_path is None:
+                raise ValueError("folder_name is None!")
+            base_name = args.ae_type + "_n_qbits_" + str(args.n_qbits) + \
+                "_interval_" + str(args.interval) + ".csv"
+            file_name = args.folder_path + base_name
+            print(file_name)
+            with open(file_name, "w") as f_pointer:
+                pdf.to_csv(
+                    f_pointer,
+                    mode="w",
+                    sep=';'
                 )

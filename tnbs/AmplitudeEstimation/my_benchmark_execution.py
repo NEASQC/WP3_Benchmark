@@ -28,34 +28,31 @@ def run_code(n_qbits, repetitions, **kwargs):
         DataFrame with the desired metrics obtained for the integral computation
 
     """
-    from QQuantLib.utils.qlm_solver import get_qpu
-    from ae_sine_integral import sine_integral
     if n_qbits is None:
         raise ValueError("n_qbits CAN NOT BE None")
     if repetitions is None:
         raise ValueError("samples CAN NOT BE None")
 
+    from ae_sine_integral import sine_integral
     #Here the code for configuring and execute the benchmark kernel
-    ae_problem_ = kwargs.get("ae_problem")
-    #metrics = pd.DataFrame()
-    #return metrics
+    ae_configuration = kwargs.get("ae_configuration")
+    print(ae_configuration)
+    ae_configuration.update({"qpu": kwargs['qpu']})
 
-    ae_problem_.update({"save": False})
-    columns_ = kwargs.get("columns")
-    ae_problem_.update({"qpu": kwargs['qpu']})
-
-
-    print(ae_problem)
+    columns = [
+        "interval", "n_qbits", "absolute_error_sum", "oracle_calls",
+        "elapsed_time", "run_time", "quantum_time"
+    ]
 
     list_of_metrics = []
     for j, interval in enumerate([0, 1]):
         for i in range(repetitions[j]):
-            metrics, pdf = sine_integral(n_qbits, interval, ae_problem_)
-            list_of_metrics.append(metrics[columns_])
+            metrics = sine_integral(n_qbits, interval, ae_configuration)
+            list_of_metrics.append(metrics)
     metrics = pd.concat(list_of_metrics)
-    print(metrics)
     metrics.reset_index(drop=True, inplace=True)
-    return metrics
+    print("HAGO UNA")
+    return metrics[columns]
 
 def compute_samples(**kwargs):
     """
@@ -80,21 +77,33 @@ def compute_samples(**kwargs):
 
     #Desired Error in the benchmark metrics
     relative_error = kwargs.get("relative_error", 0.1)
-
     #Desired Confidence level
     alpha = kwargs.get("alpha", 0.05)
-
+    #Minimum and Maximum number of samples
+    min_meas = kwargs.get("min_meas", None)
+    if min_meas is None:
+        min_meas = 5
+    max_meas = kwargs.get("max_meas", None)
+    if max_meas is None:
+        max_meas = 100
 
     #Code for computing the number of samples for getting the desired
     #statististical significance. Depends on benchmark kernel
     #samples_ = pd.Series([100, 100])
     #samples_.name = "samples"
+
     #Compute mean and sd by integration interval
     metrics = kwargs.get("pre_metrics")
     std_ = metrics.groupby("interval").std()
     std_.reset_index(inplace=True)
     mean_ = metrics.groupby("interval").mean()
     mean_.reset_index(inplace=True)
+
+    columns = [
+        "absolute_error_sum", "oracle_calls",
+        "elapsed_time", "run_time", "quantum_time"
+    ]
+
     #Metrics
     from scipy.stats import norm
     zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
@@ -103,10 +112,6 @@ def compute_samples(**kwargs):
     samples_.name = "samples"
 
     #If user wants limit the number of samples
-
-    #Minimum and Maximum number of samples
-    min_meas = kwargs.get("min_meas", 5)
-    max_meas = kwargs.get("max_meas", None)
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
     return list(samples_)
 
@@ -237,38 +242,29 @@ if __name__ == "__main__":
         "pre_samples": [10, 10],
         "pre_save": True,
         #Saving stuff
-        "saving_folder": "./Results/",
+        "saving_folder": "./IQAE_Results/",
         "benchmark_times": "{}_times_benchmark.csv".format(AE),
         "csv_results": "{}_benchmark.csv".format(AE),
         "summary_results": "{}_SummaryResults.csv".format(AE),
-        #Computing Repetitions stuff
-        "relative_error": 0.1,
-        "alpha": 0.05,
-        "min_meas": 5,
-        "max_meas": 10,
+        "min_meas": None,
+        "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4],
-        "qpu": "python"
+        "list_of_qbits": [4, 6, 8, 10],
+        "qpu": "c"
     }
     #Setting the AE algorithm configuration
     ae_problem = select_ae(AE)
     #Added QPU to ae_problem
-    ae_problem.update({"qpu":benchmark_arguments["qpu"]})
+    #ae_problem.update({"qpu":benchmark_arguments["qpu"]})
 
     json_object = json.dumps(ae_problem)
     #Writing the AE algorithm configuration
     conf_file = benchmark_arguments["saving_folder"] + "benchmark_ae_conf.json"
     with open(conf_file, "w") as outfile:
         outfile.write(json_object)
-    #Columns for metrics
-    columns = [
-        "interval", "n_qbits", "absolute_error_exact", "relative_error_exact",
-        "absolute_error_sum", "oracle_calls", "elapsed_time",
-        "run_time", "quantum_time"
-    ]
+    #Added ae configuration
     benchmark_arguments.update({
-        "ae_problem": ae_problem,
-        "columns":columns
+        "ae_configuration": ae_problem,
     })
     ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     ae_bench.exe()

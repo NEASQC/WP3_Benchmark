@@ -198,7 +198,7 @@ if __name__ == "__main__":
     ################## Configuration ##########################
 
     AE = "IQAE"
-    folder = "Results/"
+    folder = "IQAE_Results/"
     kwargs = {
         "times_filename" : folder + "{}_times_benchmark.csv".format(AE),
         "benchmark_file" : folder + "{}_SummaryResults.csv".format(AE),
