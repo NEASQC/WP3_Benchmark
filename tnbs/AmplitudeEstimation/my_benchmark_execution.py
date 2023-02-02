@@ -84,8 +84,8 @@ def compute_samples(**kwargs):
     if min_meas is None:
         min_meas = 5
     max_meas = kwargs.get("max_meas", None)
-    if max_meas is None:
-        max_meas = 100
+    #if max_meas is None:
+    #    max_meas = 100
 
     #Code for computing the number of samples for getting the desired
     #statististical significance. Depends on benchmark kernel
