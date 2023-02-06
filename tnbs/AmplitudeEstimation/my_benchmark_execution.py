@@ -51,7 +51,6 @@ def run_code(n_qbits, repetitions, **kwargs):
             list_of_metrics.append(metrics)
     metrics = pd.concat(list_of_metrics)
     metrics.reset_index(drop=True, inplace=True)
-    print("HAGO UNA")
     return metrics[columns]
 
 def compute_samples(**kwargs):
