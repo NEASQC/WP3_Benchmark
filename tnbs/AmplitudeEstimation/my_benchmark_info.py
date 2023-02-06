@@ -124,13 +124,14 @@ def my_classical_compilation(**kwargs):
     c_compilation["Flags"] = "None"
     return [c_compilation]
 
-def my_other_info(**kwargs):
+
+def my_metadata_info(**kwargs):
     """
     Other important info user want to store in the final json.
     """
 
-    other_info = OrderedDict()
-    #other_info["None"] = None
+    metadata = OrderedDict()
+    #metadata["None"] = None
 
     json_file = kwargs.get("ae_config")
     with open(json_file, 'r') as openfile:
@@ -138,8 +139,8 @@ def my_other_info(**kwargs):
         json_object = json.load(openfile)
 
     for key, value in json_object.items():
-        other_info[key] = value
-    return other_info
+        metadata[key] = value
+    return metadata
 
 
 def my_benchmark_info(**kwargs):
@@ -158,7 +159,7 @@ def my_benchmark_info(**kwargs):
     benchmark["ClassicalCompiler"] = my_classical_compilation(**kwargs)
     benchmark["TimeMethod"] = my_timemethod(**kwargs)
     benchmark["Results"] = summarize_results(**kwargs)
-    benchmark["OtherInfo"] = my_other_info(**kwargs)
+    benchmark["MetaData"] = my_metadata_info(**kwargs)
     return benchmark
 
 if __name__ == "__main__":

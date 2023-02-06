@@ -259,7 +259,8 @@ if __name__ == "__main__":
 
     json_object = json.dumps(ae_problem)
     #Writing the AE algorithm configuration
-    conf_file = benchmark_arguments["saving_folder"] + "benchmark_ae_conf.json"
+    conf_file = benchmark_arguments["saving_folder"] + \
+        "benchmark_ae_conf.json"
     with open(conf_file, "w") as outfile:
         outfile.write(json_object)
     #Added ae configuration
