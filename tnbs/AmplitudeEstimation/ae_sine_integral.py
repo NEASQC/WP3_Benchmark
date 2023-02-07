@@ -176,7 +176,8 @@ def select_ae(ae_method):
     elif ae_method == "MCAE":
         lista_ae_.append("jsons/integral_mcae_configuration.json")
     else:
-        raise ValueError("ae_method MUST BE: MLAE, IQAE, RQAE, CQPEAE or IQPEAE")
+        raise ValueError(
+            "ae_method MUST BE: MLAE, IQAE, RQAE, CQPEAE or IQPEAE")
 
     ae_list_ = []
     for ae_json_ in lista_ae_:
@@ -217,7 +218,8 @@ if __name__ == "__main__":
         "-repetitions",
         dest="repetitions",
         type=int,
-        help="Number of repetitions the integral will be computed. Default: 1",
+        help="Number of repetitions the integral will be computed."+
+        "Default: 1",
         default=1,
     )
     #AE algorithm configuration arguments
@@ -227,7 +229,7 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="AE algorithm for integral kernel: "+
-            "[MLAE, IQAE, RQAE, MCAE, CQPEAE, IQPEAE]",
+        "[MLAE, IQAE, RQAE, MCAE, CQPEAE, IQPEAE]",
     )
     #For information about the configuation
     parser.add_argument(

@@ -9,8 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm, entropy, chisquare, chi2
 from qat.lang.models import KPTree
-from qat.qpus import get_default_qpu
-#sys.path.append("../../../")
+from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.DL.data_loading import load_probability
 from QQuantLib.utils.data_extracting import get_results
 
@@ -90,10 +89,13 @@ class LoadProbabilityDensity:
                 "Select between: multiplexor, brute_force or KPTree"
             raise ValueError(error_text)
         # Set the QPU to use
-        self.linalg_qpu = kwargs.get("qpu", None)
-        if self.linalg_qpu is None:
+        self.qpu = kwargs.get("qpu", None)
+        if self.qpu is None:
             print("Not QPU was provide. Default QPU will be used")
-            self.linalg_qpu = get_default_qpu()
+            self.qpu = "default"
+        #get qpu object
+        self.linalg_qpu = get_qpu(self.qpu)
+        print(self.linalg_qpu)
 
         self.data = None
         self.p_gate = None
@@ -186,6 +188,7 @@ class LoadProbabilityDensity:
         self.pdf = pd.DataFrame()
         self.pdf["n_qbits"] = [self.n_qbits]
         self.pdf["load_method"] = [self.load_method]
+        self.pdf["qpu"] = [self.linalg_qpu]
         self.pdf["mean"] = [self.mean]
         self.pdf["sigma"] = [self.sigma]
         self.pdf["step"] = [self.step]
@@ -217,13 +220,22 @@ if __name__ == "__main__":
         help="For selecting the load method: multiplexor, brute_force, KPTree",
         default=None,
     )
+    #QPU argument
+    parser.add_argument(
+        "-qpu",
+        dest="qpu",
+        type=str,
+        default="python",
+        help="QPU for simulation: [qlmass, python, c]",
+    )
     args = parser.parse_args()
     print(args)
 
 
     configuration = {
         "load_method" : args.method,
-        "number_of_qbits": args.n_qbits
+        "number_of_qbits": args.n_qbits,
+        "qpu": args.qpu
     }
     prob_dens = LoadProbabilityDensity(**configuration)
     prob_dens.exe()

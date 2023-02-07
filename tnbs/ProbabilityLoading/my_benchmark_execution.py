@@ -6,6 +6,7 @@ import sys
 import json
 from datetime import datetime
 import pandas as pd
+from copy import deepcopy
 
 def run_code(n_qbits, repetitions, **kwargs):
     """
@@ -36,12 +37,13 @@ def run_code(n_qbits, repetitions, **kwargs):
     #Here the code for configuring and execute the benchmark kernel
 
     from load_probabilities import LoadProbabilityDensity
-    kernel_configuration = kwargs.get("kernel_configuration", None)
+    kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
     if kernel_configuration is None:
         raise ValueError("kernel_configuration can not be None")
 
     list_of_metrics = []
     kernel_configuration.update({"number_of_qbits": n_qbits})
+    print(kernel_configuration)
     for i in range(repetitions[0]):
         prob_dens = LoadProbabilityDensity(**kernel_configuration)
         prob_dens.exe()
@@ -74,44 +76,36 @@ def compute_samples(**kwargs):
 
     #Desired Error in the benchmark metrics
     relative_error = kwargs.get("relative_error", 0.1)
-
     #Desired Confidence level
     alpha = kwargs.get("alpha", 0.05)
-
+    #Minimum and Maximum number of samples
+    min_meas = kwargs.get("min_meas", None)
+    if min_meas is None:
+        min_meas = 5
+    max_meas = kwargs.get("max_meas", None)
 
     #Code for computing the number of samples for getting the desired
     #statististical significance. Depends on benchmark kernel
 
     from scipy.stats import norm
-    #Columns desired for sampling computing
-    columns = kwargs.get("columns", None)
     #geting the metrics from pre-benchmark step
     metrics = kwargs.get("pre_metrics", None)
 
-    print("###############################")
-    print(metrics)
-    print("###############################")
-    #Compute mean and sd by integration interval
+    #Compute mean and sd
     std_ = metrics.groupby("load_method").std()
     std_.reset_index(inplace=True)
-    print(std_)
     mean_ = metrics.groupby("load_method").mean()
     mean_.reset_index(inplace=True)
-    print(mean_)
     #Metrics
     zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
+    #columns = ["KS", "KL", "elapsed_time"]
+    columns = ["elapsed_time"]
+
     samples_ = (zalpha * std_[columns] / (relative_error * mean_[columns]))**2
-    print(samples_)
     samples_ = samples_.max(axis=1).astype(int)
-    print(samples_)
     samples_.name = "samples"
 
     #If user wants limit the number of samples
-
-    #Minimum and Maximum number of samples
-    min_meas = kwargs.get("min_meas", 5)
-    max_meas = kwargs.get("max_meas", None)
-    print(samples_)
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
     return list(samples_)
 
@@ -233,13 +227,16 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
 
-    kernel_configuration = {"load_method" : "brute_force"}
+    kernel_configuration = {
+        "load_method" : "brute_force",
+        "qpu" : "c", #python, qlmass, default
+    }
     name = "PL_{}".format(kernel_configuration["load_method"])
 
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
-        "pre_samples": [10, 10],
+        "pre_samples": [10],
         "pre_save": True,
         #Saving stuff
         "saving_folder": "./Results/",
@@ -254,11 +251,6 @@ if __name__ == "__main__":
         #List number of qubits tested
         "list_of_qbits": [4, 6],
     }
-
-    #Columns for metrics
-    benchmark_arguments.update({
-        "columns":["elapsed_time", "KS", "KL", "chi2"]
-    })
 
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
