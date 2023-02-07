@@ -75,9 +75,13 @@ def compute_samples(**kwargs):
     #Configuration for sampling computations
 
     #Desired Error in the benchmark metrics
-    relative_error = kwargs.get("relative_error", 0.1)
+    relative_error = kwargs.get("relative_error", None)
+    if relative_error is None:
+        relative_error = 0.1
     #Desired Confidence level
-    alpha = kwargs.get("alpha", 0.05)
+    alpha = kwargs.get("alpha", None)
+    if alpha is None:
+        alpha = 0.05
     #Minimum and Maximum number of samples
     min_meas = kwargs.get("min_meas", None)
     if min_meas is None:
@@ -121,6 +125,10 @@ def summarize_results(**kwargs):
 
     pdf = pd.read_csv(csv_results, index_col=0, sep=";")
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
+    pdf = pdf[
+        ["n_qbits", "load_method", "KS", "KL", "chi2",
+        "p_value", "elapsed_time", "quantum_time"]
+    ]
     results = pdf.groupby(["load_method", "n_qbits"]).agg(
         ["mean", "std", "count"])
 
@@ -234,20 +242,20 @@ if __name__ == "__main__":
     name = "PL_{}".format(kernel_configuration["load_method"])
 
     benchmark_arguments = {
-        #Pre benchmark sttuff
+        #Pre benchmark configuration
         "pre_benchmark": True,
         "pre_samples": [10],
         "pre_save": True,
-        #Saving stuff
+        #Saving configuration
         "saving_folder": "./Results/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
-        #Computing Repetitions stuff
-        "alpha": 0.05,
-        "min_meas": 5,
-        "max_meas": 10,
-        "relative_error": 0.1,
+        #Computing Repetitions configuration
+        "relative_error": None,
+        "alpha": None,
+        "min_meas": None,
+        "max_meas": None,
         #List number of qubits tested
         "list_of_qbits": [4, 6],
     }

@@ -75,9 +75,13 @@ def compute_samples(**kwargs):
     #Configuration for sampling computations
 
     #Desired Error in the benchmark metrics
-    relative_error = kwargs.get("relative_error", 0.1)
+    relative_error = kwargs.get("relative_error", None)
+    if relative_error is None:
+        relative_error = 0.1
     #Desired Confidence level
-    alpha = kwargs.get("alpha", 0.05)
+    alpha = kwargs.get("alpha", None)
+    if alpha is None:
+        alpha = 0.05
     #Minimum and Maximum number of samples
     min_meas = kwargs.get("min_meas", None)
     if min_meas is None:
@@ -236,15 +240,18 @@ if __name__ == "__main__":
 
     AE = "IQAE"
     benchmark_arguments = {
-        #Pre benchmark sttuff
+        #Pre benchmark configuration
         "pre_benchmark": True,
         "pre_samples": [10, 10],
         "pre_save": True,
-        #Saving stuff
+        #Saving configuration
         "saving_folder": "./IQAE_Results/",
         "benchmark_times": "{}_times_benchmark.csv".format(AE),
         "csv_results": "{}_benchmark.csv".format(AE),
         "summary_results": "{}_SummaryResults.csv".format(AE),
+        #Computing Repetitions configuration
+        "relative_error": None,
+        "alpha": None,
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
