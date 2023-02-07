@@ -91,7 +91,9 @@ if __name__ == "__main__":
 
     ################## Configuring the files ##########################
 
-    configuration = {"benchmark_file" : "save_SummaryResults.csv"}
+    configuration = {
+        "benchmark_file" : "Results/PL_multiplexor_SummaryResults.csv"
+    }
 
     ######## Execute Validations #####################################
 

@@ -127,7 +127,7 @@ def summarize_results(**kwargs):
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
     pdf = pdf[
         ["n_qbits", "load_method", "KS", "KL", "chi2",
-        "p_value", "elapsed_time", "quantum_time"]
+        "p_value", "elapsed_time", "quantum_time", "classic_time"]
     ]
     results = pdf.groupby(["load_method", "n_qbits"]).agg(
         ["mean", "std", "count"])
@@ -236,7 +236,7 @@ class KERNEL_BENCHMARK:
 if __name__ == "__main__":
 
     kernel_configuration = {
-        "load_method" : "brute_force",
+        "load_method" : "multiplexor",
         "qpu" : "c", #python, qlmass, default
     }
     name = "PL_{}".format(kernel_configuration["load_method"])
@@ -257,7 +257,7 @@ if __name__ == "__main__":
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6],
+        "list_of_qbits": [4, 6, 8],
     }
 
     #Configuration for the benchmark kernel

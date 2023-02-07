@@ -125,7 +125,12 @@ def my_metadata_info(**kwargs):
 
     metadata = OrderedDict()
     #metadata["None"] = None
-    metadata["load_method"] = kwargs.get("load_method")
+    import pandas as pd
+    benchmark_file = kwargs.get("benchmark_file", None)
+    pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=[0, 1])
+    pdf.reset_index(inplace=True)
+    load_methods = list(set(pdf["load_method"]))
+    metadata["load_method"] = load_methods[0]
 
     return metadata
 
@@ -162,13 +167,10 @@ if __name__ == "__main__":
     ################## Configuration ##########################
 
     #configuration = {"None": None}
-    method = "brute_force"
-    name = "PL_{}".format(method)
     folder = "Results/"
     configuration = {
-        "times_filename" : folder + "{}_times_benchmark.csv".format(name),
-        "benchmark_file" : folder + "{}_SummaryResults.csv".format(name),
-        "load_method" : method
+        "times_filename" : folder + "PL_multiplexor_times_benchmark.csv",
+        "benchmark_file" : folder + "PL_multiplexor_SummaryResults.csv",
     }
 
     ######## Execute Validations #####################################

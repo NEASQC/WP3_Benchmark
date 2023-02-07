@@ -198,13 +198,10 @@ if __name__ == "__main__":
 
     ################## Configuration ##########################
 
-    method = "brute_force"
-    name = "PL_{}".format(method)
     folder = "Results/"
     kwargs = {
-        "times_filename" : folder + "{}_times_benchmark.csv".format(name),
-        "benchmark_file" : folder + "{}_SummaryResults.csv".format(name),
-        "load_method" : method
+        "times_filename" : folder + "PL_multiplexor_times_benchmark.csv",
+        "benchmark_file" : folder + "PL_multiplexor_SummaryResults.csv",
     }
 
     benchmark_conf = {
@@ -219,7 +216,7 @@ if __name__ == "__main__":
         "QPUCPUConnection":my_environment_info.my_QPUCPUConnection(
             **kwargs),
         "Benchmarks": my_benchmark_info.my_benchmark_info(**kwargs),
-        "json_file_name": folder + "{}_benchmark_report.json".format(name)
+        "json_file_name": folder + "PL_benchmark_report.json"
     }
 
     benchmark = BENCHMARK()
