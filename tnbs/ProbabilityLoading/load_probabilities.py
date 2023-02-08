@@ -1,5 +1,6 @@
 """
-Script for differetn ways of loading probabilities in a quantum state
+Mandatory code for softaware implemetation of the Benchmark Test Case
+of PL kernel
 """
 
 import sys

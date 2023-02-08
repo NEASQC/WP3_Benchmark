@@ -1,8 +1,7 @@
-""" This module contains a class for doing benchmark for NEASQC
-
-Authors: Gonzalo Ferro
-
 """
+Template for complete generation of NEASQC Benhmark Test Case report
+"""
+
 import json
 from collections import OrderedDict
 import jsonschema

@@ -7,27 +7,29 @@
 
 .. only:: html
 
-    Welcome to the <PROJECT> documentation
-    ======================================
+    Welcome to the The NEASQC Benchmark Suite (TNBS) documentation
+    ==============================================================
 
     .. image:: logo-neasqc.svg
         :scale: 50%
         :align: center
         :alt: NEASQC Project
 
+    Documentation of the TNBS repository associated to the Work Package 3 of the NEASQC european project.
 
-.. toctree-filt::
-    :maxdepth: 1
-    :caption: Basic usage
+    The different **Benchmark Test Case** implementations are stored in the **tnbs** folder:
 
-.. toctree-filt::
-    :maxdepth: 1
-    :caption: Advanced usage
+    1. **tnbs/templates**. Several python scripts that can be used for helping in the development of the software implementation of a **Benchmark Test Case** for a particular **kernel**
+    2. **tnbs/ProbabilityLoading**. Implementation of the **Benchmark Test Case** for the **Probability Loading kernel**.
+    3. **tnbs/AmplitudeEstimation**. Implementation of the **Benchmark Test Case** for the **Amplitude Estimation kernel**.
 
-.. toctree-filt::
-    :maxdepth: 2
-    :caption: Source code documentation
+    NEASQC project has received funding from the European Union’s Horizon 2020 research and innovation programme under Grant Agreement No. 951821. https://www.neasqc.eu/
 
-.. toctree-filt::
-    :maxdepth: 1
-    :caption: Additional information
+.. toctree::
+    :maxdepth: 4
+    :hidden:
+
+    tnbs.templates.rst
+    tnbs.amplitudeestimation.rst
+    tnbs.probabilityloading.rst
+   

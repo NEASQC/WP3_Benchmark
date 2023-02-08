@@ -1,3 +1,7 @@
+"""
+Gather mandatory information for Benchmarks field of NEASQC report
+generation for Benchmark Test Case of PL kernel
+"""
 import sys
 import platform
 import psutil

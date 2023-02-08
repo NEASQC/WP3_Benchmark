@@ -1,5 +1,5 @@
 """
-For executing Probability Loading kernel benchmark
+Workflow configuration and execution for Benchmark Test Case of PL kernel
 """
 
 import sys
@@ -177,13 +177,24 @@ class KERNEL_BENCHMARK:
         self.metrics = None
 
 
-    def save(self, save, save_name, save_stuff, save_mode):
+    def save(self, save, save_name, input_pdf, save_mode):
         """
-        For saving stuff
+        For saving panda DataFrames to csvs
+
+        Parameters
+        ----------
+
+        save: bool
+            For saving or not
+        save_nam: str
+            name for file
+        input_pdf: pandas DataFrame
+        save_mode: str
+            saving mode: overwrite (w) or append (a)
         """
         if save:
             with open(save_name, save_mode) as f_pointer:
-                save_stuff.to_csv(
+                input_pdf.to_csv(
                     f_pointer,
                     mode=save_mode,
                     header=f_pointer.tell() == 0,

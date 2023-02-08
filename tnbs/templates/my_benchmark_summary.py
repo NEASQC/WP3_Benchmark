@@ -1,6 +1,8 @@
 """
-Template for properly formating the results of a benchamark kernel
+Template for properly formating the results of a benchamark kernel for
+filling Results sub-field of Benchmarks field
 """
+
 from collections import OrderedDict
 import psutil
 

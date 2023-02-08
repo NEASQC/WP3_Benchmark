@@ -1,8 +1,6 @@
 """
-This module can be used for launchin benchamark using ae_sine_integral.py
-
-Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
-
+Mandatory code for softaware implemetation of the Benchmark Test Case
+of AE kernel
 """
 import json
 import time
@@ -16,6 +14,9 @@ from QQuantLib.finance.quantum_integration import q_solve_integral
 def sine_integral(n_qbits, interval, ae_dictionary):
     """
     Function for solving the sine integral between two input values:
+
+    Parameters
+    ----------
 
     n_qbits : int
         for discretization of the input domain in 2ⁿ intervals

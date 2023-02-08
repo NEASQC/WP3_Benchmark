@@ -8,7 +8,7 @@ from sphinx.ext.autodoc import between
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -20,7 +20,8 @@ from sphinx.ext.autodoc import between
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'nbsphinx',
               'sphinx.ext.mathjax', 'sphinx.ext.napoleon', 'sphinxcontrib.bibtex',
               'sphinxcontrib.programoutput', 'sphinxcontrib.contentui']
-autodoc_mock_imports = ["cirq"]
+autodoc_mock_imports = ["cirq", "psutil", "pandas", "numpy", "QQuantLib",
+    "my_benchmark_summary", "ae_sine_integral", "scipy", "qat"]
 
 napoleon_google_docstring = True
 

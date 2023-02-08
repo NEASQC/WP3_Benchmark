@@ -1,3 +1,8 @@
+"""
+Template for gathering different hardware information for main fields of
+NEASQC report generation
+"""
+
 import platform
 import psutil
 from collections import OrderedDict

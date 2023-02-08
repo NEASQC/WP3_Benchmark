@@ -1,5 +1,6 @@
 """
-Template for properly formating the results of a benchamark kernel
+Formatting the sub-field Results of Benchmarks field of the NEASQC
+report for Benchmark Test Case of AE kernel
 """
 from collections import OrderedDict
 import psutil

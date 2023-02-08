@@ -1,13 +1,10 @@
-import sys
-import platform
-import psutil
-import pandas as pd
-from collections import OrderedDict
+"""
+Template for gathering the mandatory info for Benchmarks field of NEASQC
+report
+"""
 
-if __package__ is None or __package__ == '':
-    from my_benchmark_summary import summarize_results
-else:
-    from .my_benchmark_summary import summarize_results
+from collections import OrderedDict
+from my_benchmark_summary import summarize_results
 
 
 def my_benchmark_kernel(**kwargs):

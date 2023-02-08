@@ -1,3 +1,7 @@
+"""
+For gathering different hardware information for main fields of
+NEASQC report generation for the Benchmark Test Case of AE kernel
+"""
 import platform
 import psutil
 from collections import OrderedDict
