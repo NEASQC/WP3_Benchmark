@@ -32,4 +32,3 @@
     tnbs.templates.rst
     tnbs.amplitudeestimation.rst
     tnbs.probabilityloading.rst
-   

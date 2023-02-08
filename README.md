@@ -28,4 +28,4 @@ This work is supported by the [NEASQC](https://cordis.europa.eu/project/id/95182
 
 ## Documentation
 
-The html documentation of the **TNBS**  can be access at: https://neasqc.github.io/WP3_Benchmark
+The html documentation of the **TNBS**  can be access at: https://neasqc.github.io/TNBS
