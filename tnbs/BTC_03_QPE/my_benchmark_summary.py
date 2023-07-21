@@ -12,37 +12,62 @@ def summarize_results(**kwargs):
     the NEASQC jsonschema
     """
 
-    n_qbits = [4]
-    #Info with the benchmark results like a csv or a DataFrame
-    pdf = None
-    #Metrics needed for reporting. Depend on the benchmark kernel
-    list_of_metrics = ["MRSE"]
+    # n_qbits = [4]
+    # #Info with the benchmark results like a csv or a DataFrame
+    # pdf = None
+    # #Metrics needed for reporting. Depend on the benchmark kernel
+    # list_of_metrics = ["MRSE"]
+
+    import pandas as pd
+    benchmark_file = kwargs.get("benchmark_file", None)
+    pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=[0, 1, 2])
+    pdf.reset_index(inplace=True)
+    n_qbits = list(set(pdf["n_qbits"]))
+    angle_methods = list(set(pdf["angle_method"]))
+    aux_qbits = list(set(pdf["aux_qbits"]))
+    list_of_metrics = [
+        "KS", "fidelity",
+    ]
 
     results = []
     #If several qbits are tested
+    # For ordering by n_qbits
     for n_ in n_qbits:
-        #Fields for benchmark test of a fixed number of qubits
-        result = OrderedDict()
-        result["NumberOfQubits"] = n_
-        result["QubitPlacement"] = list(range(n_))
-        result["QPUs"] = [1]
-        result["CPUs"] = psutil.Process().cpu_affinity()
-        result["TotalTime"] = 10.0
-        result["SigmaTotalTime"] = 1.0
-        result["QuantumTime"] = 9.0
-        result["SigmaQuantumTime"] = 0.5
-        result["ClassicalTime"] = 1.0
-        result["SigmaClassicalTime"] = 0.1
-        metrics = []
-        #For each fixed number of qbits several metrics can be reported
-        for metric_name in list_of_metrics:
-            metric = OrderedDict()
-            #MANDATORY
-            metric["Metric"] = metric_name
-            metric["Value"] = 0.1
-            metric["STD"] = 0.001
-            metrics.append(metric)
-        result["Metrics"] = metrics
+        # For ordering by auxiliar qbits
+        for aux_ in aux_qbits:
+            for angle_ in angle_methods:
+                result = OrderedDict()
+                result["NumberOfQubits"] = n_
+                result["QubitPlacement"] = list(range(n_))
+                result["QPUs"] = [1]
+                result["CPUs"] = psutil.Process().cpu_affinity()
+                #Select the proper data
+                indice = (pdf['n_qbits'] == n_) & (pdf['aux_qbits'] == aux_) \
+                    & (pdf['angle_method'] == angle_)
+                step_pdf = pdf[indice]
+                result["TotalTime"] = step_pdf["elapsed_time"]["mean"].iloc[0]
+                result["SigmaTotalTime"] = step_pdf["elapsed_time"]["std"].iloc[0]
+                result["QuantumTime"] = step_pdf["quantum_time"]["mean"].iloc[0]
+                result["SigmaQuantumTime"] = step_pdf["quantum_time"]["std"].iloc[0]
+                result["ClassicalTime"] = step_pdf["classic_time"]["mean"].iloc[0]
+                result["SigmaClassicalTime"] = step_pdf["classic_time"]["std"].iloc[0]
+
+                # For identifying the test
+                result['AuxiliarNumberOfQubits'] = aux_
+                result['MethodForSettingAngles'] = angle_
+                result['QPEAnglePrecision'] = \
+                    step_pdf['delta_theta']['mean'].iloc[0]
+                metrics = []
+                #For each fixed number of qbits several metrics can be reported
+                for metric_name in list_of_metrics:
+                    metric = OrderedDict()
+                    #MANDATORY
+                    metric["Metric"] = metric_name
+                    metric["Value"] = step_pdf[metric_name]["mean"].iloc[0]
+                    metric["STD"] = step_pdf[metric_name]["std"].iloc[0]
+                    metric["COUNT"] = int(step_pdf[metric_name]["count"].iloc[0])
+                    metrics.append(metric)
+                result["Metrics"] = metrics
         results.append(result)
     return results
 
@@ -57,7 +82,9 @@ if __name__ == "__main__":
 
     ################## Configuring the files ##########################
 
-    configuration = {"None" : None}
+    configuration = {
+        "benchmark_file" : "Results/kernel_SummaryResults.csv"
+    }
 
     ######## Execute Validations #####################################
 
