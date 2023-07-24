@@ -316,5 +316,5 @@ def computing_shots(pdf):
     """
     # prob of less frequent eigenvalue
     lfe = min(pdf.value_counts('Eigenvalues')) / len(pdf)
-    shots = int((100 / (lfe * 0.81))) + 1
+    shots = int((1000 / (lfe * 0.81))) + 1
     return shots

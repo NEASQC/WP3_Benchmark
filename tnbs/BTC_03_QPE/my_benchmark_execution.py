@@ -333,7 +333,7 @@ if __name__ == "__main__":
     kernel_configuration = {
         "angles" : ["random", 'exact'],
         'auxiliar_qbits_number' : [4, 6, 8, 10],
-        "qpu" : "c", #python, qlmass, default
+        "qpu" : "default", #python, qlmass, default
         "fidelity_error" : 0.001,
         "ks_error" : 0.05
     }
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         #Pre benchmark sttuff
         "pre_benchmark": True,
         "pre_samples": [15, 20],
-        "pre_save": True,
+        "pre_save": False,
         #Saving stuff
         "save_append" : True,
         "saving_folder": "./Results/",
