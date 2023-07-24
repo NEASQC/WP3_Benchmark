@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 from QPE.qpe import CQPE
-from qat.qpus import get_default_qpu, PyLinalg, CLinalg
 
 
 def get_qpu(qpu=None):
@@ -43,10 +42,13 @@ def get_qpu(qpu=None):
                 "Problem Using QLMaaS. Please create config file" +
                 "or use mylm solver") from exception
     elif qpu == "python":
+        from qat.qpus import PyLinalg
         linalg_qpu = PyLinalg()
     elif qpu == "c":
+        from qat.qpus import CLinalg
         linalg_qpu = CLinalg()
     elif qpu == "default":
+        from qat.qpus import get_default_qpu
         linalg_qpu = get_default_qpu()
     else:
         raise ValueError(
