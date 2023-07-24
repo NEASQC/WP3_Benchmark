@@ -6,6 +6,7 @@ import sys
 import json
 import copy
 from datetime import datetime
+import numpy as np
 import pandas as pd
 import itertools as it
 from copy import deepcopy
@@ -185,7 +186,18 @@ def summarize_results(**kwargs):
     # The angles are randomly selected. Not interesting for aggregation
     pdf.drop(columns=['angles'], inplace=True)
     results = pdf.groupby(["n_qbits", "aux_qbits", "angle_method"]).agg(
-        ["mean", "std", "count"])
+        ["mean", "std", "count"] + \
+            [('std_mean', lambda x: np.std(x)/np.sqrt(len(x)))])
+    results.drop(columns=[
+        ('delta_theta', 'std'),
+        ('delta_theta', 'count'),
+        ('delta_theta', 'std_mean'),
+        ('shots', 'std'),
+        ('shots', 'count'),
+        ('shots', 'std_mean')],
+        inplace=True
+    )
+
     results['qpu'] = [''.join(list(b_['qpu'].unique())) for a_, b_ \
         in pdf.groupby(['n_qbits', 'aux_qbits', 'angle_method'])]
     #results = pd.DataFrame()
