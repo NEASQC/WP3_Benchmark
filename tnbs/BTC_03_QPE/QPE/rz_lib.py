@@ -8,7 +8,7 @@ Author: Gonzal Ferro
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
-from QPE.qpe import CQPE
+from QPE.utils.qpe import CQPE
 
 
 def get_qpu(qpu=None):
