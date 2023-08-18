@@ -12,11 +12,29 @@ import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 from qat.core import Result
-from QQuantLib.utils.utils import check_list_type
 
 pd.options.display.float_format = "{:.6f}".format
 np.set_printoptions(suppress=True)
 
+def check_list_type(x_input, tipo):
+    """Check if a list x_input is of type tipo
+    Parameters
+    ----------
+    x_input : list
+    tipo : data type
+        it has to be understandable by numpy
+
+    Returns
+    ----------
+    y_output : np.array
+        numpy array of type tipo.
+    """
+    try:
+        y_output = np.array(x_input).astype(tipo, casting="safe")
+    except TypeError:
+        exception = "Only a list/array of " + str(tipo) + " are aceptable types"
+        raise Exception(exception) from TypeError
+    return y_output
 
 def get_results(
     quantum_object,
