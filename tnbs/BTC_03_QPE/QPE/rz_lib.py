@@ -89,7 +89,7 @@ def rz_eigenv_from_state(state, angles):
     __________
 
     state : np.array
-        Array with the binnary representation of the input state
+        Array with the binary representation of the input state
     angles: np.array
         Array with the angles for the R_z^n operator.
 
@@ -113,7 +113,7 @@ def rz_eigenv_from_state(state, angles):
 def rz_eigv(angles):
     """
     Computes the complete list of eigenvalues for a R_z^n operator
-    for ainput list of angles
+    for an input list of angles
     Provides the histogram between [0,1] with a bin of 2**discretization
     for the distribution of eigenvalues of a R_z^n operator for a given
     list of angles.
@@ -131,7 +131,7 @@ def rz_eigv(angles):
         DataFrame with all the eigenvalues of the R_z^n operator for
         the input list angles. Columns
             * States : Eigenstates of the Rz^n operator (least
-                significative bit is leftmost)
+                significant bit is leftmost)
             * Int_lsb_left : Integer conversion of the state
                 (leftmost lsb)
             * Int_lsb_rightt : Integer conversion of the state
@@ -141,7 +141,7 @@ def rz_eigv(angles):
     """
 
     n_qubits = len(angles)
-    # Compute eigenvalues of all posible eigenstates
+    # Compute eigenvalues of all possible eigenstates
     eigv = [rz_eigenv_from_state(bitfield(i, n_qubits), angles)\
         for i in range(2**n_qubits)]
     pdf = pd.DataFrame(
@@ -168,7 +168,7 @@ def make_histogram(eigenvalues, discretization):
     eigenvalues : list
         List with the eigenvalues
     discretization: int
-        Histogram discretization parameter: The number fo bins for the
+        Histogram discretization parameter: The number of bins for the
         histogram will be: 2^discretization
 
     Returns
@@ -204,10 +204,10 @@ def make_histogram(eigenvalues, discretization):
 
     return pdf
 
-# Below are functions forAtos myqlm simulation of R_z^n
+# Below are functions for Atos myqlm simulation of R_z^n
 def qpe_rz_qlm(angles, auxiliar_qbits_number, shots=0, qpu=None):
     """
-    Computes the Quantum Phase Estimation for a Rz Kroneckr product
+    Computes the Quantum Phase Estimation for a Rz Kronecker product
 
     Parameters
     __________
@@ -215,9 +215,9 @@ def qpe_rz_qlm(angles, auxiliar_qbits_number, shots=0, qpu=None):
     angles : list
         list with the angles that are applied to each qubit of the circuit
     auxiliar_qbits_number : int
-        number of auxiliar qubits for doing QPE
+        number of auxiliary qubits for doing QPE
     shots : int
-        number of shots for gettiong the results. 0 for exact solution
+        number of shots for getting the results. 0 for exact solution
     qpu : Atos QLM QPU object
         QLM QPU for solving the circuit
 
@@ -298,7 +298,7 @@ def computing_shots(pdf):
     Compute the number of shots. The main idea is that the samples for
     the lowest degeneracy eigenvalues will be enough. In this case
     enough is that that we measured an eigenvalue that will have an
-    error from respect to the theorical one lower than the
+    error from respect to the theoretical one lower than the
     discretization precision at least 100 times
 
     Parameters

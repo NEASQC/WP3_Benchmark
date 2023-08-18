@@ -2,7 +2,7 @@
 Class for executing QPE on a R_z^n operator
 
 
-Author: Gonzal Ferro
+Author: Gonzalo Ferro
 """
 
 import time
@@ -32,7 +32,7 @@ class QPE_RZ:
             raise ValueError(error_text)
         self.auxiliar_qbits_number = kwargs.get("auxiliar_qbits_number", None)
         if self.auxiliar_qbits_number is None:
-            error_text = "Provide the number of auxiliar qubits for QPE"
+            error_text = "Provide the number of auxiliary qubits for QPE"
             raise ValueError(error_text)
 
         # Minimum angle measured by the QPE
@@ -84,13 +84,13 @@ class QPE_RZ:
             error_text = "Please provide a QPU."
             raise ValueError(error_text)
 
-        # Shots for measuring thw QPE circuit
+        # Shots for measuring the QPE circuit
         self.shots = kwargs.get("shots", None)
         if self.shots is not None:
             text = "BE AWARE! The keyword shots should be None because" +\
-                "shots should be computed in function of the theorical" +\
+                "shots should be computed in function of the theoretical" +\
                 "eigenvalues. You can only provide 0 for doing some testing" +\
-                "in the class. 0 will imply complete simnulation of QPE circuit"
+                "in the class. 0 will imply complete simulation of QPE circuit"
             print(text)
             if self.shots != 0:
                 error_text = "BE AWARE! The keyword shots must be None or 0"
@@ -106,7 +106,7 @@ class QPE_RZ:
         self.circuit = None
         self.quantum_time = None
 
-        # Computing complete time of the procces
+        # Computing complete time of the process
         self.elapsed_time = None
 
         # Metric attributes
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         "-aux_qbits",
         dest="aux_qbits",
         type=int,
-        help="Number of auxiliar qbits for QPE",
+        help="Number of auxiliary qubits for QPE",
         default=None,
     )
     #QPU argument
