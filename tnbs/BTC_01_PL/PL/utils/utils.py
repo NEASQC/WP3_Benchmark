@@ -10,9 +10,8 @@ by Chengbo Li@Rice Uni for his TVAL3 algorithm:
     https://github.com/dingluo/fwht/blob/master/FWHT.py
 """
 
-import time
 import numpy as np
-import qat.lang.AQASM as qlm
+
 
 def bitfield(n_int: int, size: int):
     """Transforms an int n_int to the corresponding bitfield of size size
@@ -35,99 +34,6 @@ def bitfield(n_int: int, size: int):
     left = np.zeros(max(size - right.size, 0))
     full = np.concatenate((left, right))
     return full.astype(int)
-
-
-def bitfield_to_int(lista):
-    """Transforms the bitfield list to the corresponding int
-    Parameters
-    ----------
-    lista : ist of ints
-        bitfield
-
-    Returns
-    ----------
-    integer : int
-        integer obtained from it's binary representation.
-    """
-
-    integer = 0
-    for i in range(len(lista)):
-        integer += lista[-i - 1] * 2**i
-    return int(integer)
-
-
-def check_list_type(x_input, tipo):
-    """Check if a list x_input is of type tipo
-    Parameters
-    ----------
-    x_input : list
-    tipo : data type
-        it has to be understandable by numpy
-
-    Returns
-    ----------
-    y_output : np.array
-        numpy array of type tipo.
-    """
-    try:
-        y_output = np.array(x_input).astype(tipo, casting="safe")
-    except TypeError:
-        exception = "Only a list/array of " + str(tipo) + " are aceptable types"
-        raise Exception(exception) from TypeError
-    return y_output
-
-
-def expmod(n_input: int, base: int):
-    r"""For a pair of integer numbers, performs the decomposition:
-
-    .. math::
-        n_input = base^power+remainder
-
-    Parameters
-    ----------
-    n_input : int
-        number to decompose
-    base : int
-        basis
-
-    Returns
-    -------
-    power : int
-        power
-    remainder : int
-        remainder
-    """
-    power = int(np.floor(np.log(n_input) / np.log(base)))
-    remainder = int(n_input - base**power)
-    return (power, remainder)
-
-
-@qlm.build_gate("Mask", [int, int], arity=lambda x, y: x)
-def mask(number_qubits, index):
-    r"""
-    Transforms the state :math:`|index\rangle` into the state
-    :math:`|11...1\rangle` of size number qubits.
-
-    Parameters
-    ----------
-    number_qubits : int
-    index : int
-
-    Returns
-    ----------
-    mask : Qlm abstract gate
-        the gate that we have to apply in order to transform
-        state :math:`|index\rangle`. Note that it affects all states.
-    """
-    routine = qlm.QRoutine()
-    quantum_register = routine.new_wires(number_qubits)
-    bits = bitfield(index, number_qubits)
-    for k in range(number_qubits):
-        if bits[-k - 1] == 0:
-            routine.apply(qlm.X, quantum_register[k])
-
-    return routine
-
 
 def fwht_natural(array: np.array):
     """Fast Walsh-Hadamard Transform of array x in natural ordering
@@ -250,7 +156,6 @@ def fwht_dyadic(x_input: np.array):
     x_output = y_[0, :]
     return x_output
 
-
 def fwht(x_input: np.array, ordering: str = "sequency"):
     """Fast Walsh Hadamard transform of array x_input
     Works as a wrapper for the different orderings
@@ -276,38 +181,6 @@ def fwht(x_input: np.array, ordering: str = "sequency"):
     else:
         y_output = fwht_sequency(x_input)
     return y_output
-
-
-def test_bins(array, text="probability"):
-    """
-    Testing condition for numpy arrays. The length of the array must
-    be 2^n with n an int.
-    Parameters
-    ----------
-
-    array : np.ndarray
-        Numpy Array whose dimensionality is going to test
-    test : str
-        String for identification purposes
-    Raises
-    ----------
-
-    AssertionError
-        If lengt of array is not 2^n with n an int.
-    Returns
-    ----------
-
-    nqbits : int
-        Minimum number of qbits mandatory for storing input array in a
-        quantum state
-    """
-    nqbits_ = np.log2(len(array))
-    condition = (nqbits_ % 2 == 0) or (nqbits_ % 2 == 1)
-    condition_str = f"Length of the {text} array must be of dimension 2^n with \
-        n an int. In this case is: {nqbits_}."
-    assert condition, condition_str
-    nqbits = int(nqbits_)
-    return nqbits
 
 
 def left_conditional_probability(initial_bins, probability):
@@ -374,146 +247,26 @@ def left_conditional_probability(initial_bins, probability):
     left_cond_prob[np.isnan(left_cond_prob)] = 0
     return left_cond_prob
 
+def expmod(n_input: int, base: int):
+    r"""For a pair of integer numbers, performs the decomposition:
 
-def get_histogram(probability, low_limit, high_limit, nbin):
-    """
-    Given a function probability, convert it into a histogram. The
-    function must be positive, the normalization is automatic. Note
-    that instead of having an analytical expression, probability could
-    just create an arbitrary vector of the right dimensions and positive
-    amplitudes.  This procedure could be used to initialize any quantum
-    state with real amplitudes
+    .. math::
+        n_input = base^power+remainder
 
     Parameters
     ----------
-
-    low_limit : float
-        lower limit of the interval
-    high_limit : float
-        upper limit of the interval
-    probability : function
-        function that we want to convert to a probability mass function
-        It does not have to be normalized but must be positive
-        in the interval
-    nbin : int
-        number of bins in the interval
+    n_input : int
+        number to decompose
+    base : int
+        basis
 
     Returns
-    ----------
-
-    centers : np.darray
-        numpy array with the centers of the bins of the histogram
-    probs : np.darray
-        numpy array with the probability at the centers of the bins
-        of the histogram
+    -------
+    power : int
+        power
+    remainder : int
+        remainder
     """
-    step = (high_limit - low_limit) / nbin
-    # Center of the bin calculation
-    centers = np.array([low_limit + step * (i + 1 / 2) for i in range(nbin)])
-    prob_n = probability(centers)
-    assert np.all(
-        prob_n >= 0.0
-    ), "Probabilities must be positive, so probability must be \
-         a positive function"
-    probs = prob_n / np.sum(prob_n)
-    assert np.isclose(
-        np.sum(probs), 1.0
-    ), "probability is not getting \
-        normalized properly"
-    return centers, probs
-
-
-def load_qn_gate(qlm_gate, n_times):
-    """
-    Create an AbstractGate by applying an input gate n times
-
-    Parameters
-    ----------
-
-    qlm_gate : QLM gate
-        QLM gate that will be applied n times
-    n_times : int
-        number of times the qlm_gate will be applied
-
-    """
-
-    @qlm.build_gate(f"Q^{n_times}_{time.time_ns()}", [], arity=qlm_gate.arity)
-    def q_n_gate():
-        """
-        Function generator for creating an AbstractGate for apply
-        an input gate n times
-        Returns
-        ----------
-        q_rout : quantum routine
-            Routine for applying n times an input gate
-        """
-        q_rout = qlm.QRoutine()
-        q_bits = q_rout.new_wires(qlm_gate.arity)
-        for _ in range(n_times):
-            q_rout.apply(qlm_gate, q_bits)
-        return q_rout
-
-    return q_n_gate()
-
-def text_is_none(variable, variable_name, variable_type=float):
-    """
-    Raise an exception if variable is None
-    """
-    if variable is None:
-        message = (
-            variable_name
-            + " argument is None. Some "
-            + str(variable_type)
-            + " should be  provided"
-        )
-        raise ValueError(message)
-
-def oracle_shots_calculation(m_k, n_k):
-    """
-    Function for computing the total number of oracle shots.
-
-    Parameters
-    ----------
-    m_k : list
-        list with integers. Applications of the Grover-like
-        amplification operator.
-    n_k : list
-        list with integers. Number of shots for each value of m_k.
-
-    Returns
-    ----------
-    oracle_shots : int
-        Number of total oracle calls for the input schedule
-    """
-
-    oracle_shots = 0.0
-    for step_k, step_n in zip(m_k, n_k):
-        oracle_shots = oracle_shots + (2 * step_k + 1) * step_n
-    return oracle_shots
-
-def measure_state_probability(input_result, target):
-    """
-    From an input result DataFrame gets the probability of target state
-
-    Parameters
-    ----------
-    input_result : Pandas DataFrame
-        DataFrame with measurement results like obtained in the
-        get_results function (from QQuantLib.utils.data_extracting)
-    target : list
-        python list with the state we want to extract
-
-    Returns
-    ----------
-    output_probability : float
-        Probability of the desired target state. If the state it is not
-        found then 0.0 is returned.
-    """
-    probability = input_result[
-        input_result['Int_lsb'] == bitfield_to_int(target)
-    ]['Probability']
-    if len(probability) == 0:
-        output_probability = 0.0
-    else:
-        output_probability = probability.values[0]
-    return output_probability
+    power = int(np.floor(np.log(n_input) / np.log(base)))
+    remainder = int(n_input - base**power)
+    return (power, remainder)

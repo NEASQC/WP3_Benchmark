@@ -5,66 +5,13 @@ of PL kernel
 
 import sys
 import time
-import random
 import numpy as np
 import pandas as pd
-from scipy.stats import norm, entropy, chisquare, chi2
-from qat.lang.models import KPTree
-from QQuantLib.utils.qlm_solver import get_qpu
-from QQuantLib.DL.data_loading import load_probability
-from QQuantLib.utils.data_extracting import get_results
+from scipy.stats import entropy, chisquare, chi2
+sys.path.append('../')
+from PL.data_loading import get_theoric_probability, get_qlm_probability, \
+    get_qpu
 
-
-
-def get_probabilities(n_qbits: int) -> (np.ndarray, np.ndarray, float, float, float, int):
-    """
-    Get the discretization of the PDF for N qubits
-    """
-    mean = random.uniform(-2., 2.)
-    sigma = random.uniform(0.1, 2.)
-
-    intervals = 2 ** n_qbits
-
-    ppf_min = 0.005
-    ppf_max = 0.995
-    norma = norm(loc=mean, scale=sigma)
-    x_ = np.linspace(norma.ppf(ppf_min), norma.ppf(ppf_max), num=intervals)
-    step = x_[1] - x_[0]
-
-    data = norma.pdf(x_)
-    data = data/np.sum(data)
-    mindata = np.min(data)
-    shots = min(1000000, max(10000, round(100/mindata)))
-    #data = np.sqrt(data)
-    return x_, data, mean, sigma, float(step), shots, norma
-
-def loading_probability(data, load_method, shots, qpu):
-    """
-    executing quantum stuff
-    """
-    if load_method == "multiplexor":
-        p_gate = load_probability(data, method="multiplexor")
-    elif load_method == "brute_force":
-        p_gate = load_probability(data, method="brute_force")
-    elif load_method == "KPTree":
-        p_gate = KPTree(np.sqrt(data)).get_routine()
-    else:
-        error_text = "Not valid load_method argument."\
-            "Select between: multiplexor, brute_force or KPTree"
-        raise ValueError(error_text)
-    tick = time.time()
-    result, circuit, _, _ = get_results(
-        p_gate,
-        linalg_qpu=qpu,
-        shots=shots
-    )
-    tack = time.time()
-    quantum_time = tack - tick
-
-    if load_method == "KPTree":
-        #Use different order convention
-        result.sort_values(by="Int", inplace=True)
-    return result, circuit, quantum_time
 
 
 class LoadProbabilityDensity:
@@ -92,11 +39,8 @@ class LoadProbabilityDensity:
         # Set the QPU to use
         self.qpu = kwargs.get("qpu", None)
         if self.qpu is None:
-            print("Not QPU was provide. Default QPU will be used")
-            self.qpu = "default"
-        #get qpu object
-        self.linalg_qpu = get_qpu(self.qpu)
-        print(self.linalg_qpu)
+            error_text = "Please provide a QPU."
+            raise ValueError(error_text)
 
         self.data = None
         self.p_gate = None
@@ -121,19 +65,19 @@ class LoadProbabilityDensity:
         self.observed_frecuency = None
         self.expeted_frecuency = None
 
-    def loading_probability(self):
+    def get_quantum_pdf(self):
         """
-        executing quantum stuff
+        Computing quantum probability density function
         """
-        self.result, self.circuit, self.quantum_time = loading_probability(
-            self.data, self.load_method, self.shots, self.linalg_qpu)
+        self.result, self.circuit, self.quantum_time = get_qlm_probability(
+            self.data, self.load_method, self.shots, self.qpu)
 
-    def get_probabilities(self):
+    def get_theoric_pdf(self):
         """
-        Computing probability densitiy array
+        Computing theoretical probability densitiy function
         """
         self.x_, self.data, self.mean, self.sigma, \
-            self.step, self.shots, self.dist = get_probabilities(self.n_qbits)
+            self.step, self.shots, self.dist = get_theoric_probability(self.n_qbits)
 
     def get_metrics(self):
         """
@@ -174,9 +118,9 @@ class LoadProbabilityDensity:
         """
         #Create the distribution for loading
         tick = time.time()
-        self.get_probabilities()
+        self.get_theoric_pdf()
         #Execute the quantum program
-        self.loading_probability()
+        self.get_quantum_pdf()
         self.get_metrics()
         tack = time.time()
         self.elapsed_time = tack - tick
@@ -189,7 +133,7 @@ class LoadProbabilityDensity:
         self.pdf = pd.DataFrame()
         self.pdf["n_qbits"] = [self.n_qbits]
         self.pdf["load_method"] = [self.load_method]
-        self.pdf["qpu"] = [self.linalg_qpu]
+        self.pdf["qpu"] = [self.qpu]
         self.pdf["mean"] = [self.mean]
         self.pdf["sigma"] = [self.sigma]
         self.pdf["step"] = [self.step]
@@ -236,7 +180,7 @@ if __name__ == "__main__":
     configuration = {
         "load_method" : args.method,
         "number_of_qbits": args.n_qbits,
-        "qpu": args.qpu
+        "qpu": get_qpu(args.qpu)
     }
     prob_dens = LoadProbabilityDensity(**configuration)
     prob_dens.exe()

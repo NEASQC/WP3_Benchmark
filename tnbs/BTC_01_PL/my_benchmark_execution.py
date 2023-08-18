@@ -5,20 +5,32 @@ Workflow configuration and execution for Benchmark Test Case of PL kernel
 import sys
 import json
 from datetime import datetime
-import pandas as pd
 from copy import deepcopy
+import pandas as pd
+from scipy.stats import norm
+from PL.load_probabilities import LoadProbabilityDensity, get_qpu
 
-def run_code(n_qbits, repetitions, **kwargs):
+def build_iterator(**kwargs):
+    """
+    For building the iterator of the benchmark
+    """
+
+    iterator = [tuple([i]) for i in kwargs['list_of_qbits']]
+    return iterator
+
+def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     """
     For configuration and execution of the benchmark kernel.
 
     Parameters
     ----------
 
-    n_qbits : int
-        number of qubits used for domain discretization
+    iterator_step : tuple
+        tuple with elements from iterator built from build_iterator.
     repetitions : list
-        number of repetitions for the integral
+        number of repetitions for each execution
+    stage_bench : str
+        benchmark stage. Only: benchmark, pre-benchamrk
     kwargs : keyword arguments
         for configuration of the benchmark kernel
 
@@ -27,22 +39,30 @@ def run_code(n_qbits, repetitions, **kwargs):
 
     metrics : pandas DataFrame
         DataFrame with the desired metrics obtained for the integral computation
+    save_name : string
+        Desired name for saving the results of the execution
 
     """
-    if n_qbits is None:
-        raise ValueError("n_qbits CAN NOT BE None")
+    #if n_qbits is None:
+    #    raise ValueError("n_qbits CAN NOT BE None")
+
+    if stage_bench not in ['benchmark', 'pre-benchmark']:
+        raise ValueError(
+            "Valid values for stage_bench: benchmark or pre-benchmark'")
+
     if repetitions is None:
-        raise ValueError("samples CAN NOT BE None")
+        raise ValueError("repetitions CAN NOT BE None")
 
     #Here the code for configuring and execute the benchmark kernel
-
-    from load_probabilities import LoadProbabilityDensity
     kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
     if kernel_configuration is None:
         raise ValueError("kernel_configuration can not be None")
 
+    # Here we built the dictionary for the LoadProbabilityDensity class
+    n_qbits = iterator_step[0]
     list_of_metrics = []
     kernel_configuration.update({"number_of_qbits": n_qbits})
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     print(kernel_configuration)
     for i in range(repetitions[0]):
         prob_dens = LoadProbabilityDensity(**kernel_configuration)
@@ -51,7 +71,14 @@ def run_code(n_qbits, repetitions, **kwargs):
     metrics = pd.concat(list_of_metrics)
     metrics.reset_index(drop=True, inplace=True)
 
-    return metrics
+    if stage_bench == 'pre-benchmark':
+        # Name for storing Pre-Benchmark results
+        save_name = "pre_benchmark_step_{}.csv".format(n_qbits)
+    if stage_bench == 'benchmark':
+        # Name for storing Benchmark results
+        save_name = kwargs.get('csv_results')
+        #save_name = "pre_benchmark_step_{}.csv".format(n_qbits)
+    return metrics, save_name
 
 def compute_samples(**kwargs):
     """
@@ -91,7 +118,6 @@ def compute_samples(**kwargs):
     #Code for computing the number of samples for getting the desired
     #statististical significance. Depends on benchmark kernel
 
-    from scipy.stats import norm
     #geting the metrics from pre-benchmark step
     metrics = kwargs.get("pre_metrics", None)
 
@@ -161,8 +187,17 @@ class KERNEL_BENCHMARK:
 
         #Name for saving the pre benchmark step results
         self.save_name = self.kwargs.get("save_name", None)
-        #NNumber of qbits
+        #Number of qbits
         self.list_of_qbits = self.kwargs.get("list_of_qbits", [4])
+
+        save_type = self.kwargs.get("save_append", True)
+        if save_type:
+            self.save_type = 'a'
+        else:
+            self.save_type = 'w'
+
+        #Create the iterator
+        self.iterator = build_iterator(**self.kwargs)
 
         #Configure names for CSV files
         self.saving_folder = self.kwargs.get("saving_folder")
@@ -206,18 +241,18 @@ class KERNEL_BENCHMARK:
         Execute complete Benchmark WorkFlow
         """
         start_time = datetime.now().astimezone().isoformat()
-        for n_qbits in self.list_of_qbits:
-            print("n_qbits: {}".format(n_qbits))
+        for step_iterator in self.iterator:
+            #print("n_qbits: {}".format(n_qbits))
 
             if self.pre_benchmark:
                 print("\t Executing Pre-Benchmark")
                 #Pre benchmark step
-                pre_metrics = run_code(
-                    n_qbits, self.pre_samples, **self.kwargs
+                pre_metrics, pre_save_name = run_code(
+                    step_iterator, self.pre_samples, 'pre-benchmark',
+                    **self.kwargs
                 )
                 #For saving pre-benchmark step results
-                pre_save_name = self.saving_folder + \
-                    "pre_benchmark_step_{}.csv".format(n_qbits)
+                pre_save_name = self.saving_folder + pre_save_name
                 self.save(self.pre_save, pre_save_name, pre_metrics, "w")
                 #Using pre benchmark results for computing the number of
                 #repetitions
@@ -226,11 +261,13 @@ class KERNEL_BENCHMARK:
             #Compute needed samples for desired
             #statistical significance
             samples_ = compute_samples(**self.kwargs)
+            print("\t Executing Benchmark Step")
             print("\t step samples: {}".format(samples_))
-            metrics = run_code(
-                n_qbits, samples_, **self.kwargs
+            metrics, save_name = run_code(
+                step_iterator, samples_, 'benchmark', **self.kwargs
             )
-            self.save(self.save, self.csv_results, metrics, "a")
+            save_name = self.saving_folder + save_name
+            self.save(self.save, save_name, metrics, self.save_type)
         end_time = datetime.now().astimezone().isoformat()
         pdf_times = pd.DataFrame(
             [start_time, end_time],
@@ -258,14 +295,15 @@ if __name__ == "__main__":
         "pre_samples": [10],
         "pre_save": True,
         #Saving configuration
+        "save_append" : True,
         "saving_folder": "./Results/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
         #Computing Repetitions configuration
-        "relative_error": None,
-        "alpha": None,
-        "min_meas": None,
+        "relative_error": 0.1,
+        "alpha": 0.05,
+        "min_meas": 10,
         "max_meas": None,
         #List number of qubits tested
         "list_of_qbits": [4, 6, 8],
