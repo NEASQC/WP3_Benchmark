@@ -1,8 +1,8 @@
 """
-All mandatory functionsfor executing theoretical and atos qlm simulation
-for computing eigenvalues of a R_z^n operator
+All mandatory functions for executing theoretical and atos qlm
+simulation for computing eigenvalues of a R_z^n operator
 
-Author: Gonzal Ferro
+Author: Gonzalo Ferro
 """
 
 import numpy as np

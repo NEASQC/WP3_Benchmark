@@ -9,7 +9,9 @@ import time
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, entropy, chisquare, chi2
-from QPE import rz_lib
+import sys
+sys.path.append('../')
+import QPE.rz_lib as rz_lib
 
 class QPE_RZ:
     """
