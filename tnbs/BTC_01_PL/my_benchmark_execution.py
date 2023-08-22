@@ -7,8 +7,6 @@ import json
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
-from scipy.stats import norm
-from PL.load_probabilities import LoadProbabilityDensity, get_qpu
 
 def build_iterator(**kwargs):
     """
@@ -38,11 +36,13 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     _______
 
     metrics : pandas DataFrame
-        DataFrame with the desired metrics obtained for the integral computation
+        DataFrame with the desired metrics obtained for the
+        integral computation
     save_name : string
         Desired name for saving the results of the execution
 
     """
+    from PL.load_probabilities import LoadProbabilityDensity, get_qpu
     #if n_qbits is None:
     #    raise ValueError("n_qbits CAN NOT BE None")
 
@@ -64,7 +64,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     kernel_configuration.update({"number_of_qbits": n_qbits})
     kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     print(kernel_configuration)
-    for i in range(repetitions[0]):
+    for i in range(repetitions):
         prob_dens = LoadProbabilityDensity(**kernel_configuration)
         prob_dens.exe()
         list_of_metrics.append(prob_dens.pdf)
@@ -98,46 +98,52 @@ def compute_samples(**kwargs):
         DataFrame with the number of executions for each integration interval
 
     """
+    from scipy.stats import norm
 
     #Configuration for sampling computations
 
-    #Desired Error in the benchmark metrics
-    relative_error = kwargs.get("relative_error", None)
-    if relative_error is None:
-        relative_error = 0.1
     #Desired Confidence level
     alpha = kwargs.get("alpha", None)
     if alpha is None:
         alpha = 0.05
+    zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
+
+    #geting the metrics from pre-benchmark step
+    metrics = kwargs.get("pre_metrics", None)
+    bench_conf = kwargs.get('kernel_configuration')
+
+    #Code for computing the number of samples for getting the desired
+    #statististical significance. Depends on benchmark kernel
+
+    #Desired Relative Error for the elapsed Time
+    relative_error = bench_conf.get("relative_error", None)
+    if relative_error is None:
+        relative_error = 0.05
+    # Compute samples for Elapsed Time
+    samples_t = (zalpha * metrics[['elapsed_time']].std() / \
+        (relative_error * metrics[['elapsed_time']].mean()))**2
+
+    #Desired Absolute Error for KS and KL metrics
+    absolute_error = bench_conf.get("absolute_error", None)
+    if absolute_error is None:
+        absolute_error = 1e-4
+    std_metrics = metrics[['KS', 'KL']].std()
+    samples_m = (zalpha * std_metrics / absolute_error) ** 2
+
+    #Maximum number of sampls will be used
+    samples_ = pd.Series(pd.concat([samples_t, samples_m]).max())
+
+    #Apply lower and higher limits to samples
     #Minimum and Maximum number of samples
     min_meas = kwargs.get("min_meas", None)
     if min_meas is None:
         min_meas = 5
     max_meas = kwargs.get("max_meas", None)
-
-    #Code for computing the number of samples for getting the desired
-    #statististical significance. Depends on benchmark kernel
-
-    #geting the metrics from pre-benchmark step
-    metrics = kwargs.get("pre_metrics", None)
-
-    #Compute mean and sd
-    std_ = metrics.groupby("load_method").std()
-    std_.reset_index(inplace=True)
-    mean_ = metrics.groupby("load_method").mean()
-    mean_.reset_index(inplace=True)
-    #Metrics
-    zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
-    #columns = ["KS", "KL", "elapsed_time"]
-    columns = ["elapsed_time"]
-
-    samples_ = (zalpha * std_[columns] / (relative_error * mean_[columns]))**2
-    samples_ = samples_.max(axis=1).astype(int)
-    samples_.name = "samples"
+    samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
+    samples_ = samples_.max().astype(int)
 
     #If user wants limit the number of samples
-    samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
-    return list(samples_)
+    return samples_
 
 def summarize_results(**kwargs):
     """
@@ -151,13 +157,11 @@ def summarize_results(**kwargs):
 
     pdf = pd.read_csv(csv_results, index_col=0, sep=";")
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
-    pdf = pdf[
-        ["n_qbits", "load_method", "KS", "KL", "chi2",
-        "p_value", "elapsed_time", "quantum_time", "classic_time"]
-    ]
+    columns = ["n_qbits", "load_method", "KS", "KL", "chi2", "p_value", \
+        "elapsed_time", "quantum_time", "classic_time"]
+    pdf = pdf[columns]
     results = pdf.groupby(["load_method", "n_qbits"]).agg(
         ["mean", "std", "count"])
-
     return results
 
 class KERNEL_BENCHMARK:
@@ -179,7 +183,9 @@ class KERNEL_BENCHMARK:
         #Benchmark Configuration
 
         #Repetitions for pre benchmark step
-        self.pre_samples = self.kwargs.get("pre_samples", 10)
+        self.pre_samples = self.kwargs.get("pre_samples", None)
+        if self.pre_samples is None:
+            self.pre_samples = 10
         #Saving pre benchmark step results
         self.pre_save = self.kwargs.get("pre_save", True)
         #For executing or not the benchmark step
@@ -286,13 +292,15 @@ if __name__ == "__main__":
     kernel_configuration = {
         "load_method" : "multiplexor",
         "qpu" : "c", #python, qlmass, default
+        "relative_error": None,
+        "absolute_error": None
     }
     name = "PL_{}".format(kernel_configuration["load_method"])
 
     benchmark_arguments = {
         #Pre benchmark configuration
         "pre_benchmark": True,
-        "pre_samples": [10],
+        "pre_samples": None,
         "pre_save": True,
         #Saving configuration
         "save_append" : True,
@@ -301,12 +309,11 @@ if __name__ == "__main__":
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
         #Computing Repetitions configuration
-        "relative_error": 0.1,
-        "alpha": 0.05,
-        "min_meas": 10,
+        "alpha": None,
+        "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6, 8],
+        "list_of_qbits": [4, 6, 8, 10],
     }
 
     #Configuration for the benchmark kernel

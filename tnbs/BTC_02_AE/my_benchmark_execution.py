@@ -6,17 +6,33 @@ import json
 from datetime import datetime
 import pandas as pd
 
-def run_code(n_qbits, repetitions, **kwargs):
+def build_iterator(**kwargs):
+    """
+    For building the iterator of the benchmark
+    """
+    import itertools as it
+
+    list4int = [
+        kwargs['list_of_qbits'],
+        [0, 1],
+    ]
+
+    iterator = it.product(*list4int)
+    return iterator
+
+def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     """
     For configuration and execution of the benchmark kernel.
 
     Parameters
     ----------
 
-    n_qbits : int
-        number of qubits used for domain discretization
+    iterator_step : tuple
+        tuple with elements from iterator built from build_iterator.
     repetitions : list
-        number of repetitions for the integral
+        number of repetitions for each execution
+    stage_bench : str
+        benchmark stage. Only: benchmark, pre-benchamrk
     kwargs : keyword arguments
         for configuration of the benchmark kernel
 
@@ -25,12 +41,20 @@ def run_code(n_qbits, repetitions, **kwargs):
 
     metrics : pandas DataFrame
         DataFrame with the desired metrics obtained for the integral computation
+    save_name : string
+        Desired name for saving the results of the execution
 
     """
-    if n_qbits is None:
-        raise ValueError("n_qbits CAN NOT BE None")
+    #if n_qbits is None:
+    #    raise ValueError("n_qbits CAN NOT BE None")
+    if stage_bench not in ['benchmark', 'pre-benchmark']:
+        raise ValueError(
+            "Valid values for stage_bench: benchmark or pre-benchmark'")
     if repetitions is None:
         raise ValueError("samples CAN NOT BE None")
+
+    n_qbits = iterator_step[0]
+    interval = iterator_step[1]
 
     from ae_sine_integral import sine_integral
     #Here the code for configuring and execute the benchmark kernel
@@ -44,13 +68,21 @@ def run_code(n_qbits, repetitions, **kwargs):
     ]
 
     list_of_metrics = []
-    for j, interval in enumerate([0, 1]):
-        for i in range(repetitions[j]):
-            metrics = sine_integral(n_qbits, interval, ae_configuration)
-            list_of_metrics.append(metrics)
+    for i in range(repetitions):
+        metrics = sine_integral(n_qbits, interval, ae_configuration)
+        list_of_metrics.append(metrics)
     metrics = pd.concat(list_of_metrics)
     metrics.reset_index(drop=True, inplace=True)
-    return metrics[columns]
+
+    if stage_bench == 'pre-benchmark':
+        # Name for storing Pre-Benchmark results
+        save_name = "pre_benchmark_nqubits_{}_integral_{}.csv".format(
+            n_qbits, interval)
+    if stage_bench == 'benchmark':
+        # Name for storing Benchmark results
+        save_name = kwargs.get('csv_results')
+        #save_name = "pre_benchmark_step_{}.csv".format(n_qbits)
+    return metrics[columns], save_name
 
 def compute_samples(**kwargs):
     """
@@ -66,8 +98,8 @@ def compute_samples(**kwargs):
     Returns
     _______
 
-    samples : pandas DataFrame
-        DataFrame with the number of executions for each integration interval
+    samples : int
+        Computed number of executions for desired significance
 
     """
 
@@ -96,10 +128,11 @@ def compute_samples(**kwargs):
 
     #Compute mean and sd by integration interval
     metrics = kwargs.get("pre_metrics")
-    std_ = metrics.groupby("interval").std()
-    std_.reset_index(inplace=True)
-    mean_ = metrics.groupby("interval").mean()
-    mean_.reset_index(inplace=True)
+    #std_ = metrics.groupby("interval").std()
+    std_ = metrics.std()
+    #std_.reset_index(inplace=True)
+    mean_ = metrics.mean()
+    #mean_.reset_index(inplace=True)
 
     columns = [
         "absolute_error_sum", "oracle_calls",
@@ -110,12 +143,11 @@ def compute_samples(**kwargs):
     from scipy.stats import norm
     zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
     samples_ = (zalpha * std_[columns] / (relative_error * mean_[columns]))**2
-    samples_ = samples_.max(axis=1).astype(int)
-    samples_.name = "samples"
-
     #If user wants limit the number of samples
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
-    return list(samples_)
+    samples_ = samples_.max(axis=0).astype(int)
+
+    return samples_
 
 def summarize_results(**kwargs):
     """
@@ -161,8 +193,17 @@ class KERNEL_BENCHMARK:
 
         #Name for saving the pre benchmark step results
         self.save_name = self.kwargs.get("save_name", None)
-        #NNumber of qbits
+        #Number of qbits
         self.list_of_qbits = self.kwargs.get("list_of_qbits", [4])
+
+        save_type = self.kwargs.get("save_append", True)
+        if save_type:
+            self.save_type = 'a'
+        else:
+            self.save_type = 'w'
+
+        #Create the iterator
+        self.iterator = build_iterator(**self.kwargs)
 
         #Configure names for CSV files
         self.saving_folder = self.kwargs.get("saving_folder")
@@ -207,18 +248,18 @@ class KERNEL_BENCHMARK:
         Execute complete Benchmark WorkFlow
         """
         start_time = datetime.now().astimezone().isoformat()
-        for n_qbits in self.list_of_qbits:
-            print("n_qbits: {}".format(n_qbits))
+        for step_iterator in self.iterator:
+            #print("n_qbits: {}".format(n_qbits))
 
             if self.pre_benchmark:
                 print("\t Executing Pre-Benchmark")
                 #Pre benchmark step
-                pre_metrics = run_code(
-                    n_qbits, self.pre_samples, **self.kwargs
+                pre_metrics, pre_save_name = run_code(
+                    step_iterator, self.pre_samples, 'pre-benchmark',
+                    **self.kwargs
                 )
                 #For saving pre-benchmark step results
-                pre_save_name = self.saving_folder + \
-                    "pre_benchmark_step_{}.csv".format(n_qbits)
+                pre_save_name = self.saving_folder + pre_save_name
                 self.save(self.pre_save, pre_save_name, pre_metrics, "w")
                 #Using pre benchmark results for computing the number of
                 #repetitions
@@ -227,11 +268,13 @@ class KERNEL_BENCHMARK:
             #Compute needed samples for desired
             #statistical significance
             samples_ = compute_samples(**self.kwargs)
+            print("\t Executing Benchmark Step")
             print("\t step samples: {}".format(samples_))
-            metrics = run_code(
-                n_qbits, samples_, **self.kwargs
+            metrics, save_name = run_code(
+                step_iterator, samples_, 'benchmark', **self.kwargs
             )
-            self.save(self.save, self.csv_results, metrics, "a")
+            save_name = self.saving_folder + save_name
+            self.save(self.save, save_name, metrics, self.save_type)
         end_time = datetime.now().astimezone().isoformat()
         pdf_times = pd.DataFrame(
             [start_time, end_time],
@@ -249,29 +292,29 @@ if __name__ == "__main__":
     from ae_sine_integral import select_ae
 
     AE = "IQAE"
+    #Setting the AE algorithm configuration
+    ae_problem = select_ae(AE)
+
     benchmark_arguments = {
-        #Pre benchmark configuration
+        #Pre benchmark sttuff
         "pre_benchmark": True,
-        "pre_samples": [10, 10],
+        "pre_samples": None,
         "pre_save": True,
-        #Saving configuration
-        "saving_folder": "./IQAE_Results/",
+        #Saving stuff
+        "save_append" : True,
+        "saving_folder": "./{}_Results/".format(AE),
         "benchmark_times": "{}_times_benchmark.csv".format(AE),
         "csv_results": "{}_benchmark.csv".format(AE),
         "summary_results": "{}_SummaryResults.csv".format(AE),
-        #Computing Repetitions configuration
-        "relative_error": None,
+        #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6, 8, 10],
+        "list_of_qbits": [4, 5],
         "qpu": "c"
     }
-    #Setting the AE algorithm configuration
-    ae_problem = select_ae(AE)
-    #Added QPU to ae_problem
-    #ae_problem.update({"qpu":benchmark_arguments["qpu"]})
+
 
     json_object = json.dumps(ae_problem)
     #Writing the AE algorithm configuration

@@ -8,16 +8,14 @@ import copy
 from datetime import datetime
 import numpy as np
 import pandas as pd
-import itertools as it
 from copy import deepcopy
-from QPE.qpe_rz import QPE_RZ
-from QPE.rz_lib import get_qpu
 
 
 def build_iterator(**kwargs):
     """
     For building the iterator of the benchmark
     """
+    import itertools as it
 
     list4int = [
         kwargs['list_of_qbits'],
@@ -53,6 +51,8 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         Desired name for saving the results of the execution
 
     """
+    from QPE.qpe_rz import QPE_RZ
+    from QPE.rz_lib import get_qpu
     # if n_qbits is None:
     #     raise ValueError("n_qbits CAN NOT BE None")
 
@@ -83,7 +83,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
 
     list_of_metrics = []
     #print(qpe_rz_dict)
-    for i in range(repetitions[0]):
+    for i in range(repetitions):
         rz_qpe = QPE_RZ(**qpe_rz_dict)
         rz_qpe.exe()
         list_of_metrics.append(rz_qpe.pdf)
@@ -145,7 +145,7 @@ def compute_samples(**kwargs):
     if method == 'exact':
 
         # Error expected for the means fidelity
-        error_fid = bench_conf.get("fidelity_error", 0.05)
+        error_fid = bench_conf.get("fidelity_error", 0.001)
         metric_fidelity = ['fidelity']
         std_ = metrics[metric_fidelity].std()
         mean_ = metrics[metric_fidelity].mean()
@@ -332,16 +332,16 @@ if __name__ == "__main__":
 
     kernel_configuration = {
         "angles" : ["random", 'exact'],
-        'auxiliar_qbits_number' : [4, 6, 8, 10],
-        "qpu" : "default", #python, qlmass, default
-        "fidelity_error" : 0.001,
-        "ks_error" : 0.05
+        'auxiliar_qbits_number' : [4, 6],
+        "qpu" : "c", #qlmass, python, c
+        "fidelity_error" : None,
+        "ks_error" : None
     }
 
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
-        "pre_samples": [15, 20],
+        "pre_samples": None,
         "pre_save": False,
         #Saving stuff
         "save_append" : True,
@@ -350,11 +350,11 @@ if __name__ == "__main__":
         "csv_results": "kernel_benchmark.csv",
         "summary_results": "kernel_SummaryResults.csv",
         #Computing Repetitions stuff
-        "alpha": 0.05,
-        "min_meas": 20,
+        "alpha": None,
+        "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6, 8, 10, 12],
+        "list_of_qbits": [4, 6],
     }
 
     #Configuration for the benchmark kernel

@@ -60,10 +60,11 @@ class LoadProbabilityDensity:
         self.ks = None
         self.kl = None
         self.chi2 = None
+        self.fidelity = None
         self.pvalue = None
         self.pdf = None
         self.observed_frecuency = None
-        self.expeted_frecuency = None
+        self.expected_frecuency = None
 
     def get_quantum_pdf(self):
         """
@@ -93,21 +94,25 @@ class LoadProbabilityDensity:
             self.data,
             np.maximum(epsilon, self.result["Probability"])
         )
+        #Fidelity
+        self.fidelity = self.result["Probability"] @ self.data / \
+            (np.linalg.norm(self.result["Probability"]) * \
+            np.linalg.norm(self.data))
 
         #Chi square
         self.observed_frecuency = np.round(
             self.result["Probability"] * self.shots, decimals=0)
-        self.expeted_frecuency = np.round(
+        self.expected_frecuency = np.round(
             self.data * self.shots, decimals=0)
         try:
             self.chi2, self.pvalue = chisquare(
                 f_obs=self.observed_frecuency,
-                f_exp=self.expeted_frecuency
+                f_exp=self.expected_frecuency
             )
         except ValueError:
             self.chi2 = np.sum(
-                (self.observed_frecuency - self.expeted_frecuency) **2 / \
-                    self.expeted_frecuency
+                (self.observed_frecuency - self.expected_frecuency) **2 / \
+                    self.expected_frecuency
             )
             count = len(self.observed_frecuency)
             self.pvalue = chi2.sf(self.chi2, count -1)
@@ -140,6 +145,7 @@ class LoadProbabilityDensity:
         self.pdf["shots"] = [self.shots]
         self.pdf["KS"] = [self.ks]
         self.pdf["KL"] = [self.kl]
+        self.pdf["fidelity"] = [self.fidelity]
         self.pdf["chi2"] = [self.chi2]
         self.pdf["p_value"] = [self.pvalue]
         self.pdf["elapsed_time"] = [self.elapsed_time]
