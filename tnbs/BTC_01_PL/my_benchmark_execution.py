@@ -142,7 +142,6 @@ def compute_samples(**kwargs):
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
     samples_ = samples_.max().astype(int)
 
-    #If user wants limit the number of samples
     return samples_
 
 def summarize_results(**kwargs):

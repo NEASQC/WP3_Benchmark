@@ -58,9 +58,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
 
     from ae_sine_integral import sine_integral
     #Here the code for configuring and execute the benchmark kernel
-    ae_configuration = kwargs.get("ae_configuration")
-    print(ae_configuration)
-    ae_configuration.update({"qpu": kwargs['qpu']})
+    ae_configuration = kwargs.get("kernel_configuration")
 
     columns = [
         "interval", "n_qbits", "absolute_error_sum", "oracle_calls",
@@ -103,49 +101,52 @@ def compute_samples(**kwargs):
 
     """
 
+    from scipy.stats import norm
+
     #Configuration for sampling computations
 
-    #Desired Error in the benchmark metrics
-    relative_error = kwargs.get("relative_error", None)
-    if relative_error is None:
-        relative_error = 0.1
     #Desired Confidence level
     alpha = kwargs.get("alpha", None)
     if alpha is None:
         alpha = 0.05
+    zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
+
+    #geting the metrics from pre-benchmark step
+    metrics = kwargs.get("pre_metrics", None)
+    #getting the configuration of the algorithm and kernel
+    bench_conf = kwargs.get('kernel_configuration')
+
+    #Code for computing the number of samples for getting the desired
+    #statististical significance. Depends on benchmark kernel
+
+    #Desired Relative Error for the elapsed Time
+    relative_error = bench_conf.get("relative_error", None)
+    if relative_error is None:
+        relative_error = 0.05
+    # Compute samples for realtive error metrics:
+    # Elapsed Time and Oracle Calls
+    samples_re = (zalpha * metrics[['elapsed_time', 'oracle_calls']].std() / \
+        (relative_error * metrics[['elapsed_time', 'oracle_calls']].mean()))**2
+
+    #Desired Absolute Error.
+    absolute_error = bench_conf.get("absolute_error", None)
+    if absolute_error is None:
+        absolute_error = 1e-4
+    samples_ae = (zalpha * metrics[['absolute_error_sum']].std() \
+        / absolute_error) ** 2
+
+    #Maximum number of sampls will be used
+    samples_ = pd.Series(pd.concat([samples_re, samples_ae]).max())
+
+    #Apply lower and higher limits to samples
     #Minimum and Maximum number of samples
     min_meas = kwargs.get("min_meas", None)
     if min_meas is None:
         min_meas = 5
     max_meas = kwargs.get("max_meas", None)
-    #if max_meas is None:
-    #    max_meas = 100
 
-    #Code for computing the number of samples for getting the desired
-    #statististical significance. Depends on benchmark kernel
-    #samples_ = pd.Series([100, 100])
-    #samples_.name = "samples"
-
-    #Compute mean and sd by integration interval
-    metrics = kwargs.get("pre_metrics")
-    #std_ = metrics.groupby("interval").std()
-    std_ = metrics.std()
-    #std_.reset_index(inplace=True)
-    mean_ = metrics.mean()
-    #mean_.reset_index(inplace=True)
-
-    columns = [
-        "absolute_error_sum", "oracle_calls",
-        "elapsed_time", "run_time", "quantum_time"
-    ]
-
-    #Metrics
-    from scipy.stats import norm
-    zalpha = norm.ppf(1-(alpha/2)) # 95% of confidence level
-    samples_ = (zalpha * std_[columns] / (relative_error * mean_[columns]))**2
-    #If user wants limit the number of samples
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
-    samples_ = samples_.max(axis=0).astype(int)
+    samples_ = samples_.max().astype(int)
 
     return samples_
 
@@ -185,7 +186,9 @@ class KERNEL_BENCHMARK:
         #Benchmark Configuration
 
         #Repetitions for pre benchmark step
-        self.pre_samples = self.kwargs.get("pre_samples", 10)
+        self.pre_samples = self.kwargs.get("pre_samples", None)
+        if self.pre_samples is None:
+            self.pre_samples = 10
         #Saving pre benchmark step results
         self.pre_save = self.kwargs.get("pre_save", True)
         #For executing or not the benchmark step
@@ -295,6 +298,12 @@ if __name__ == "__main__":
     #Setting the AE algorithm configuration
     ae_problem = select_ae(AE)
 
+    ae_problem.update({
+        "qpu": "c",
+        "relative_error": None,
+        "absolute_error": None
+    })
+
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
@@ -312,7 +321,6 @@ if __name__ == "__main__":
         "max_meas": None,
         #List number of qubits tested
         "list_of_qbits": [4, 5],
-        "qpu": "c"
     }
 
 
@@ -324,7 +332,7 @@ if __name__ == "__main__":
         outfile.write(json_object)
     #Added ae configuration
     benchmark_arguments.update({
-        "ae_configuration": ae_problem,
+        "kernel_configuration": ae_problem,
     })
     ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     ae_bench.exe()
