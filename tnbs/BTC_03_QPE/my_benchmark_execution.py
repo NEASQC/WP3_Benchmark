@@ -2,13 +2,10 @@
 Template for generic Benchmark Test Case Workflow
 """
 
-import sys
-import json
-import copy
 from datetime import datetime
+from copy import deepcopy
 import numpy as np
 import pandas as pd
-from copy import deepcopy
 
 
 def build_iterator(**kwargs):
@@ -104,8 +101,8 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
 
 def compute_samples(**kwargs):
     """
-    This functions computes the number of executions of the benchmark
-    for assure an error r with a confidence of alpha
+    This function computes the number of executions of the benchmark
+    for ensuring an error r with a confidence level of alpha
 
     Parameters
     ----------
@@ -125,6 +122,8 @@ def compute_samples(**kwargs):
 
     #Desired Confidence level
     alpha = kwargs.get("alpha", 0.05)
+    if alpha is None:
+        alpha = 0.05
     metrics = kwargs.get('pre_metrics')
     bench_conf = kwargs.get('kernel_configuration')
 
@@ -146,30 +145,41 @@ def compute_samples(**kwargs):
 
         # Error expected for the means fidelity
         error_fid = bench_conf.get("fidelity_error", 0.001)
+        if error_fid is None:
+            error_fid = 0.001
         metric_fidelity = ['fidelity']
         std_ = metrics[metric_fidelity].std()
-        mean_ = metrics[metric_fidelity].mean()
-        samples_ = (zalpha * std_ / error_fid)**2
+        samples_metric = (zalpha * std_ / error_fid) ** 2
     elif method == 'random':
         # Error expected for the means KS
         error_ks = bench_conf.get("ks_error", 0.05)
+        if error_ks is None:
+            error_ks = 0.05
         metric_ks = ['KS']
         std_ = metrics[metric_ks].std()
-        mean_ = metrics[metric_ks].mean()
-        samples_ = (zalpha * std_ / error_ks)**2
+        samples_metric = (zalpha * std_ / error_ks) ** 2
     else:
         raise ValueError('Angle method can be only: exact or random')
-    #samples_ = pd.concat([samples_fidelity, samples_ks], axis=0).T
-    #samples_ = pd.Series(samples_.max(axis=0).astype(int) + 1)
-    samples_ = samples_.astype(int) + 1
-    print(method, samples_)
 
-    #If user wants limit the number of samples
+    time_error = bench_conf.get("time_error", 0.05)
+    if time_error is None:
+        time_error = 0.05
+    mean_time = metrics[["elapsed_time"]].mean()
+    std_time = metrics[["elapsed_time"]].std()
+    samples_time = (zalpha * std_time / (time_error * mean_time)) ** 2
+
+    #Maximum number of sampls will be used
+    samples_ = pd.Series(pd.concat([samples_time, samples_metric]).max())
+
+    #Apply lower and higher limits to samples
     #Minimum and Maximum number of samples
-    min_meas = kwargs.get("min_meas", 100)
+    min_meas = kwargs.get("min_meas", None)
+    if min_meas is None:
+        min_meas = 5
     max_meas = kwargs.get("max_meas", None)
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
-    return list(samples_)
+    samples_ = samples_.max().astype(int)
+    return samples_
 
 def summarize_results(**kwargs):
     """
@@ -185,22 +195,11 @@ def summarize_results(**kwargs):
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
     # The angles are randomly selected. Not interesting for aggregation
     pdf.drop(columns=['angles'], inplace=True)
-    results = pdf.groupby(["n_qbits", "aux_qbits", "angle_method"]).agg(
+    columns_ = ["n_qbits", "aux_qbits", "angle_method", "shots",
+        "delta_theta", "qpu"]
+    results = pdf.groupby(columns_).agg(
         ["mean", "std", "count"] + \
             [('std_mean', lambda x: np.std(x)/np.sqrt(len(x)))])
-    results.drop(columns=[
-        ('delta_theta', 'std'),
-        ('delta_theta', 'count'),
-        ('delta_theta', 'std_mean'),
-        ('shots', 'std'),
-        ('shots', 'count'),
-        ('shots', 'std_mean')],
-        inplace=True
-    )
-
-    results['qpu'] = [''.join(list(b_['qpu'].unique())) for a_, b_ \
-        in pdf.groupby(['n_qbits', 'aux_qbits', 'angle_method'])]
-    #results = pd.DataFrame()
     return results
 
 class KERNEL_BENCHMARK:
@@ -222,7 +221,9 @@ class KERNEL_BENCHMARK:
         #Benchmark Configuration
 
         #Repetitions for pre benchmark step
-        self.pre_samples = self.kwargs.get("pre_samples", 10)
+        self.pre_samples = self.kwargs.get("pre_samples", None)
+        if self.pre_samples is None:
+            self.pre_samples = 10
         #Saving pre benchmark step results
         self.pre_save = self.kwargs.get("pre_save", True)
         #For executing or not the benchmark step
@@ -332,17 +333,18 @@ if __name__ == "__main__":
 
     kernel_configuration = {
         "angles" : ["random", 'exact'],
-        'auxiliar_qbits_number' : [4, 6],
+        "auxiliar_qbits_number" : [6, 8],
         "qpu" : "c", #qlmass, python, c
         "fidelity_error" : None,
-        "ks_error" : None
+        "ks_error" : None,
+        "time_error": None
     }
 
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
         "pre_samples": None,
-        "pre_save": False,
+        "pre_save": True,
         #Saving stuff
         "save_append" : True,
         "saving_folder": "./Results/",
