@@ -57,7 +57,8 @@ def ansatz_qlm_01(nqubits=7, depth=3):
         for i in range(nqubits):
             qprog.apply(qlm.RZ(theta[d_+1]), qbits[i])
     theta = [th.name for th in theta]
-    return qprog, theta
+    circuit = qprog.to_circ()
+    return circuit
 
 def ansatz_qlm_02(nqubits, depth=3):
     """
@@ -105,8 +106,8 @@ def ansatz_qlm_02(nqubits, depth=3):
             qprog.apply(qlm.RZ(step), qbits[i])
             indice = indice + 1
             theta.append(step)
-    theta = [th.name for th in theta]
-    return qprog, theta
+    circuit = qprog.to_circ()
+    return circuit
 
 def proccess_qresults(result, qubits, complete=True):
     """
@@ -163,6 +164,10 @@ def proccess_qresults(result, qubits, complete=True):
         pdf.sort_values(["Int_lsb"], inplace=True)
     return pdf
 
+
+        
+
+
 def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
     """
     Solving a complete qlm circuit
@@ -203,40 +208,81 @@ def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
     # mps_state = state.reshape(tuple(2 for i in range(nqubit)))
     return pdf_state
 
-def solve_ansatz(qprog, parameters, qlm_qpu):
-    """
-    Given a QLM Program and an input parameters this functions simultates
-    circuit
+class SolveCircuit:
 
-    Parameters
-    ----------
+    def __init__(self, qlm_circuit, **kwargs):
+        """
 
-    qprog : QLM Program
-        QLM Program implementation of a desired parametric ansatz
-    parameters : list or dictionary
-        list or dictionary with the desired parameters of the ansatz
-    qlm_qpu : QLM qpu
-        QLM qpu for solving the circuit
+        Method for initializing the class
 
-    """
+        """
+        self.circuit = qlm_circuit
+        self.nqubits = self.circuit.nbqbits
+        self.parameter_names = self.circuit.get_variables()
+        self.kwargs = kwargs
+        self.par = kwargs.get("parameters", None)
+        self._parameters = None
+        self.parameters = self.par
 
-    circuit = qprog.to_circ()
-    if isinstance(parameters, (list, dict)) != True:
-        text = "parameters must be a list or a dictionary"
-        raise ValueError(text)
-    # Get the variables of the circuit
-    q_var = circuit.get_variables()
-    if len(q_var) != len(parameters):
-        text = "The number of given parameters is different than \
-            the number of variables of quantum program"
-        raise ValueError(text)
-    if isinstance(parameters, list):
-        var_dict = {v_ : parameters[i_] for i_, v_ in enumerate(q_var)}
-    if isinstance(parameters, dict):
-        var_dict = parameters
+        # Set the QPU to use
+        self._qpu = None
+        self.qpu = kwargs.get("qpu", None)
+        # For Storing Results
+        self.state = None
 
-    # Fix the variable of the circuit to the input parameters
-    circuit = circuit(** var_dict)
-    pdf = solving_circuit(circuit, qprog.qbit_count, qlm_qpu)
-    return pdf
+    @property
+    def parameters(self):
+        """
+        creating parameters property
+        """
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value):
+        """
+        setter of the parameters property
+        """
+
+        if value is None:
+            # Random Initialization will be used
+            angles = list(2* np.pi * np.random.rand(len(self.parameter_names)))
+            self._parameters = {v_ : angles[i_] for i_, v_ in enumerate(
+                self.parameter_names)}
+        else:
+            if isinstance(value, (list, dict)) != True:
+                text = "input must be a list, a dictionary or None"
+                raise ValueError(text)
+
+            if len(value) != len(self.parameter_names):
+                text = "input must be a list, a dictionary or None"
+                raise ValueError(text)
+
+
+            if  isinstance(value, list):
+                self._parameters = {v_ : value[i_] for i_, v_ in enumerate(
+                    self.parameter_names)}
+
+            if isinstance(value, dict):
+                self._parameters = value
+
+    @property
+    def qpu(self):
+        """
+        creating qpu property
+        """
+        return self._qpu
+
+    @qpu.setter
+    def qpu(self, value):
+        """
+        setter of the qpu property
+        """
+        if value is None:
+            error_text = "Please provide a QPU."
+            raise ValueError(error_text)
+        self._qpu = value
+
+    def run(self):
+        self.circuit = self.circuit(**self.parameters)
+        self.state = solving_circuit(self.circuit, self.nqubits, self.qpu)
 
