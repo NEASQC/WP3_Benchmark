@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as  np
 import qat.lang.AQASM as qlm
 from qat.core import Result
+from qat.fermion.circuits import make_ldca_circ, make_general_hwe_circ
 
 
 def ansatz_qlm_01(nqubits=7, depth=3):
@@ -164,10 +165,6 @@ def proccess_qresults(result, qubits, complete=True):
         pdf.sort_values(["Int_lsb"], inplace=True)
     return pdf
 
-
-        
-
-
 def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
     """
     Solving a complete qlm circuit
@@ -207,6 +204,49 @@ def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
     # state = np.array(pdf_state['Amplitude'])
     # mps_state = state.reshape(tuple(2 for i in range(nqubit)))
     return pdf_state
+
+def ansatz_selector(ansatz, **kwargs):
+    """
+    Function for selecting an ansatz
+
+    Parameters
+    ----------
+
+    ansatz : text
+        The desired ansatz
+    kwargs : keyword arguments
+        Different keyword arguments for configurin the ansazt, like
+        nqubits or depth
+
+    Returns
+    _______
+
+    circuit : Atos myqlm circuit
+        The atos myqlm circuit implementation of the input ansatz
+    """
+
+
+    nqubits = kwargs.get("nqubits")
+    if nqubits is None:
+        text = "nqubits can not be none"
+        raise ValueError(text)
+    depth = kwargs.get("depth")
+    if depth is None:
+        text = "depth can not be none"
+        raise ValueError(text)
+
+    if ansatz == "simple01":
+        circuit = ansatz_qlm_01(nqubits=nqubits, depth=depth)
+    if ansatz == "simple02":
+        circuit = ansatz_qlm_02(nqubits=nqubits, depth=depth)
+    if ansatz == "lda":
+        circuit = make_ldca_circ(nqubits, ncycles=depth)
+    if ansatz == "hwe":
+        circuit = make_general_hwe_circ(nqubits, n_cycles=depth)
+    else:
+        text = "ansatz MUST BE simple01, simple02, lda or hwe"
+    return circuit
+    
 
 class SolveCircuit:
 
