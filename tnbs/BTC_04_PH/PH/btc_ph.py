@@ -7,6 +7,7 @@ import logging
 import time
 import uuid
 import sys
+import os
 import numpy as np
 import pandas as pd
 from qat.core import Observable, Term
@@ -24,6 +25,35 @@ logging.basicConfig(
 logger = logging.getLogger('__name__')
 
 
+def create_folder(folder_name):
+    """
+    Check if folder exist. If not the function creates it
+
+    Parameters
+    ----------
+
+    folder_name : str
+        Name of the folder
+
+    Returns
+    ----------
+
+    folder_name : str
+        Name of the folder
+    """
+
+    # Check if the folder already exists
+    if not os.path.exists(folder_name):
+        # If it does not exist, create the folder
+        os.mkdir(folder_name)
+        print(f"Folder '{folder_name}' created.")
+    else:
+        print(f"Folder '{folder_name}' already exists.")
+    if folder_name.endswith('/') != True:
+        folder_name = folder_name + "/"
+    return folder_name
+
+
 def get_qpu(qpu=None):
     """
     Function for selecting solver.
@@ -32,7 +62,8 @@ def get_qpu(qpu=None):
     ----------
 
     qpu : str
-        * qlmass: for trying to use QLM as a Service connection to CESGA QLM
+        * qlmass: for trying to use QLM as a Service connection
+            to CESGA QLM
         * python: for using PyLinalg simulator.
         * c: for using CLinalg simulator
         * mps: for using mps
@@ -141,13 +172,15 @@ def ph_btc(**kwargs):
     quantum_time = tock - tick_q
     elapsed_time = tock - tick
     text = ['gse', 'elapsed_time', 'quantum_time']
-    res = pd.DataFrame(
+    pdf_info = pd.DataFrame(kwargs, index=[0])
+    result = pd.DataFrame(
         [gse, elapsed_time, quantum_time],
         index=text
     ).T
+    result = pd.concat([pdf_info, result], axis =1 )
     if save:
-        res.to_csv(folder + filename_base+'_result.csv', sep=';')
-    return res
+        result.to_csv(folder + filename_base+'_result.csv', sep=';')
+    return result
 
 if __name__ == "__main__":
     import argparse
@@ -207,7 +240,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
     dict_ph = vars(args)
-    dict_ph.update({"qpu_ansatz": get_qpu(dict_ph['qpu_ansatz'])})
-    dict_ph.update({"qpu_ph":  get_qpu(dict_ph['qpu_ph'])})
+    dict_ph.update({"qpu_ansatz": get_qpu(dict_ph["qpu_ansatz"])})
+    dict_ph.update({"qpu_ph":  get_qpu(dict_ph["qpu_ph"])})
     print(dict_ph)
-    ph_btc(**dict_ph)
+    if dict_ph["save"]:
+        dict_ph.update({"folder": create_folder(dict_ph["folder"])})
+    result = ph_btc(**dict_ph)
+    print(result)

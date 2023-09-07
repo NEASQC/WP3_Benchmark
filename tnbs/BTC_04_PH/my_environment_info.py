@@ -11,14 +11,14 @@ def my_organisation(**kwargs):
     """
     Given information about the organisation how uploads the benchmark
     """
-    name = "None"
+    name = "CESGA"
     return name
 
 def my_machine_name(**kwargs):
     """
     Name of the machine where the benchmark was performed
     """
-    machine_name = "None"
+    machine_name = platform.node()
     return machine_name
 
 def my_qpu_model(**kwargs):
@@ -91,7 +91,7 @@ def my_cpu_model(**kwargs):
     """
     model of the cpu used in the benchmark
     """
-    cpu_model = "None"
+    cpu_model = platform.processor()
     return cpu_model
 
 def my_frecuency(**kwargs):
@@ -100,7 +100,7 @@ def my_frecuency(**kwargs):
     """
     #Use the nominal frequency. Here, it collects the maximum frequency
     #print(psutil.cpu_freq())
-    cpu_frec = 0
+    cpu_frec = psutil.cpu_freq().max/1000
     return cpu_frec
 
 def my_network(**kwargs):

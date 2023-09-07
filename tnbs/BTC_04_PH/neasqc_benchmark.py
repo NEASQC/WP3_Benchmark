@@ -158,6 +158,7 @@ class BENCHMARK:
         self.set_qpu_cpu_connection(info["QPUCPUConnection"])
         self.set_benchmark_info(info["Benchmarks"])
         self.validate()
+        #print(self.report)
         self.save(info["json_file_name"])
 
     def validate(self):
@@ -198,7 +199,11 @@ if __name__ == "__main__":
 
     ################## Configuration ##########################
 
-    kwargs = {"None": None}
+    folder = "Results/"
+    kwargs = {
+        "times_filename" : folder + "kernel_times_benchmark.csv",
+        "benchmark_file" : folder + "kernel_SummaryResults.csv",
+    }
 
     benchmark_conf = {
         "ReportOrganization": my_environment_info.my_organisation(
@@ -212,7 +217,7 @@ if __name__ == "__main__":
         "QPUCPUConnection":my_environment_info.my_QPUCPUConnection(
             **kwargs),
         "Benchmarks": my_benchmark_info.my_benchmark_info(**kwargs),
-        "json_file_name": "./benchmark_report.json"
+        "json_file_name": folder + "benchmark_report.json"
     }
 
     benchmark = BENCHMARK()

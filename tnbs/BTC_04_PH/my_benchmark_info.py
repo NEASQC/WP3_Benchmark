@@ -3,49 +3,56 @@ Template for gathering the mandatory info for Benchmarks field of NEASQC
 report
 """
 
+import sys
+import platform
 from collections import OrderedDict
 from my_benchmark_summary import summarize_results
+import pandas as pd
 
 
 def my_benchmark_kernel(**kwargs):
     """
     Name for the benchmark Kernel
     """
-    return "AmplitudeEstimation"
+    return "ParentHamiltonian"
 
 def my_starttime(**kwargs):
     """
     Providing the start time of the benchmark
     """
-    start_time = "2022-12-12T16:46:57.268509+01:00"
+    times_filename = kwargs.get("times_filename", None)
+    pdf = pd.read_csv(times_filename, index_col=0)
+    start_time = pdf["StartTime"][0]
     return start_time
 
 def my_endtime(**kwargs):
     """
     Providing the end time of the benchmark
     """
-    end_time = "2022-12-12T16:46:57.268509+01:00"
+    times_filename = kwargs.get("times_filename", None)
+    pdf = pd.read_csv(times_filename, index_col=0)
+    end_time = pdf["EndTime"][0]
     return end_time
 
 def my_timemethod(**kwargs):
     """
     Providing the method for getting the times
     """
-    time_method = "None"
+    time_method = "time.time"
     return time_method
 
 def my_programlanguage(**kwargs):
     """
     Getting the programing language used for benchmark
     """
-    program_language = "None"
+    program_language = platform.python_implementation()
     return program_language
 
 def my_programlanguage_version(**kwargs):
     """
     Getting the version of the programing language used for benchmark
     """
-    language_version = "None"
+    language_version = platform.python_version()
     return language_version
 
 def my_programlanguage_vendor(**kwargs):
@@ -59,10 +66,38 @@ def my_api(**kwargs):
     """
     Collect the information about the used APIs
     """
-    api = OrderedDict()
-    api["Name"] = "None"
-    api["Version"] = "None"
-    list_of_apis = [api]
+    # api = OrderedDict()
+    # api["Name"] = "None"
+    # api["Version"] = "None"
+    # list_of_apis = [api]
+    modules = []
+    list_of_apis = []
+    for module in list(sys.modules):
+        api = OrderedDict()
+        module = module.split('.')[0]
+        if module not in modules:
+            modules.append(module)
+            api["Name"] = module
+            try:
+                version = sys.modules[module].__version__
+            except AttributeError:
+                #print("NO VERSION: "+str(sys.modules[module]))
+                try:
+                    if  isinstance(sys.modules[module].version, str):
+                        version = sys.modules[module].version
+                        #print("\t Attribute Version"+version)
+                    else:
+                        version = sys.modules[module].version()
+                        #print("\t Methdod Version"+version)
+                except (AttributeError, TypeError) as error:
+                    #print('\t NO VERSION: '+str(sys.modules[module]))
+                    try:
+                        version = sys.modules[module].VERSION
+                    except AttributeError:
+                        #print('\t\t NO VERSION: '+str(sys.modules[module]))
+                        version = "Unknown"
+            api["Version"] = str(version)
+            list_of_apis.append(api)
     return list_of_apis
 
 def my_quantum_compilation(**kwargs):
@@ -91,7 +126,24 @@ def my_metadata_info(**kwargs):
     """
 
     metadata = OrderedDict()
-    metadata["None"] = None
+    benchmark_file = kwargs.get("benchmark_file", None)
+    index_columns = [0, 1, 2, 3, 4, 5]
+    pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
+    ansatz = list(set(pdf.index.get_level_values('ansatz')))
+    if len(ansatz) != 1:
+        raise ValueError("Found more than 1 ansatzes")
+    metadata["AnsatzName"] = ansatz[0]
+
+    qpu_ansatz = list(set(pdf.index.get_level_values('qpu_ansatz')))
+    if len(qpu_ansatz) != 1:
+        raise ValueError("Found more than 1 qpu_ansatzes")
+    metadata["QPUforAnsatz"] = qpu_ansatz[0]
+
+    qpu_ph = list(set(pdf.index.get_level_values('qpu_ph')))
+    if len(qpu_ph) != 1:
+        raise ValueError("Found more than 1 qpu_phes")
+    metadata["QPUforPH"] = qpu_ph[0]
+    metadata["AnsatzDepths"] = list(set(pdf.index.get_level_values('depth')))
 
     return metadata
 
@@ -127,7 +179,11 @@ if __name__ == "__main__":
 
     ################## Configuration ##########################
 
-    configuration = {"None": None}
+    folder = "Results/"
+    configuration = {
+        "times_filename" : folder + "kernel_times_benchmark.csv",
+        "benchmark_file" : folder + "kernel_SummaryResults.csv",
+    }
 
     ######## Execute Validations #####################################
 
