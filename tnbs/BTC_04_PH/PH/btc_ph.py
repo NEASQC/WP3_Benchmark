@@ -100,9 +100,12 @@ def get_qpu(qpu=None):
     elif qpu == "c":
         from qat.qpus import CLinalg
         linalg_qpu = CLinalg()
-    elif qpu == "default":
-        from qat.qpus import get_default_qpu
-        linalg_qpu = get_default_qpu()
+    elif qpu == "qat_linalg":
+        from qat.qpus import LinAlg
+        linalg_qpu = LinAlg()
+    elif qpu == "qat_mps":
+        from qat.qpus import MPS
+        linalg_qpu = MPS(lnnize=True)
     else:
         raise ValueError(
             "Invalid value for qpu. Please select one of the three "+
