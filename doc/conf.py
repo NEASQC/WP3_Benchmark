@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'nbsphinx',
-              'sphinx.ext.mathjax', 'sphinx.ext.napoleon', 'sphinxcontrib.bibtex',
+              'sphinx.ext.mathjax', 'sphinx.ext.napoleon',
               'sphinxcontrib.programoutput', 'sphinxcontrib.contentui']
 autodoc_mock_imports = ["cirq", "numpy", "qat", "scipy", "pandas", "psutil",
     "my_benchmark_summary", "PL", "ae_sine_integral", "QQuantLib", "QPE",
