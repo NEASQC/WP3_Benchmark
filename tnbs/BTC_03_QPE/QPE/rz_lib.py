@@ -130,13 +130,13 @@ def rz_eigv(angles):
     pdf : pandas DataFrame
         DataFrame with all the eigenvalues of the R_z^n operator for
         the input list angles. Columns
-            * States : Eigenstates of the Rz^n operator (least
-                significant bit is leftmost)
-            * Int_lsb_left : Integer conversion of the state
-                (leftmost lsb)
-            * Int_lsb_rightt : Integer conversion of the state
-                (rightmost lsb)
-            * Eigenvalues : correspondent eigenvalue
+        * States : Eigenstates of the Rz^n operator (least
+        significant bit is leftmost)
+        * Int_lsb_left : Integer conversion of the state
+        (leftmost lsb)
+        * Int_lsb_rightt : Integer conversion of the state
+        (rightmost lsb)
+        * Eigenvalues : correspondent eigenvalue
 
     """
 
@@ -177,10 +177,10 @@ def make_histogram(eigenvalues, discretization):
     pdf : pandas DataFrame
         Pandas Dataframe with the 2^m bin frequency histogram for the
         input list of eigenvalues. Columns
-            * lambda : bin discretization for eigenvalues based on the
-                discretization input
-            * Probability: probability of finding any eigenvalue inside
-                of the correspoondent lambda bin
+        * lambda : bin discretization for eigenvalues based on the
+        discretization input
+        * Probability: probability of finding any eigenvalue inside
+        of the correspoondent lambda bin
     """
 
     # When the histogram is computed can be some problems with numeric
@@ -228,9 +228,9 @@ def qpe_rz_qlm(angles, auxiliar_qbits_number, shots=0, qpu=None):
         pandas DataFrame with the distribution of the eigenvalues with
         a bin discretization of 2^auxiliar_qbits_number
         * lambda : bin discretization for eigenvalues based on the
-            discretization input (auxiliar_qbits_number input)
+        discretization input (auxiliar_qbits_number input)
         * Probability: probability of finding any eigenvalue inside
-            of the correspoondent lambda bin
+        of the correspoondent lambda bin
 
     qft_pe : CQPE object
 

@@ -20,8 +20,12 @@ sys.path.insert(0, os.path.abspath('../'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'nbsphinx',
               'sphinx.ext.mathjax', 'sphinx.ext.napoleon', 'sphinxcontrib.bibtex',
               'sphinxcontrib.programoutput', 'sphinxcontrib.contentui']
-autodoc_mock_imports = ["cirq", "psutil", "pandas", "numpy", "QQuantLib",
-    "my_benchmark_summary", "ae_sine_integral", "scipy", "qat"]
+autodoc_mock_imports = ["cirq", "numpy", "qat", "scipy", "pandas", "psutil",
+    "my_benchmark_summary", "PL", "ae_sine_integral", "QQuantLib", "QPE",
+    "PH", "joblib", "parent_hamiltonian"]
+
+#autodoc_mock_imports = ["cirq", "psutil", "pandas", "numpy", "QQuantLib",
+#    "my_benchmark_summary", "ae_sine_integral", "scipy", "qat"]
 
 napoleon_google_docstring = True
 
@@ -55,7 +59,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'NEASQC documentation'
-copyright = 'Atos 2021-2022'
+copyright = 'UDC & CESGA 2021-2022'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

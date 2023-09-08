@@ -1,37 +1,53 @@
-.. toctree::
+tnbs.templates package
+======================
 
-templates
-=========
+Submodules
+----------
 
-In this folder several templates scripts for helping in the implementation development of a Benchmark Test Case are provided. 
-
-my\_benchmark\_execution
--------------------------------
+tnbs.templates.my\_benchmark\_execution module
+----------------------------------------------
 
 .. automodule:: tnbs.templates.my_benchmark_execution
    :members:
+   :undoc-members:
+   :show-inheritance:
 
-my\_benchmark\_info
---------------------------
+tnbs.templates.my\_benchmark\_info module
+-----------------------------------------
 
 .. automodule:: tnbs.templates.my_benchmark_info
    :members:
+   :undoc-members:
+   :show-inheritance:
 
-my\_benchmark\_summary
------------------------------
+tnbs.templates.my\_benchmark\_summary module
+--------------------------------------------
 
 .. automodule:: tnbs.templates.my_benchmark_summary
    :members:
+   :undoc-members:
+   :show-inheritance:
 
-my\_environment\_info
-----------------------------
+tnbs.templates.my\_environment\_info module
+-------------------------------------------
 
 .. automodule:: tnbs.templates.my_environment_info
    :members:
+   :undoc-members:
+   :show-inheritance:
 
-neasqc\_benchmark
-------------------------
+tnbs.templates.neasqc\_benchmark module
+---------------------------------------
 
 .. automodule:: tnbs.templates.neasqc_benchmark
    :members:
+   :undoc-members:
+   :show-inheritance:
 
+Module contents
+---------------
+
+.. automodule:: tnbs.templates
+   :members:
+   :undoc-members:
+   :show-inheritance:

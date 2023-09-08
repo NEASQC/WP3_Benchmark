@@ -1,12 +1,13 @@
-"""
-Gather mandatory information for Benchmarks field of NEASQC report
+""" Gather mandatory information for Benchmarks field of NEASQC report
 generation for Benchmark Test Case of PL kernel
+
+Authors: Gonzalo Ferro
+
 """
 import sys
 import platform
-import psutil
-import pandas as pd
 from collections import OrderedDict
+import pandas as pd
 from my_benchmark_summary import summarize_results
 
 
@@ -129,7 +130,6 @@ def my_metadata_info(**kwargs):
 
     metadata = OrderedDict()
     #metadata["None"] = None
-    import pandas as pd
     benchmark_file = kwargs.get("benchmark_file", None)
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=[0, 1])
     pdf.reset_index(inplace=True)

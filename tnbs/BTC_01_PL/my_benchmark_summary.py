@@ -1,6 +1,8 @@
 """
 Formatting the sub-field Results of Benchmarks field of the NEASQC
 report for Benchmark Test Case of PL kernel
+
+Authors: Gonzalo Ferro
 """
 from collections import OrderedDict
 import psutil
