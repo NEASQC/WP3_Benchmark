@@ -10,7 +10,7 @@ The `LICENCE` file contains the default licence statement as specified in the pr
 
 The *requirements.txt* file contains the mandatory python libraries for using present libraries
 
-## Respository organisation
+## Repository organisation
 
 The different **BTC** are located inside the **tnbs** folder:
 

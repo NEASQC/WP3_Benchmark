@@ -144,9 +144,9 @@ def compute_samples(**kwargs):
     if min_meas is None:
         min_meas = 5
     max_meas = kwargs.get("max_meas", None)
-
+    
     samples_.clip(upper=max_meas, lower=min_meas, inplace=True)
-    samples_ = samples_.max().astype(int)
+    samples_ = samples_[0].astype(int)
 
     return samples_
 
