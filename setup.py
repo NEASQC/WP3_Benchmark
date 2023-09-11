@@ -2,6 +2,8 @@ import os, sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
+sys.path.append("tnbs/BTC_01_PL")
+
 class PyTest(TestCommand):
     """
     A test command to run pytest on a the full repository.
@@ -23,13 +25,13 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 setup(
-    name="mylib",
+    name="TNBS",
     version="0.0.1",
-    author="XXX",
+    author="Gonzalo Ferro",
     license="European Union Public License 1.2",
 
     packages=find_packages(),
-    install_requires=["numpy"],
+    install_requires=["numpy", "pandas", "myqlm", "matplotlib", "scipy"],
     # Don't change these two lines
     tests_require=["pytest"],
     cmdclass={'test': PyTest},
