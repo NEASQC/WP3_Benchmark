@@ -1,0 +1,7 @@
+python=3.9.11
+numpy 
+pandas 
+scipy
+matplotlib
+myqlm==1.7.3
+qlmaas==1.7.1
