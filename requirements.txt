@@ -1,4 +1,4 @@
-python=3.9.11
+python==3.9.11
 numpy 
 pandas 
 scipy
