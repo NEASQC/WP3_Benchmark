@@ -7,7 +7,6 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 """
 
 import time
-from copy import deepcopy
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
@@ -55,7 +54,7 @@ def get_results(
     #print("BE AWARE!! linalg_qpu : {}".format(linalg_qpu))
     # if type(quantum_object) == qlm.Program:
     if isinstance(quantum_object, qlm.Program):
-        q_prog = deepcopy(quantum_object)
+        q_prog = quantum_object
         arity = q_prog.qbit_count
     else:
         q_prog = create_qprogram(quantum_object)
@@ -140,8 +139,7 @@ def create_qcircuit(prog_q):
 
     circuit : QLM circuit
     """
-    q_prog = deepcopy(prog_q)
-    circuit = q_prog.to_circ(submatrices_only=True)#, inline=True)
+    circuit = prog_q.to_circ(submatrices_only=True)#, inline=True)
     return circuit
 
 

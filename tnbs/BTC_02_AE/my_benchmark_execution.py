@@ -14,7 +14,7 @@ def build_iterator(**kwargs):
 
     list4int = [
         kwargs['list_of_qbits'],
-        [0, 1],
+        kwargs['kernel_configuration']['integrals'],
     ]
 
     iterator = it.product(*list4int)
@@ -120,7 +120,7 @@ def compute_samples(**kwargs):
     #statististical significance. Depends on benchmark kernel
 
     #Desired Relative Error for the elapsed Time
-    relative_error = bench_conf.get("relative_error", None)
+    relative_error = kwargs.get("relative_error", None)
     if relative_error is None:
         relative_error = 0.05
     # Compute samples for realtive error metrics:
@@ -129,7 +129,7 @@ def compute_samples(**kwargs):
         (relative_error * metrics[['elapsed_time', 'oracle_calls']].mean()))**2
 
     #Desired Absolute Error.
-    absolute_error = bench_conf.get("absolute_error", None)
+    absolute_error = kwargs.get("absolute_error", None)
     if absolute_error is None:
         absolute_error = 1e-4
     samples_ae = (zalpha * metrics[['absolute_error_sum']].std() \
@@ -300,8 +300,7 @@ if __name__ == "__main__":
 
     ae_problem.update({
         "qpu": "c",
-        "relative_error": None,
-        "absolute_error": None
+        "integrals": [0]
     })
 
     benchmark_arguments = {
@@ -317,6 +316,8 @@ if __name__ == "__main__":
         "summary_results": "{}_SummaryResults.csv".format(AE),
         #Computing Repetitions stuff
         "alpha": None,
+        "relative_error": None,
+        "absolute_error": None,
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
