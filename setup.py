@@ -2,7 +2,9 @@ import os, sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-sys.path.append("tnbs/BTC_01_PL")
+#sys.path.append("tnbs/BTC_01_PL")
+#sys.path.append("tnbs/BTC_02_AE")
+#sys.path.append("tnbs/BTC_03_QPE")
 
 class PyTest(TestCommand):
     """

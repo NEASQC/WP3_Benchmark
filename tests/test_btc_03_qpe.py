@@ -7,7 +7,7 @@ import re
 
 folder = os.getcwd()
 folder = re.sub(r"WP3_Benchmark/.*", "WP3_Benchmark/", folder)
-folder = folder + "tnbs/BTC_01_PL"
+folder = folder + "tnbs/BTC_03_QPE"
 sys.path.append(folder)
 from my_benchmark_execution import KERNEL_BENCHMARK 
 
@@ -40,43 +40,46 @@ def create_folder(folder_name):
         folder_name = folder_name + "/"
     return folder_name
 
-def test_pl(): 
+def test_qpe(): 
+
     kernel_configuration = {
-        "load_method" : "multiplexor",
-        "qpu" : "c", #python, qlmass, default
-        "relative_error": None,
-        "absolute_error": None
+        "angles" : ["random", 'exact'],
+        "auxiliar_qbits_number" : [8],
+        "qpu" : "c", #qlmass, python, c
+        "fidelity_error" : None,
+        "ks_error" : None,
+        "time_error": None
     }
-    name = "PL_{}".format(kernel_configuration["load_method"])
-    print(os.getcwdb())
-                                                                  
+
     benchmark_arguments = {
-        #Pre benchmark configuration
+        #Pre benchmark sttuff
         "pre_benchmark": True,
         "pre_samples": None,
-        "pre_save": False,
-        #Saving configuration
+        "pre_save": True,
+        #Saving stuff
         "save_append" : True,
         "saving_folder": "./Results/",
-        "benchmark_times": "{}_times_benchmark.csv".format(name),
-        "csv_results": "{}_benchmark.csv".format(name),
-        "summary_results": "{}_SummaryResults.csv".format(name),
-        #Computing Repetitions configuration
+        "benchmark_times": "kernel_times_benchmark.csv",
+        "csv_results": "kernel_benchmark.csv",
+        "summary_results": "kernel_SummaryResults.csv",
+        #Computing Repetitions stuff
         "alpha": None,
-        "min_meas": 10,
-        "max_meas": 15,
+        "min_meas": None,
+        "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4],
+        "list_of_qbits": [6],
     }
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
-    ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
-    ae_bench.exe()
-    filename = folder + benchmark_arguments["summary_results"]
-    a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
-    print(100* list(a['KS']['mean'])[0])
-    assert(100* list(a['KS']['mean'])[0] < 1.0)
-
+    kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
+    kernel_bench.exe()
+    filename = "./Results/kernel_SummaryResults.csv"
+    index_columns = [0, 1, 2, 3, 4, 5]
+    a = pd.read_csv(filename, header=[0, 1], index_col=index_columns)
+    a= a.reset_index()
+    assert((a[a['angle_method']=="exact"]['fidelity']['mean'] > 0.999).all())
+    assert((a[a['angle_method']=="random"]['KS']['mean'] < 0.05).all())
     shutil.rmtree(folder)
-#test_pl()
+
+#test_qpe()
