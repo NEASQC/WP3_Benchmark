@@ -33,6 +33,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest tests/test_btc_01_pl.py
-        pytest tests/test_btc_02_ae.py
-        pytest tests/test_btc_03_qpe.py
+        python -m pytest tests/test_btc_01_pl.py
+        python -m pytest tests/test_btc_02_ae.py
+        python -m pytest tests/test_btc_03_qpe.py
