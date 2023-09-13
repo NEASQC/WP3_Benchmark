@@ -2,16 +2,28 @@
 Mandatory code for softaware implemetation of the Benchmark Test Case
 of AE kernel
 """
+
+import sys
+import os
 import json
 import time
+import re
+from copy import deepcopy
 import numpy as np
 import pandas as pd
-from copy import deepcopy
 import sys
-sys.path.append('../')
-from QQuantLib.utils.benchmark_utils import combination_for_list
-from QQuantLib.utils.qlm_solver import get_qpu
-from QQuantLib.finance.quantum_integration import q_solve_integral
+
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+sys.path.append(folder)
+
+
+from tnbs.BTC_02_AE.QQuantLib.utils.benchmark_utils import combination_for_list
+from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
+from tnbs.BTC_02_AE.QQuantLib.finance.quantum_integration import q_solve_integral
 
 def sine_integral(n_qbits, interval, ae_dictionary):
     """
@@ -165,19 +177,23 @@ def select_ae(ae_method):
 
     """
 
+    folder_json = os.getcwd()
+    folder_json = re.sub(
+        r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark", folder)
+    folder_json = folder_json + "/tnbs/BTC_02_AE/jsons/"
     lista_ae_ = []
     if ae_method == "MLAE":
-        lista_ae_.append("jsons/integral_mlae_configuration.json")
+        lista_ae_.append(folder_json + "integral_mlae_configuration.json")
     elif ae_method == "IQAE":
-        lista_ae_.append("jsons/integral_iqae_configuration.json")
+        lista_ae_.append(folder_json + "integral_iqae_configuration.json")
     elif ae_method == "RQAE":
-        lista_ae_.append("jsons/integral_rqae_configuration.json")
+        lista_ae_.append(folder_json + "integral_rqae_configuration.json")
     elif ae_method == "CQPEAE":
-        lista_ae_.append("jsons/integral_cqpeae_configuration.json")
+        lista_ae_.append(folder_json + "integral_cqpeae_configuration.json")
     elif ae_method == "IQPEAE":
-        lista_ae_.append("jsons/integral_iqpeae_configuration.json")
+        lista_ae_.append(folder_json + "integral_iqpeae_configuration.json")
     elif ae_method == "MCAE":
-        lista_ae_.append("jsons/integral_mcae_configuration.json")
+        lista_ae_.append(folder_json + "integral_mcae_configuration.json")
     else:
         raise ValueError(
             "ae_method MUST BE: MLAE, IQAE, RQAE, CQPEAE or IQPEAE")

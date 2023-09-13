@@ -304,4 +304,3 @@ if __name__ == "__main__":
         print("\t Benchmark is Valid")
     except jsonschema.exceptions.ValidationError as ex:
         print(ex)
-

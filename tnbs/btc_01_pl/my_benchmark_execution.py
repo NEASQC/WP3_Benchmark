@@ -4,18 +4,18 @@ Workflow configuration and execution for Benchmark Test Case of PL kernel
 
 import sys
 import os
-import json
+import re
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
-import re
+from scipy.stats import norm
 
 folder = os.getcwd()
 folder = re.sub(
     r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
 sys.path.append(folder)
 
-from tnbs.BTC_01_PL.PL.load_probabilities import LoadProbabilityDensity, get_qpu
+from tnbs.btc_01_pl.PL.load_probabilities import LoadProbabilityDensity, get_qpu
 
 def build_iterator(**kwargs):
     """
@@ -106,7 +106,6 @@ def compute_samples(**kwargs):
         DataFrame with the number of executions for each integration interval
 
     """
-    from scipy.stats import norm
 
     #Configuration for sampling computations
 
@@ -158,8 +157,8 @@ def summarize_results(**kwargs):
     Create summary with statistics
     """
 
-    folder = kwargs.get("saving_folder")
-    csv_results = folder + kwargs.get("csv_results")
+    folder_ = kwargs.get("saving_folder")
+    csv_results = folder_ + kwargs.get("csv_results")
     #Code for summarize the benchamark results. Depending of the
     #kernel of the benchmark
 
@@ -226,7 +225,7 @@ class KERNEL_BENCHMARK:
         self.metrics = None
 
 
-    def save(self, save, save_name, input_pdf, save_mode):
+    def save(self, save_, save_name, input_pdf, save_mode):
         """
         For saving panda DataFrames to csvs
 
@@ -241,7 +240,7 @@ class KERNEL_BENCHMARK:
         save_mode: str
             saving mode: overwrite (w) or append (a)
         """
-        if save:
+        if save_:
             with open(save_name, save_mode) as f_pointer:
                 input_pdf.to_csv(
                     f_pointer,
@@ -281,7 +280,7 @@ class KERNEL_BENCHMARK:
                 step_iterator, samples_, 'benchmark', **self.kwargs
             )
             save_name = self.saving_folder + save_name
-            self.save(self.save, save_name, metrics, self.save_type)
+            self.save(True, save_name, metrics, self.save_type)
         end_time = datetime.now().astimezone().isoformat()
         pdf_times = pd.DataFrame(
             [start_time, end_time],
@@ -297,13 +296,13 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
 
-    kernel_configuration = {
+    kernel_configuration_ = {
         "load_method" : "multiplexor",
         "qpu" : "c", #python, qlmass, default
         "relative_error": None,
         "absolute_error": None
     }
-    name = "PL_{}".format(kernel_configuration["load_method"])
+    name = "PL_{}".format(kernel_configuration_["load_method"])
 
     benchmark_arguments = {
         #Pre benchmark configuration
@@ -325,7 +324,6 @@ if __name__ == "__main__":
     }
 
     #Configuration for the benchmark kernel
-    benchmark_arguments.update({"kernel_configuration": kernel_configuration})
+    benchmark_arguments.update({"kernel_configuration": kernel_configuration_})
     ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     ae_bench.exe()
-

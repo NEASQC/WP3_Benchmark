@@ -2,11 +2,20 @@
 Template for generic Benchmark Test Case Workflow
 """
 
+import sys
+import os
+import re
 from datetime import datetime
 from copy import deepcopy
 import numpy as np
 import pandas as pd
 
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_03_QPE.QPE.qpe_rz import QPE_RZ
+from tnbs.BTC_03_QPE.QPE.rz_lib import get_qpu
 
 def build_iterator(**kwargs):
     """
@@ -48,8 +57,6 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         Desired name for saving the results of the execution
 
     """
-    from QPE.qpe_rz import QPE_RZ
-    from QPE.rz_lib import get_qpu
     # if n_qbits is None:
     #     raise ValueError("n_qbits CAN NOT BE None")
 

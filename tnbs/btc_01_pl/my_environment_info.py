@@ -240,5 +240,3 @@ if __name__ == "__main__":
         print("\tQPUCPUConnection is Valid")
     except jsonschema.exceptions.ValidationError as ex:
         print(ex)
-
-

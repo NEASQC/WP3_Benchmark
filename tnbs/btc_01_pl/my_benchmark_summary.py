@@ -4,8 +4,9 @@ report for Benchmark Test Case of PL kernel
 
 Authors: Gonzalo Ferro
 """
-from collections import OrderedDict
 import psutil
+from collections import OrderedDict
+import pandas as pd
 
 def summarize_results(**kwargs):
     """
@@ -19,7 +20,6 @@ def summarize_results(**kwargs):
     #Metrics needed for reporting. Depend on the benchmark kernel
     #list_of_metrics = ["MRSE"]
 
-    import pandas as pd
     benchmark_file = kwargs.get("benchmark_file", None)
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=[0, 1])
     pdf.reset_index(inplace=True)

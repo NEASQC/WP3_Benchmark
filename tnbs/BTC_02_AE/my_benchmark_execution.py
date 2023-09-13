@@ -2,15 +2,24 @@
 Workflow configuration and execution for Benchmark Test Case of AE kernel
 """
 
+import sys
+import os
 import json
+import re
 from datetime import datetime
+import itertools as it
 import pandas as pd
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.ae_sine_integral import sine_integral
 
 def build_iterator(**kwargs):
     """
     For building the iterator of the benchmark
     """
-    import itertools as it
 
     list4int = [
         kwargs['list_of_qbits'],
@@ -56,7 +65,6 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     n_qbits = iterator_step[0]
     interval = iterator_step[1]
 
-    from ae_sine_integral import sine_integral
     #Here the code for configuring and execute the benchmark kernel
     ae_configuration = kwargs.get("kernel_configuration")
 
@@ -292,11 +300,12 @@ class KERNEL_BENCHMARK:
 
 
 if __name__ == "__main__":
-    from ae_sine_integral import select_ae
+    from tnbs.BTC_02_AE.ae_sine_integral import select_ae
 
-    AE = "IQAE"
+    AE = "MLAE"
     #Setting the AE algorithm configuration
     ae_problem = select_ae(AE)
+    print(ae_problem)
 
     ae_problem.update({
         "qpu": "c",

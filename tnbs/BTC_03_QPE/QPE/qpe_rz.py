@@ -6,12 +6,17 @@ Author: Gonzalo Ferro
 """
 
 import time
+import sys
+import os
+import re
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, entropy, chisquare, chi2
-import sys
-sys.path.append('../')
-import QPE.rz_lib as rz_lib
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from  tnbs.BTC_03_QPE.QPE import rz_lib
 
 class QPE_RZ:
     """
