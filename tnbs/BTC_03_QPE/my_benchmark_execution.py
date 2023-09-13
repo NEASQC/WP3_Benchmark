@@ -321,7 +321,7 @@ class KERNEL_BENCHMARK:
                 step_iterator, samples_, 'benchmark', **self.kwargs
             )
             save_name = self.saving_folder + save_name
-            self.save(self.save, save_name, metrics, self.save_type)
+            self.save(True, save_name, metrics, self.save_type)
         end_time = datetime.now().astimezone().isoformat()
         pdf_times = pd.DataFrame(
             [start_time, end_time],
