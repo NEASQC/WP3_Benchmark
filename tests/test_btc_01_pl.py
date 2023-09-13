@@ -3,15 +3,13 @@ import shutil
 import sys
 import pandas as pd
 import numpy as np
-import re
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-
-sys.path.append(folder)
-from tnbs.BTC_01_PL.my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
-
+l_sys = sys.path
+l_path = l_sys[['tests' in i for i in l_sys].index(True)]
+l_path = l_path.replace("tests", '')
+l_path = l_path + "tnbs/BTC_01_PL"
+sys.path.append(l_path)
+from my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
 
 def create_folder(folder_name):
     """

@@ -2,20 +2,16 @@
 Workflow configuration and execution for Benchmark Test Case of PL kernel
 """
 
-import os
 import sys
 import json
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
-import re
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-
-sys.path.append(folder)
-from tnbs.BTC_01_PL.PL.load_probabilities import LoadProbabilityDensity, get_qpu
+l_sys = sys.path
+l_path = l_sys[['BTC_01' in i for i in l_sys].index(True)]
+sys.path.append(l_path+'/PL')
+from PL.load_probabilities import LoadProbabilityDensity, get_qpu
 
 def build_iterator(**kwargs):
     """
