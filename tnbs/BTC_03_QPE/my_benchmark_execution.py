@@ -4,12 +4,12 @@ Template for generic Benchmark Test Case Workflow
 
 import os
 import sys
+import re
 from datetime import datetime
 from copy import deepcopy
 import numpy as np
 import pandas as pd
 
-import re
 
 folder = os.getcwd()
 folder = re.sub(

@@ -5,13 +5,21 @@ Class for executing QPE on a R_z^n operator
 Author: Gonzalo Ferro
 """
 
+import os
+import sys
+import re
 import time
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, entropy, chisquare, chi2
-import sys
-sys.path.append('../')
-import QPE.rz_lib as rz_lib
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+
+sys.path.append(folder)
+
+import tnbs.BTC_03_QPE.QPE.rz_lib as rz_lib
 
 class QPE_RZ:
     """

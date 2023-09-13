@@ -67,7 +67,7 @@ def test_qpe():
         #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
-        "max_meas": None,
+        "max_meas": 10,
         #List number of qubits tested
         "list_of_qbits": [6],
     }
@@ -84,4 +84,4 @@ def test_qpe():
     assert((a[a['angle_method']=="random"]['KS']['mean'] < 0.05).all())
     shutil.rmtree(folder)
 
-#test_qpe()
+test_qpe()

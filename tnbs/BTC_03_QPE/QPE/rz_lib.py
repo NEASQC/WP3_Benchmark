@@ -5,10 +5,19 @@ simulation for computing eigenvalues of a R_z^n operator
 Author: Gonzalo Ferro
 """
 
+import os
+import sys
+import re
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
-from QPE.utils.qpe import CQPE
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+
+sys.path.append(folder)
+from tnbs.BTC_03_QPE.QPE.utils.qpe import CQPE
 
 
 def get_qpu(qpu=None):
