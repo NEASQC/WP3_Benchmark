@@ -2,19 +2,11 @@
 Workflow configuration and execution for Benchmark Test Case of AE kernel
 """
 
-import os
-import sys
-import re
 import json
 from datetime import datetime
 import pandas as pd
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-
-sys.path.append(folder)
-from tnbs.BTC_02_AE.ae_sine_integral import sine_integral
+from ae_sine_integral import sine_integral
 
 def build_iterator(**kwargs):
     """

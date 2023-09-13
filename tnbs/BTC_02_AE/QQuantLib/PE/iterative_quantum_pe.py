@@ -22,17 +22,13 @@ import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 from qat.core import Result
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
-from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
-from tnbs.BTC_02_AE.QQuantLib.utils.data_extracting import (
+from QQuantLib.utils.qlm_solver import get_qpu
+from QQuantLib.utils.data_extracting import (
     create_qprogram,
     create_qjob,
     create_qcircuit,
 )
-from tnbs.BTC_02_AE.QQuantLib.utils.utils import load_qn_gate
+from QQuantLib.utils.utils import load_qn_gate
 
 
 class IQPE:

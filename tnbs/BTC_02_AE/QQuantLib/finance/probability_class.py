@@ -4,8 +4,7 @@ Definition for DensityProbability Class.
 Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 """
 from functools import partial
-import sys
-sys.path.append('../../')
+
 import QQuantLib.finance.classical_finance as cf
 from QQuantLib.utils.utils import text_is_none
 

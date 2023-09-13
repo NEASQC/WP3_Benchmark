@@ -11,13 +11,13 @@ estimation.
 Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 """
 
-import sys
+#import sys
 import numpy as np
 import pandas as pd
-sys.path.append('../../')
-from QQuantLib.finance.probability_class import DensityProbability
-from QQuantLib.finance.payoff_class import PayOff
-from QQuantLib.finance.quantum_integration import q_solve_integral
+#sys.path.append('../../')
+from probability_class import DensityProbability
+from payoff_class import PayOff
+from quantum_integration import q_solve_integral
 
 
 def ae_price_estimation(**kwargs):

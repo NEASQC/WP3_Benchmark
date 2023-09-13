@@ -22,14 +22,10 @@ import time
 import numpy as np
 import qat.lang.AQASM as qlm
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
-from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
-from tnbs.BTC_02_AE.QQuantLib.PE.iterative_quantum_pe import IQPE
-from tnbs.BTC_02_AE.QQuantLib.AA.amplitude_amplification import grover
-from tnbs.BTC_02_AE.QQuantLib.utils.utils import check_list_type
+from QQuantLib.utils.qlm_solver import get_qpu
+from QQuantLib.PE.iterative_quantum_pe import IQPE
+from QQuantLib.AA.amplitude_amplification import grover
+from QQuantLib.utils.utils import check_list_type
 
 
 class IQPEAE:

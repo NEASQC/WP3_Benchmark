@@ -11,12 +11,8 @@ import re
 import warnings
 import numpy as np
 import qat.lang.AQASM as qlm
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
-import tnbs.BTC_02_AE.QQuantLib.DL.data_loading as dl
-from tnbs.BTC_02_AE.QQuantLib.utils.utils import test_bins
+import QQuantLib.DL.data_loading as dl
+from QQuantLib.utils.utils import test_bins
 
 class Encoding:
 

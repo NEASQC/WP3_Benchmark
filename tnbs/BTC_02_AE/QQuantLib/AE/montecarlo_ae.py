@@ -17,14 +17,10 @@ import pandas as pd
 import qat.lang.AQASM as qlm
 
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
 
-from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
-from tnbs.BTC_02_AE.QQuantLib.utils.data_extracting import get_results
-from tnbs.BTC_02_AE.QQuantLib.utils.utils import check_list_type, \
+from QQuantLib.utils.qlm_solver import get_qpu
+from QQuantLib.utils.data_extracting import get_results
+from QQuantLib.utils.utils import check_list_type, \
     measure_state_probability
 
 
