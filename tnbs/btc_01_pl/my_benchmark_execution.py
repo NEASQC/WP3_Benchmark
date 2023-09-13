@@ -3,19 +3,10 @@ Workflow configuration and execution for Benchmark Test Case of PL kernel
 """
 
 import sys
-import os
-import re
+import json
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
-from scipy.stats import norm
-
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
-
-from tnbs.btc_01_pl.PL.load_probabilities import LoadProbabilityDensity, get_qpu
 
 def build_iterator(**kwargs):
     """
@@ -51,6 +42,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         Desired name for saving the results of the execution
 
     """
+    from PL.load_probabilities import LoadProbabilityDensity, get_qpu
     #if n_qbits is None:
     #    raise ValueError("n_qbits CAN NOT BE None")
 

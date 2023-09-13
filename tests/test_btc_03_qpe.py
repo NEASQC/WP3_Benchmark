@@ -9,8 +9,9 @@ folder = os.getcwd()
 folder = os.getcwd()
 folder = re.sub(
     r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-sys.path.append(folder)
-from tnbs.BTC_03_QPE.my_benchmark_execution import KERNEL_BENCHMARK
+
+sys.path.append(folder+"/tnbs/BTC_03_QPE")
+from my_benchmark_execution import KERNEL_BENCHMARK
 
 
 def create_folder(folder_name):

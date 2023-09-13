@@ -33,4 +33,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
+        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_01_pl.py
+        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_02_ae.py
+        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_03_qpe.py
