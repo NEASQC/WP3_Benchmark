@@ -11,7 +11,6 @@ folder = re.sub(
 
 sys.path.append(folder)
 from tnbs.BTC_01_PL.my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
-from tnbs.BTC_01_PL.PL import *
 
 
 def create_folder(folder_name):

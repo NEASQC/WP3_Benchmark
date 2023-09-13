@@ -3,6 +3,7 @@ Mandatory code for softaware implemetation of the Benchmark Test Case
 of PL kernel
 """
 
+import os
 import sys
 import time
 import numpy as np
@@ -10,8 +11,12 @@ import pandas as pd
 from scipy.stats import entropy, chisquare, chi2
 import re
 
-sys.path.append('../')
-from PL.data_loading import get_theoric_probability, get_qlm_probability, \
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+
+sys.path.append(folder)
+from tnbs.BTC_01_PL.PL.data_loading import get_theoric_probability, get_qlm_probability, \
     get_qpu
 
 
