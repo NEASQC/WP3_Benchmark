@@ -36,6 +36,4 @@ jobs:
         python -c "import sys; print('\n'.join(sys.path)); import os; print(os.getcwd())"
     - name: Test with pytest
       run: |
-        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_01_pl.py
-        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_02_ae.py
-        PYTHONPATH=$(pwd) python -m pytest tests/test_btc_03_qpe.py
+        pytest

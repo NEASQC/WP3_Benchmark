@@ -4,12 +4,18 @@ of PL kernel
 """
 
 import sys
+import os
 import time
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy, chisquare, chi2
-sys.path.append('../')
-from PL.data_loading import get_theoric_probability, get_qlm_probability, \
+import re
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_01_PL.PL.data_loading import get_theoric_probability, get_qlm_probability, \
     get_qpu
 
 
