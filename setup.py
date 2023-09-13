@@ -31,7 +31,6 @@ setup(
     version="0.0.1",
     author="Gonzalo Ferro",
     license="European Union Public License 1.2",
-
     packages=find_packages(),
     install_requires=["numpy", "pandas", "myqlm", "matplotlib", "scipy"],
     # Don't change these two lines
