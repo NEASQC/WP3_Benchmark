@@ -6,10 +6,10 @@ import numpy as np
 import re
 
 folder = os.getcwd()
-folder = re.sub(r"WP3_Benchmark/.*", "WP3_Benchmark/", folder)
-folder = folder + "tnbs/BTC_02_AE"
-sys.path.append(folder)
-from my_benchmark_execution import KERNEL_BENCHMARK 
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder+"/tnbs/BTC_02_AE")
+from my_benchmark_execution import KERNEL_BENCHMARK as AE_CLASS
 
 
 def create_folder(folder_name):
@@ -60,7 +60,7 @@ def test_ae_iqae():
         "pre_save": True,
         #Saving configuration
         "save_append" : True,
-        "saving_folder": "./Results/",
+        "saving_folder": "./Results_IQAE/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
@@ -76,7 +76,7 @@ def test_ae_iqae():
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
-    ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
+    ae_bench = AE_CLASS(**benchmark_arguments)
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
@@ -110,7 +110,7 @@ def test_ae_mlae():
         "pre_save": True,
         #Saving configuration
         "save_append" : True,
-        "saving_folder": "./Results/",
+        "saving_folder": "./Results_MLAE/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
@@ -126,7 +126,7 @@ def test_ae_mlae():
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
-    ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
+    ae_bench = AE_CLASS(**benchmark_arguments)
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
@@ -158,7 +158,7 @@ def test_ae_rqae():
         "pre_save": True,
         #Saving configuration
         "save_append" : True,
-        "saving_folder": "./Results/",
+        "saving_folder": "./Results_RQAE/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
@@ -174,7 +174,7 @@ def test_ae_rqae():
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
-    ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
+    ae_bench = AE_CLASS(**benchmark_arguments)
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])

@@ -6,10 +6,11 @@ import numpy as np
 import re
 
 folder = os.getcwd()
-folder = re.sub(r"WP3_Benchmark/.*", "WP3_Benchmark/", folder)
-folder = folder + "tnbs/BTC_03_QPE"
-sys.path.append(folder)
-from my_benchmark_execution import KERNEL_BENCHMARK 
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder+"/tnbs/BTC_03_QPE")
+from my_benchmark_execution import KERNEL_BENCHMARK
 
 
 def create_folder(folder_name):

@@ -6,10 +6,11 @@ import numpy as np
 import re
 
 folder = os.getcwd()
-folder = re.sub(r"WP3_Benchmark/.*", "WP3_Benchmark/", folder)
-folder = folder + "tnbs/BTC_01_PL"
-sys.path.append(folder)
-from my_benchmark_execution import KERNEL_BENCHMARK 
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+
+sys.path.append(folder+"/tnbs/BTC_01_PL")
+from my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
 
 
 def create_folder(folder_name):
@@ -57,7 +58,7 @@ def test_pl():
         "pre_save": False,
         #Saving configuration
         "save_append" : True,
-        "saving_folder": "./Results/",
+        "saving_folder": "Results_PL/",
         "benchmark_times": "{}_times_benchmark.csv".format(name),
         "csv_results": "{}_benchmark.csv".format(name),
         "summary_results": "{}_SummaryResults.csv".format(name),
@@ -71,7 +72,7 @@ def test_pl():
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
-    ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
+    ae_bench = PL_CLASS(**benchmark_arguments)
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
