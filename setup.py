@@ -26,6 +26,7 @@ class PyTest(TestCommand):
         errno = pytest.main([".", "-vv"])
         sys.exit(errno)
 
+
 setup(
     name="TNBS",
     version="0.0.1",
