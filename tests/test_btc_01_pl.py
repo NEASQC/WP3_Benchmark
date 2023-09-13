@@ -7,9 +7,10 @@ import numpy as np
 l_sys = sys.path
 l_path = l_sys[['tests' in i for i in l_sys].index(True)]
 l_path = l_path.replace("tests", '')
-l_path = l_path + "tnbs/BTC_01_PL"
+l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
-from my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
+sys.path.append(l_path+"BTC_01_PL")
+from BTC_01_PL.my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
 
 def create_folder(folder_name):
     """

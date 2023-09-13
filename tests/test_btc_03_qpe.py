@@ -3,15 +3,14 @@ import shutil
 import sys
 import pandas as pd
 import numpy as np
-import re
 
-folder = os.getcwd()
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-
-sys.path.append(folder)
-from tnbs.BTC_03_QPE.my_benchmark_execution import KERNEL_BENCHMARK
+l_sys = sys.path
+l_path = l_sys[['tests' in i for i in l_sys].index(True)]
+l_path = l_path.replace("tests", '')
+l_path = l_path + "/tnbs/"#BTC_03_QPE/"
+sys.path.append(l_path)
+sys.path.append(l_path+"BTC_03_QPE")
+from BTC_03_QPE.my_benchmark_execution import KERNEL_BENCHMARK
 
 
 def create_folder(folder_name):
@@ -84,4 +83,4 @@ def test_qpe():
     assert((a[a['angle_method']=="random"]['KS']['mean'] < 0.05).all())
     shutil.rmtree(folder)
 
-test_qpe()
+#test_qpe()

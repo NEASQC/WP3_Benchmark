@@ -2,22 +2,18 @@
 Template for generic Benchmark Test Case Workflow
 """
 
-import os
 import sys
-import re
 from datetime import datetime
 from copy import deepcopy
 import numpy as np
 import pandas as pd
 
+l_sys = sys.path
+l_path = l_sys[['BTC_03_QPE' in i for i in l_sys].index(True)]
+sys.path.append(l_path+'/QPE')
 
-folder = os.getcwd()
-folder = re.sub(
-    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
-
-sys.path.append(folder)
-from tnbs.BTC_03_QPE.QPE.qpe_rz import QPE_RZ
-from tnbs.BTC_03_QPE.QPE.rz_lib import get_qpu
+from QPE.qpe_rz import QPE_RZ
+from QPE.rz_lib import get_qpu
 
 def build_iterator(**kwargs):
     """
