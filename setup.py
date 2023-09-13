@@ -37,4 +37,5 @@ setup(
     # Don't change these two lines
     tests_require=["pytest"],
     cmdclass={'test': PyTest},
+    pythonpath=["tnbs"]
 )
