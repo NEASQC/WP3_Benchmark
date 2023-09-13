@@ -32,7 +32,8 @@ setup(
     author="Gonzalo Ferro",
     license="European Union Public License 1.2",
 
-    packages=find_packages(),
+    #packages=find_packages(),
+    packages=["tnbs", "tnbs/tests"],
     install_requires=["numpy", "pandas", "myqlm", "matplotlib", "scipy"],
     # Don't change these two lines
     tests_require=["pytest"],
