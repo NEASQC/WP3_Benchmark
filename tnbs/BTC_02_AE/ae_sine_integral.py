@@ -2,16 +2,22 @@
 Mandatory code for softaware implemetation of the Benchmark Test Case
 of AE kernel
 """
+import os
+import sys
 import json
 import time
+import re
 import numpy as np
 import pandas as pd
 from copy import deepcopy
-import sys
-sys.path.append('../')
-from QQuantLib.utils.benchmark_utils import combination_for_list
-from QQuantLib.utils.qlm_solver import get_qpu
-from QQuantLib.finance.quantum_integration import q_solve_integral
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.QQuantLib.utils.benchmark_utils import combination_for_list
+from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
+from tnbs.BTC_02_AE.QQuantLib.finance.quantum_integration import q_solve_integral
 
 def sine_integral(n_qbits, interval, ae_dictionary):
     """

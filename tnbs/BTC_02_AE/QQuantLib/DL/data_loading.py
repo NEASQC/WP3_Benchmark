@@ -18,10 +18,18 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 
 """
 
+import sys
+import os
 import time
+import re
 import numpy as np
 import qat.lang.AQASM as qlm
-from QQuantLib.utils.utils import mask, fwht, left_conditional_probability, expmod
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import mask, fwht, \
+    left_conditional_probability, expmod
 
 # Loading uniform distribution
 @qlm.build_gate("UD", [int], arity=lambda x: x)

@@ -6,12 +6,20 @@ qpu executions
 Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 """
 
+import sys
+import os
 import time
+import re
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 from qat.core import Result
-from QQuantLib.utils.utils import check_list_type
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import check_list_type
 
 pd.options.display.float_format = "{:.6f}".format
 np.set_printoptions(suppress=True)

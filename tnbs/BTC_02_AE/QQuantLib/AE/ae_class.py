@@ -6,16 +6,22 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 """
 
 import sys
+import os
+import re
 import pandas as pd
-sys.path.append('../../')
-from QQuantLib.utils.qlm_solver import get_qpu
-from QQuantLib.AE.maximum_likelihood_ae import MLAE
-from QQuantLib.AE.ae_classical_qpe import CQPEAE
-from QQuantLib.AE.ae_iterative_quantum_pe import IQPEAE
-from QQuantLib.AE.iterative_quantum_ae import IQAE
-from QQuantLib.AE.real_quantum_ae import RQAE
-from QQuantLib.AE.montecarlo_ae import MCAE
-from QQuantLib.utils.utils import text_is_none
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
+from tnbs.BTC_02_AE.QQuantLib.AE.maximum_likelihood_ae import MLAE
+from tnbs.BTC_02_AE.QQuantLib.AE.ae_classical_qpe import CQPEAE
+from tnbs.BTC_02_AE.QQuantLib.AE.ae_iterative_quantum_pe import IQPEAE
+from tnbs.BTC_02_AE.QQuantLib.AE.iterative_quantum_ae import IQAE
+from tnbs.BTC_02_AE.QQuantLib.AE.real_quantum_ae import RQAE
+from tnbs.BTC_02_AE.QQuantLib.AE.montecarlo_ae import MCAE
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import text_is_none
 
 class AE:
     """

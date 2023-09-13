@@ -11,19 +11,30 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
 """
 
+import sys
+import os
 import time
+import re
 from functools import partial
 import numpy as np
 import pandas as pd
 import scipy.optimize as so
 import qat.lang.AQASM as qlm
-import sys
-sys.path.append('../../')
-from QQuantLib.utils.qlm_solver import get_qpu
-from QQuantLib.AA.amplitude_amplification import grover
-from QQuantLib.utils.data_extracting import get_results
-from QQuantLib.utils.utils import measure_state_probability, check_list_type, load_qn_gate
-from QQuantLib.AE.mlae_utils import likelihood, log_likelihood, cost_function
+
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+
+
+from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
+from tnbs.BTC_02_AE.QQuantLib.AA.amplitude_amplification import grover
+from tnbs.BTC_02_AE.QQuantLib.utils.data_extracting import get_results
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import measure_state_probability, \
+    check_list_type, load_qn_gate
+from tnbs.BTC_02_AE.QQuantLib.AE.mlae_utils import likelihood, log_likelihood, \
+    cost_function
 
 class MLAE:
     """

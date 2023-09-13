@@ -11,15 +11,21 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 
 """
 
+import sys
+import os
+import re
 import warnings
 from copy import deepcopy
 import numpy as np
 import pandas as pd
-import sys
-sys.path.append('../../../')
-from QQuantLib.DL.encoding_protocols import Encoding
-from QQuantLib.AE.ae_class import AE
-from QQuantLib.utils.utils import text_is_none
+
+folder = os.getcwd()
+folder = re.sub(
+    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder)
+sys.path.append(folder)
+from tnbs.BTC_02_AE.QQuantLib.DL.encoding_protocols import Encoding
+from tnbs.BTC_02_AE.QQuantLib.AE.ae_class import AE
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import text_is_none
 
 def q_solve_integral(**kwargs):
     """
