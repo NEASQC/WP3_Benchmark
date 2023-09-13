@@ -53,7 +53,7 @@ def q_solve_integral(**kwargs):
 
     Note
     ----
-    
+
     Other kwargs input dictionary keys will be related with the encoding \\
     of the integral into the quantum circuit \\
     (see QQuantLib.DL.encoding_protocols) and for the configuration \\

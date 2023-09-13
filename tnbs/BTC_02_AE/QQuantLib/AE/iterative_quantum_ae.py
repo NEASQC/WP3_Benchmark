@@ -27,7 +27,8 @@ sys.path.append(folder)
 from tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver import get_qpu
 from tnbs.BTC_02_AE.QQuantLib.AA.amplitude_amplification import grover
 from tnbs.BTC_02_AE.QQuantLib.utils.data_extracting import get_results
-from tnbs.BTC_02_AE.QQuantLib.utils.utils import check_list_type, measure_state_probability
+from tnbs.BTC_02_AE.QQuantLib.utils.utils import check_list_type, \
+    measure_state_probability
 
 
 class IQAE:

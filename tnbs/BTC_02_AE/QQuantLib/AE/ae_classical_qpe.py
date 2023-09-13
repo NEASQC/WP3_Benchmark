@@ -243,5 +243,4 @@ class CQPEAE:
         self.max_oracle_depth = 2 ** (int(self.auxiliar_qbits_number)-1) + 1
         self.quantum_times = self.cqpe.quantum_times
         self.quantum_time = sum(self.cqpe.quantum_times)
-
         return self.ae

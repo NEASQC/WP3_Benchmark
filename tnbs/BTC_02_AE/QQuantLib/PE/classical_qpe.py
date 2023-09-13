@@ -18,7 +18,7 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 import sys
 import os
 import re
-import numpy as np
+import time
 import qat.lang.AQASM as qlm
 
 folder = os.getcwd()

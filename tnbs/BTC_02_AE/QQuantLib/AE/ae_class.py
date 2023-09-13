@@ -44,7 +44,7 @@ class AE:
         dictionary that allows the configuration of the AE algorithm. \\
         The different configration keys of the different AE algorithms \\
         can be provided.
-"""
+    """
     def __init__(self, oracle=None, target=None, index=None, ae_type=None, **kwargs):
         """
 
@@ -191,7 +191,6 @@ class AE:
         self.oracle_calls = self.solver_ae.oracle_calls
         self.max_oracle_depth = self.solver_ae.max_oracle_depth
         self.schedule_pdf = self.solver_ae.schedule_pdf
-        
         # Recover amplitude estimation from ae_solver
         self.ae_pdf = pd.DataFrame(
             [self.solver_ae.ae, self.solver_ae.ae_l, self.solver_ae.ae_u],

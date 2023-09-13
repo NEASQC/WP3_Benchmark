@@ -306,8 +306,10 @@ class Encoding:
         self.target = [0 for i in range(self.oracle.arity)]
         self.index = [i for i in range(self.oracle.arity)]
 
-
     def run(self):
+        """
+        Execute the computations
+        """
         if self.encoding is None:
             error_string = (
                 "Encoding parameter MUST NOT BE None."

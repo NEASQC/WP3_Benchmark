@@ -14,7 +14,6 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 import sys
 import numpy as np
 import pandas as pd
-import sys
 sys.path.append('../../')
 from QQuantLib.finance.probability_class import DensityProbability
 from QQuantLib.finance.payoff_class import PayOff

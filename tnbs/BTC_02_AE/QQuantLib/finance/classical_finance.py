@@ -8,7 +8,6 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 import numpy as np
 from scipy.stats import norm
 
-
 def call_payoff(s_t: float, strike: float, **kwargs):
     r"""Computes the payoff of a European call option.
 
@@ -279,7 +278,7 @@ def bs_call_price(
     **kwargs
 ):
     r"""
-    Computes the price for a European call option. 
+    Computes the price for a European call option.
 
     Notes
     -----

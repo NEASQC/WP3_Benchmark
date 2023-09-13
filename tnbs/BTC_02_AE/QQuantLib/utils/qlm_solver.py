@@ -33,7 +33,7 @@ def get_qpu(qpu=None):
         raise ValueError(
             "qpu CAN NOT BE NONE. Please select one of the three" +
             " following options: qlmass, python, c")
-    elif qpu == "qlmass":
+    if qpu == "qlmass":
         try:
             from qlmaas.qpus import LinAlg
             linalg_qpu = LinAlg()
