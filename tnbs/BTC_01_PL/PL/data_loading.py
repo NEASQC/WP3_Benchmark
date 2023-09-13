@@ -18,6 +18,7 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 
 """
 
+import sys
 import time
 import random
 import numpy as np
@@ -25,7 +26,6 @@ import qat.lang.AQASM as qlm
 from qat.lang.models import KPTree
 from scipy.stats import norm
 
-sys.path.append('../')
 from PL.utils.utils import bitfield, left_conditional_probability, fwht
 from PL.utils.data_extracting import get_results
 

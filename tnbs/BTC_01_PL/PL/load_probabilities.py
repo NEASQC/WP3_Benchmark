@@ -5,10 +5,10 @@ of PL kernel
 
 import sys
 import time
-import re
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy, chisquare, chi2
+import re
 
 sys.path.append('../')
 from PL.data_loading import get_theoric_probability, get_qlm_probability, \
@@ -193,3 +193,4 @@ if __name__ == "__main__":
     prob_dens = LoadProbabilityDensity(**configuration)
     prob_dens.exe()
     print(prob_dens.pdf)
+
