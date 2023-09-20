@@ -9,12 +9,11 @@ Complete implementation of the Parent Hamiltonian following:
 Author: Gonzalo Ferro
 """
 import logging
-import sys
 import numpy as np
+import pandas as pd
 from scipy import linalg
-sys.path.append("../")
-from PH.pauli import pauli_decomposition
-from PH.contractions import reduced_matrix
+from pauli import pauli_decomposition
+from contractions import reduced_matrix
 logger = logging.getLogger('__name__')
 
 
@@ -48,102 +47,70 @@ def get_null_projectors(array):
     h_null = v_null @ np.conj(v_null.T)
     return h_null
 
-def get_local_reduced_matrices(state):
+def get_local_reduced_matrix(state, qb_pos):
     """
-    Given a MPS representation of a input state computes the local
-    reduced density matrices for each qubit of input state.
+    Given a MPS representation of a input state and position qubit
+    (qb_pos) computes the minimum local reduced density matrix from
+    qb_pos qubit such that its null space can be computable:
+    i.e. rank(local_rho) < dim(local_rho)
 
     Parameters
     ----------
 
     state : numpy array
         MPS representation of an state
-    """
-    #Getting the number of qubits of the MPS
-    nqubit = state.ndim
-    # Indexing for input MPS state
-    state_index = list(range(nqubit))
-    logger.info('state_index: {}'.format(state_index))
-    local_qubits = []
-    local_rho = []
-    for qb_pos in range(nqubit):
-        # Iteration over all the qubits positions
-        logger.info('qb_pos: {}'.format(qb_pos))
-        group_qbits = 1
-        stop = False
-        while stop == False:
-            # Iteration for grouping one qubit more in each step of the loop
-            free_indices = [(qb_pos + k)%nqubit for k in range(group_qbits + 1)]
-            logger.debug('free_indices: {}'.format(free_indices))
-            # The contraction indices are built
-            contraction_indices = [
-                i for i in state_index if i not in free_indices
-            ]
-            logger.debug('contraction_indices: {}'.format(contraction_indices))
-            # Computing the reduced density matrix
-            rho = reduced_matrix(
-                state, free_indices, contraction_indices)
-            # Computes the rank of the obtained reduced matrix
-            rank = np.linalg.matrix_rank(rho)
-            logger.debug('rank: {}. Dimension: {}'.format(rank, len(rho)))
-            if rank < len(rho):
-                # Now we can compute a null space for reduced density operator
-                logger.debug('Grouped Qubits: {}'.format(free_indices))
-                # Store the local qubits for each qubit
-                local_qubits.append(free_indices)
-                # Store the local reduced density matrices for each qubit
-                local_rho.append(rho)
-                stop = True
-            group_qbits = group_qbits + 1
+    qb_pos : int
+        position of the qubit for computing the reduced density matrix
 
-            if group_qbits == nqubit:
-                stop = True
-            logger.debug('STOP: {}'.format(stop))
-    return local_qubits, local_rho
-
-
-def parent_hamiltonian(state):
-    """
-    Given a MPS representation of a input state computes the local
-    Hamiltonian terms in Pauli Basis. This terms allows to build
-    the parent Hamiltonian of the input state.
-
-    Parameters
-    ----------
-
-    state : numpy array
-        MPS representation of an state
     Returns
     _______
 
     local_qubits : list
-       list with the local qubits for each qubit of the initial state
-    hamiltonian_coeficients : list
-        list of the coefficients for each  Hamiltonian term
-    hamiltonian_paulis : list
-        list of Pauli strings for each Hamiltonian term.
-    hamiltonian_local_qubits : list
-        list with the qubits where the Hamiltonian term is applied
+        list with the qubits affected by the reduced density matrix
+    local_rho : numpy array
+        array with the reduced density matrix for the input qbit
+        position
     """
+    logger.debug("Computing local reduced density matrix: qb_pos: %d", qb_pos)
+    nqubit = state.ndim
+    state_index = list(range(nqubit))
+    if qb_pos not in state_index:
+        text = "qb_pos: {} NOT IN: {}".format(qb_pos, state_index)
+        raise ValueError(text)
+    group_qbits = 1
+    stop = True
+    while stop:
+        # Iteration for grouping one qubit more in each step of the loop
+        free_indices = [(qb_pos + k)%nqubit for k in range(group_qbits + 1)]
+        logger.debug("\t free_indices: %s", free_indices)
+        # The contraction indices are built
+        contraction_indices = [
+            i for i in state_index if i not in free_indices
+        ]
+        logger.debug("\t contraction_indices: %s", contraction_indices)
+        # Computing the reduced density matrix
+        rho = reduced_matrix(state, free_indices, contraction_indices)
+        # Computes the rank of the obtained reduced matrix
+        rank = np.linalg.matrix_rank(rho)
+        logger.debug("\t rank: %d. Dimension: %d", rank, len(rho))
+        if rank < len(rho):
+            # Now we can compute a null space for reduced density operator
+            logger.debug("\t Grouped Qubits: %s", free_indices)
+            # Store the local qubits for each qubit
+            local_qubits = free_indices
+            # Store the local reduced density matrices for each qubit
+            local_rho = rho
+            stop = False
+        group_qbits = group_qbits + 1
 
-    #First we compute the local reduced density matrices for each qubit
-    local_qubits, local_rho = get_local_reduced_matrices(state)
+        if group_qbits == nqubit:
+            stop = False
+            local_rho = rho
+            local_qubits = free_indices
+        logger.debug("\t STOP: %s", stop)
+    return local_qubits, local_rho
 
-    hamiltonian_coeficients = []
-    hamiltonian_paulis = []
-    hamiltonian_local_qubits = []
-    for rho_step, free_indices in zip(local_rho, local_qubits):
-        # Get the null projectors
-        rho_null_projector = get_null_projectors(rho_step)
-        # Compute Pauli decomposition of null projectors
-        coefs, paulis = pauli_decomposition(
-            rho_null_projector, len(free_indices)
-        )
-        hamiltonian_coeficients = hamiltonian_coeficients + coefs
-        hamiltonian_paulis = hamiltonian_paulis + paulis
-        hamiltonian_local_qubits = hamiltonian_local_qubits \
-            + [free_indices for i in paulis]
-    return hamiltonian_coeficients, hamiltonian_paulis, hamiltonian_local_qubits
+
 
 class PH:
     """
@@ -161,7 +128,7 @@ class PH:
 
     """
 
-    def __init__(self, amplitudes, **kwargs):
+    def __init__(self, amplitudes, t_invariant=False, **kwargs):
         """
 
         Method for initializing the class
@@ -175,15 +142,21 @@ class PH:
             text = "The len of the amplitudes MUST BE 2^n"
             raise ValueError(text)
         self.nqubits = int(nqubits)
+        self.t_invariant = t_invariant
         self.mps_state = self.amplitudes.reshape(
             tuple(2 for i in range(self.nqubits))
         )
+        # For Saving
+        self._save = kwargs.get("save", False)
+        self.filename = kwargs.get("filename", None)
+        # Float precision for removing Pauli coefficients
+        self.float_precision = np.finfo(float).eps
         # For storing the reduced density matrix
         self.reduced_rho = None
         # For storing the non trace out qubits of the reduced
         # density matrix
         self.local_free_qubits = None
-        # For sotring the different comnputed local kernel projectors
+        # For storing the different comnputed local kernel projectors
         self.local_projectors = None
         self.qubits_list = None
         self.local_parent_hamiltonians = None
@@ -192,14 +165,9 @@ class PH:
         self.naive_parent_hamiltonian = None
 
         self.pauli_coeficients = None
-        self.pauli_matrices = None
+        self.pauli_strings = None
+        self.pauli_pdf = None
 
-    def get_reduced_density_matrices(self):
-        """
-        Method for computing the reduced density matrix for all the qubits
-        """
-        self.local_free_qubits, self.reduced_rho = get_local_reduced_matrices(
-            self.mps_state)
 
     def get_density_matrix(self):
         """
@@ -210,42 +178,25 @@ class PH:
         # Create density matrix
         self.rho = state @ np.conj(state.T)
 
-    def get_parent_hamiltonian(self, rho):
+    def get_pauli_pdf(self):
         """
-        Method for computing the null projectors of a matrix
+        Create pauli dataframe with all the info.
+        Additionally pauli coefficients lower than float precision will
+        be pruned
         """
-        rho_null_projector = get_null_projectors(rho)
-        # Compute Pauli decomposition of null projectors
-        return rho_null_projector
+        values = [self.pauli_coeficients, self.pauli_strings, self.qubits_list]
+        pauli_pdf = pd.DataFrame(
+            values,
+            index=['PauliCoefficients', 'PauliStrings', 'Qbits']).T
+        len_coefs = len(pauli_pdf)
+        self.pauli_pdf = pauli_pdf[
+            abs(pauli_pdf["PauliCoefficients"]) > self.float_precision]
+        logger.info(
+            "Number Pauli Coefficients: %d. Number of prunned coefs: %d",
+            len_coefs,
+            len(self.pauli_pdf)
+        )
 
-    def pauli_decomposition(self, array, dimension):
-        """
-        Creates the Pauli Decomposition of an input matrix
-
-        Parameters
-        ----------
-
-        array : numpy array
-            input array for doing the Pauli decomposition
-        dimension : int
-            dimension for creating the corresponding basis of Kronecker
-            products of Pauli basis
-
-        Returns
-        -------
-
-        coefs : list
-            Coefficients of the different Pauli matrices decomposition
-        strings_pauli : list
-            list with the complete Pauli string decomposition
-
-        """
-        if dimension > 11:
-            text = "The number of elements of the linear combination \
-            scales as 4^n. Decomposition can be only done for n <=11"
-            raise ValueError(text)
-        coefs, paulis = pauli_decomposition(array, dimension)
-        return coefs, paulis
 
     def local_ph(self):
         """
@@ -253,25 +204,54 @@ class PH:
 
         """
 
-        self.get_reduced_density_matrices()
+        logger.debug("Computing Local Parent Hamiltonian")
+        self.reduced_rho = []
+        self.local_free_qubits = []
         self.local_parent_hamiltonians = []
-
         self.qubits_list = []
         self.pauli_coeficients = []
-        self.pauli_matrices = []
+        self.pauli_strings = []
 
-        iterator = zip(self.reduced_rho, self.local_free_qubits)
-        for rho_step, free_indices in iterator:
-            # Get the null projectors
-            rho_null_projector = self.get_parent_hamiltonian(rho_step)
+        if self.t_invariant:
+            # For translational invariant ansatz only reduced density
+            # matrix for one qubit should be computed
+            iterator = [0]
+        else:
+            # Reduced density matrices for all aqubits should be computed
+            iterator = range(self.nqubits)
+
+
+        for qb_pos in iterator:
+            # Computing local reduced density matrix of the qubit
+            lq, lrho = get_local_reduced_matrix(self.mps_state, qb_pos)
+            self.local_free_qubits = self.local_free_qubits + [lq]
+            self.reduced_rho = self.reduced_rho + [lrho]
+            # Computing projector on null space for the qubit
+            rho_null_projector = get_null_projectors(lrho)
+            logger.debug("Computing Null Projectors: qb_pos: %s", qb_pos)
             self.local_parent_hamiltonians.append(rho_null_projector)
-            # Compute Pauli decomposition of null projectors
-            coefs, paulis = self.pauli_decomposition(
-                rho_null_projector, len(free_indices)
-            )
+            logger.debug(
+                "Computing Decomposition in Pauli Matrices: qb_pos: %s", qb_pos)
+            # Decomposition in pauli matrices
+            coefs, paulis = pauli_decomposition(rho_null_projector, len(lq))
             self.pauli_coeficients = self.pauli_coeficients + coefs
-            self.pauli_matrices = self.pauli_matrices + paulis
-            self.qubits_list = self.qubits_list + [free_indices for i in paulis]
+            self.pauli_strings = self.pauli_strings + paulis
+            self.qubits_list = self.qubits_list + [lq for i in paulis]
+
+        if self.t_invariant:
+            # For translational invariant ansatzes we must replicate
+            # the pauli terms for all the qubits
+            terms = len(self.pauli_coeficients)
+            self.pauli_coeficients = self.pauli_coeficients * self.nqubits
+            self.pauli_strings = self.pauli_strings * self.nqubits
+            self.qubits_list = []
+            for qb_pos in range(self.nqubits):
+                step = [(qb_pos + k) % self.nqubits for k in range(
+                    len(self.local_free_qubits[0]))]
+                self.qubits_list = self.qubits_list + [step] * terms
+        self.get_pauli_pdf()
+        if self._save:
+            self.save()
 
     def naive_ph(self):
         """
@@ -280,9 +260,27 @@ class PH:
 
         """
 
+        logger.debug("Computing Naive Parent Hamiltonian")
+        if self.nqubits > 11:
+            text = "The number of elements of the linear combination \
+            scales as 4^n. Decomposition can be only done for n <=11"
+            raise ValueError(text)
         # Compute the density matrix
+        logger.debug("Computing Density Matrix")
         self.get_density_matrix()
         # Compute Parent Hamiltonian
-        self.naive_parent_hamiltonian = self.get_parent_hamiltonian(self.rho)
-        self.pauli_coeficients, self.pauli_matrices = pauli_decomposition(
+        logger.debug("Computing Projectors on Null space")
+        self.naive_parent_hamiltonian = get_null_projectors(self.rho)
+        logger.debug("Computing Decomposition in Pauli Matrices")
+        self.pauli_coeficients, self.pauli_strings = pauli_decomposition(
             self.naive_parent_hamiltonian, self.nqubits)
+        self.qubits_list = [list(range(self.nqubits))] \
+            * len(self.pauli_coeficients)
+        self.get_pauli_pdf()
+
+    def save(self):
+        """
+        Saving Staff
+        """
+        self.pauli_pdf.to_csv(
+            self.filename+"_pauli.csv", sep=";")

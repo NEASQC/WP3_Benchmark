@@ -260,9 +260,19 @@ class SolveCircuit:
         self.nqubits = self.circuit.nbqbits
         self.parameter_names = self.circuit.get_variables()
         self.kwargs = kwargs
-        self.par = kwargs.get("parameters", None)
-        self._parameters = None
-        self.parameters = self.par
+        self.parameters = kwargs.get("parameters", None)
+        if self.parameters is None:
+            text = "Parameters MUST BE provided"
+            raise ValueError(text)
+
+        angles = [k for k, v in self.parameters.items()]
+        values = [v for k, v in self.parameters.items()]
+        self.pdf_parameters = pd.DataFrame(
+            [angles, values],
+            index=['key', 'value']).T
+        # For Saving
+        self._save = kwargs.get("save", False)
+        self.filename = kwargs.get("filename", None)
 
         # Set the QPU to use
         self._qpu = None
@@ -270,40 +280,40 @@ class SolveCircuit:
         # For Storing Results
         self.state = None
 
-    @property
-    def parameters(self):
-        """
-        creating parameters property
-        """
-        return self._parameters
+    #@property
+    #def parameters(self):
+    #    """
+    #    creating parameters property
+    #    """
+    #    return self._parameters
 
-    @parameters.setter
-    def parameters(self, value):
-        """
-        setter of the parameters property
-        """
+    #@parameters.setter
+    #def parameters(self, value):
+    #    """
+    #    setter of the parameters property
+    #    """
 
-        if value is None:
-            # Random Initialization will be used
-            angles = list(2* np.pi * np.random.rand(len(self.parameter_names)))
-            self._parameters = {v_ : angles[i_] for i_, v_ in enumerate(
-                self.parameter_names)}
-        else:
-            if isinstance(value, (list, dict)) != True:
-                text = "input must be a list, a dictionary or None"
-                raise ValueError(text)
+    #    if value is None:
+    #        # Random Initialization will be used
+    #        angles = list(2* np.pi * np.random.rand(len(self.parameter_names)))
+    #        self._parameters = {v_ : angles[i_] for i_, v_ in enumerate(
+    #            self.parameter_names)}
+    #    else:
+    #        if isinstance(value, (list, dict)) != True:
+    #            text = "input must be a list, a dictionary or None"
+    #            raise ValueError(text)
 
-            if len(value) != len(self.parameter_names):
-                text = "input must be a list, a dictionary or None"
-                raise ValueError(text)
+    #        if len(value) != len(self.parameter_names):
+    #            text = "Number of parameter not equal to Cricuit Variables"
+    #            raise ValueError(text)
 
 
-            if  isinstance(value, list):
-                self._parameters = {v_ : value[i_] for i_, v_ in enumerate(
-                    self.parameter_names)}
+    #        if  isinstance(value, list):
+    #            self._parameters = {v_ : value[i_] for i_, v_ in enumerate(
+    #                self.parameter_names)}
 
-            if isinstance(value, dict):
-                self._parameters = value
+    #        if isinstance(value, dict):
+    #            self._parameters = value
 
     @property
     def qpu(self):
@@ -323,6 +333,18 @@ class SolveCircuit:
         self._qpu = value
 
     def run(self):
+        """
+        Solve Circuit
+        """
         self.circuit = self.circuit(**self.parameters)
         self.state = solving_circuit(self.circuit, self.nqubits, self.qpu)
+        if self._save:
+            self.save()
 
+    def save(self):
+        """
+        Saving Staff
+        """
+        self.state.to_csv(self.filename+"_state.csv", sep=";")
+        self.pdf_parameters.to_csv(
+            self.filename+"_parameters.csv", sep=";")

@@ -5,16 +5,13 @@ Author: Gonzalo Ferro
 """
 import logging
 import time
-import uuid
-import sys
-import os
 import numpy as np
 import pandas as pd
-from qat.core import Observable, Term
 
-sys.path.append("../")
-from PH.parent_hamiltonian import PH
-from PH.ansatzes import SolveCircuit, ansatz_selector
+from parent_hamiltonian import PH
+from ansatzes import SolveCircuit, ansatz_selector
+from execution_ph import PH_EXE
+from utils import create_folder, get_qpu
 
 logging.basicConfig(
     format='%(asctime)s-%(levelname)s: %(message)s',
@@ -24,166 +21,89 @@ logging.basicConfig(
 )
 logger = logging.getLogger('__name__')
 
-
-def create_folder(folder_name):
+def complete_ph(**kwargs):
     """
-    Check if folder exist. If not the function creates it
-
-    Parameters
-    ----------
-
-    folder_name : str
-        Name of the folder
-
-    Returns
-    ----------
-
-    folder_name : str
-        Name of the folder
+    Execute a complete Bechmark Test Case for PH Kernel
     """
 
-    # Check if the folder already exists
-    if not os.path.exists(folder_name):
-        # If it does not exist, create the folder
-        os.mkdir(folder_name)
-        print(f"Folder '{folder_name}' created.")
-    else:
-        print(f"Folder '{folder_name}' already exists.")
-    if folder_name.endswith('/') != True:
-        folder_name = folder_name + "/"
-    return folder_name
-
-
-def get_qpu(qpu=None):
-    """
-    Function for selecting solver.
-
-    Parameters
-    ----------
-
-    qpu : str
-        * qlmass: for trying to use QLM as a Service connection
-            to CESGA QLM
-        * python: for using PyLinalg simulator.
-        * c: for using CLinalg simulator
-        * mps: for using mps
-
-    Returns
-    ----------
-
-    linal_qpu : solver for quantum jobs
-    """
-
-    if qpu is None:
-        raise ValueError(
-            "qpu CAN NOT BE NONE. Please select one of the three" +
-            " following options: qlmass, python, c")
-    if qpu == "qlmass":
-        try:
-            from qlmaas.qpus import LinAlg
-            linalg_qpu = LinAlg()
-        except (ImportError, OSError) as exception:
-            raise ImportError(
-                "Problem Using QLMaaS. Please create config file" +
-                "or use mylm solver") from exception
-    elif qpu == "mps":
-        try:
-            from qlmaas.qpus import MPS
-            linalg_qpu = MPS(lnnize=True)
-        except (ImportError, OSError) as exception:
-            raise ImportError(
-                "Problem Using QLMaaS. Please create config file" +
-                "or use mylm solver") from exception
-    elif qpu == "python":
-        from qat.qpus import PyLinalg
-        linalg_qpu = PyLinalg()
-    elif qpu == "c":
-        from qat.qpus import CLinalg
-        linalg_qpu = CLinalg()
-    elif qpu == "qat_linalg":
-        from qat.qpus import LinAlg
-        linalg_qpu = LinAlg()
-    elif qpu == "qat_mps":
-        from qat.qpus import MPS
-        linalg_qpu = MPS(lnnize=True)
-    else:
-        raise ValueError(
-            "Invalid value for qpu. Please select one of the three "+
-            "following options: qlmass, python, c")
-    #print("Following qpu will be used: {}".format(linalg_qpu))
-    return linalg_qpu
-
-
-def ph_btc(**kwargs):
+    # Getting Configuration
     ansatz = kwargs.get("ansatz", None)
     nqubits = kwargs.get("nqubits", None)
     depth = kwargs.get("depth", None)
     qpu_ansatz = kwargs.get("qpu_ansatz", None)
-    parameters = kwargs.get("parameters", None)
+    # parameters = kwargs.get("parameters", None)
+    folder = kwargs.get("folder", "./")
+    save = kwargs.get("save", False)
+    t_invariant = kwargs.get("t_inv", None)
     qpu_ph = kwargs.get("qpu_ph", None)
     nb_shots = kwargs.get("nb_shots", 0)
-    save = kwargs.get("save", False)
-    folder = kwargs.get("folder", './')
-    ansatz_conf = {
-        "nqubits": nqubits, "depth": depth
-    }
-    ansatz_circuit = ansatz_selector(ansatz, **ansatz_conf)
-    solve_conf = {
-        "qpu" : qpu_ansatz, "parameters": parameters
-
-    }
-    sol_ansatz = SolveCircuit(ansatz_circuit, **solve_conf)
-    logger.info('Solving ansatz')
-    tick = time.time()
-    sol_ansatz.run()
-    # Now the circuit need to have the parameters
-    ansatz_circuit = sol_ansatz.circuit
-    amplitudes = list(sol_ansatz.state['Amplitude'])
-    ph_ansatz = PH(amplitudes)
-    logger.info('Computing Local Parent Hamiltonian')
-    ph_ansatz.local_ph()
-    pauli_coefs = ph_ansatz.pauli_coeficients
-    pauli_strings = ph_ansatz.pauli_matrices
-    affected_qubits = ph_ansatz.qubits_list
-    pauli_df = pd.DataFrame(
-        [pauli_coefs, pauli_strings, affected_qubits],
-        index=['PauliCoefficients', 'PauliStrings', 'Qbits']).T
-    angles = [k for k, v in sol_ansatz.parameters.items()]
-    values = [v for k, v in sol_ansatz.parameters.items()]
-    parameter_ansatz = pd.DataFrame(
-        [angles, values],
-        index=['key', 'value']).T
-    filename_base = str(uuid.uuid1())
-    if save:
-        pauli_df.to_csv(folder + filename_base+'_pauli.csv', sep=';')
-        parameter_ansatz.to_csv(
-            folder + filename_base+'_parameters.csv', sep=';')
-    # Creating Pauli Terms
-    terms = [Term(coef, ps, qb) for coef, ps, qb in \
-        zip(pauli_coefs, pauli_strings, affected_qubits)]
-    # Creates the atos myqlm observable
-    observable = Observable(nqbits=nqubits, pauli_terms=terms)
-    # Creates the job
-    job_ansatz = ansatz_circuit.to_job(
-        'OBS', observable=observable, nbshots=nb_shots)
-    logger.info('Execution Local Parent Hamiltonian')
-    tick_q = time.time()
-    # Quantum Routine
-    gse = qpu_ph.submit(job_ansatz)
-    gse = gse.value
-    tock = time.time()
-    quantum_time = tock - tick_q
-    elapsed_time = tock - tick
-    text = ['gse', 'elapsed_time', 'quantum_time']
+    truncation = kwargs.get("truncation", None)
+    filename = kwargs.get("filename", None)
     pdf_info = pd.DataFrame(kwargs, index=[0])
-    result = pd.DataFrame(
-        [gse, elapsed_time, quantum_time],
-        index=text
-    ).T
-    result = pd.concat([pdf_info, result], axis =1 )
-    if save:
-        result.to_csv(folder + filename_base+'_result.csv', sep=';')
-    return result
+
+    # Ansatz Configuration
+    ansatz_conf = {
+        'nqubits' : nqubits,
+        'depth' : depth
+    }
+
+    # Create Ansatz Circuit
+    tick = time.time()
+    logger.info("Creating ansatz circuit")
+    circuit = ansatz_selector(ansatz, **ansatz_conf)
+    tack = time.time()
+    create_ansatz_time = tack - tick
+    logger.info("Created ansatz circuit in: %s", create_ansatz_time)
+
+    #OJO A CAMBIAR
+    parameters = {v_ : 2 * np.pi * np.random.rand() for i_, v_ in enumerate(
+        circuit.get_variables())}
+
+    # Solving Ansatz
+    logger.info("Solving ansatz circuit")
+    tick_solve = time.time()
+    solve_conf = {
+        "qpu" : qpu_ansatz,
+        "parameters" : parameters,
+        "filename": folder + filename,
+        "save": save
+    }
+    solv_ansatz = SolveCircuit(circuit, **solve_conf)
+    solv_ansatz.run()
+    tack_solve = time.time()
+    solve_ansatz_time = tack_solve - tick_solve
+    logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
+
+    # Create PH
+    logger.info("Computing Local Parent Hamiltonian")
+    amplitudes = list(solv_ansatz.state["Amplitude"])
+    ph_conf = {
+        "filename": folder + filename,
+        "save": save
+    }
+    tick_ph = time.time()
+    ph_object = PH(amplitudes, t_invariant, **ph_conf)
+    ph_object.local_ph()
+    tack_ph = time.time()
+    ph_time = tack_ph - tick_ph
+    logger.info("Computed Local Parent Hamiltonian in: %s", ph_time)
+
+    # Executing VQE step
+    logger.info("Executing VQE step")
+    vqe_conf = {
+        "qpu" : qpu_ph,
+        "nb_shots": nb_shots,
+        "truncation": truncation,
+        "filename": folder + filename,
+        "save": save
+    }
+    ansatz_circuit = solv_ansatz.circuit
+    pauli_ph = ph_object.pauli_pdf
+    nqubits = ansatz_conf["nqubits"]
+    exe_ph = PH_EXE(ansatz_circuit, pauli_ph, nqubits, **vqe_conf)
+    exe_ph.run()
+    pdf = pd.concat([pdf_info, exe_ph.pdf_result], axis=1)
+    return pdf
 
 if __name__ == "__main__":
     import argparse
@@ -198,6 +118,13 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
+        "-nb_shots",
+        dest="nb_shots",
+        type=int,
+        help="Number of shots",
+        default=0,
+    )
+    parser.add_argument(
         "-depth",
         dest="depth",
         type=int,
@@ -209,6 +136,13 @@ if __name__ == "__main__":
         dest="ansatz",
         type=str,
         help="Ansatz type: simple01, simple02, lda or hwe.",
+        default=None,
+    )
+    parser.add_argument(
+        "-truncation",
+        dest="truncation",
+        type=int,
+        help="Truncation for Pauli coeficients.",
         default=None,
     )
     #QPU argument
@@ -227,6 +161,13 @@ if __name__ == "__main__":
         help="QPU for parent hamiltonian simulation: [qlmass, python, c]",
     )
     parser.add_argument(
+        "-folder",
+        dest="folder",
+        type=str,
+        default="./",
+        help="Path for stroing results",
+    )
+    parser.add_argument(
         "--save",
         dest="save",
         default=False,
@@ -234,19 +175,30 @@ if __name__ == "__main__":
         help="For storing results",
     )
     parser.add_argument(
-        "-folder",
-        dest="folder",
-        type=str,
-        default="./",
-        help="Path for stroing results",
+        "--t_inv",
+        dest="t_inv",
+        default=False,
+        action="store_true",
+        help="Setting translational invariant of the ansatz",
+    )
+    #Execution argument
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
     )
     args = parser.parse_args()
-    print(args)
     dict_ph = vars(args)
     dict_ph.update({"qpu_ansatz": get_qpu(dict_ph["qpu_ansatz"])})
     dict_ph.update({"qpu_ph":  get_qpu(dict_ph["qpu_ph"])})
-    print(dict_ph)
     if dict_ph["save"]:
         dict_ph.update({"folder": create_folder(dict_ph["folder"])})
-    result = ph_btc(**dict_ph)
-    print(result)
+    filename = "ansatz_{}_depth_{}_nqubits_{}".format(
+        args.ansatz, args.depth, args.nqubits)
+    dict_ph.update({"filename":filename})
+    print(dict_ph)
+    if args.execution:
+        result = complete_ph(**dict_ph)
+        print(result)
