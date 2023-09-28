@@ -9,16 +9,10 @@ import numpy as np
 import pandas as pd
 
 from parent_hamiltonian import PH
-from ansatzes import SolveCircuit, ansatz_selector
+from ansatzes import SolveCircuit, ansatz_selector, angles_ansatz01
 from execution_ph import PH_EXE
 from utils import create_folder, get_qpu
 
-logging.basicConfig(
-    format='%(asctime)s-%(levelname)s: %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S %p',
-    level=logging.INFO
-    #level=logging.DEBUG
-)
 logger = logging.getLogger('__name__')
 
 def complete_ph(**kwargs):
@@ -31,13 +25,13 @@ def complete_ph(**kwargs):
     nqubits = kwargs.get("nqubits", None)
     depth = kwargs.get("depth", None)
     qpu_ansatz = kwargs.get("qpu_ansatz", None)
-    # parameters = kwargs.get("parameters", None)
-    folder = kwargs.get("folder", "./")
-    save = kwargs.get("save", False)
     t_invariant = kwargs.get("t_inv", None)
     qpu_ph = kwargs.get("qpu_ph", None)
-    nb_shots = kwargs.get("nb_shots", 0)
     truncation = kwargs.get("truncation", None)
+    nb_shots = kwargs.get("nb_shots", 0)
+    # parameters = kwargs.get("parameters", None)
+    save = kwargs.get("save", False)
+    folder = kwargs.get("folder", "./")
     filename = kwargs.get("filename", None)
     pdf_info = pd.DataFrame(kwargs, index=[0])
 
@@ -55,23 +49,33 @@ def complete_ph(**kwargs):
     create_ansatz_time = tack - tick
     logger.info("Created ansatz circuit in: %s", create_ansatz_time)
 
-    #OJO A CAMBIAR
-    parameters = {v_ : 2 * np.pi * np.random.rand() for i_, v_ in enumerate(
-        circuit.get_variables())}
+    if ansatz == "simple01":
+        #If ansatz is simple we use fixed angles
+        circuit, pdf_parameters = angles_ansatz01(circuit)
+    else:
+        # For other ansatzes we use random parameters
+        parameters = {v_ : 2 * np.pi * np.random.rand() for i_, v_ in enumerate(
+            circuit.get_variables())}
+        # Create the DataFrame with the info
+        angles = [k for k, v in parameters.items()]
+        values = [v for k, v in parameters.items()]
+        # create pdf
+        pdf_parameters = pd.DataFrame(
+            [angles, values],
+            index=['key', 'value']).T
+        circuit, _ = angles_ansatz01(circuit, pdf_parameters)
 
     # Solving Ansatz
     logger.info("Solving ansatz circuit")
-    tick_solve = time.time()
     solve_conf = {
         "qpu" : qpu_ansatz,
-        "parameters" : parameters,
+        "parameters" : pdf_parameters,
         "filename": folder + filename,
         "save": save
     }
     solv_ansatz = SolveCircuit(circuit, **solve_conf)
     solv_ansatz.run()
-    tack_solve = time.time()
-    solve_ansatz_time = tack_solve - tick_solve
+    solve_ansatz_time = solv_ansatz.solve_ansatz_time
     logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
 
     # Create PH
@@ -81,11 +85,9 @@ def complete_ph(**kwargs):
         "filename": folder + filename,
         "save": save
     }
-    tick_ph = time.time()
     ph_object = PH(amplitudes, t_invariant, **ph_conf)
     ph_object.local_ph()
-    tack_ph = time.time()
-    ph_time = tack_ph - tick_ph
+    ph_time = ph_object.ph_time
     logger.info("Computed Local Parent Hamiltonian in: %s", ph_time)
 
     # Executing VQE step
@@ -102,7 +104,19 @@ def complete_ph(**kwargs):
     nqubits = ansatz_conf["nqubits"]
     exe_ph = PH_EXE(ansatz_circuit, pauli_ph, nqubits, **vqe_conf)
     exe_ph.run()
+    pdf_info["create_ansatz_time"] = create_ansatz_time
+    pdf_info["solve_ansatz_time"] = create_ansatz_time
+    pdf_info["ph_time"] = ph_time
+
     pdf = pd.concat([pdf_info, exe_ph.pdf_result], axis=1)
+    times = [
+        "create_ansatz_time", "solve_ansatz_time", "ph_time",
+        "observable_time", "quantum_time"
+    ]
+
+    elapsed_time = pdf[times].sum(axis=1)
+    pdf["elapsed_time"] = elapsed_time
+    logger.info("Benchmark Test Case computed in %f", elapsed_time)
     return pdf
 
 if __name__ == "__main__":

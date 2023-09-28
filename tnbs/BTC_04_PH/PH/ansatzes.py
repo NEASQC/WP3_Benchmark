@@ -12,12 +12,64 @@ Authors: Gonzalo Ferro
 
 """
 
+import logging
+import time
+import uuid
 import pandas as pd
 import numpy as  np
 import qat.lang.AQASM as qlm
+from datetime import datetime
+from qat.qlmaas import QLMaaSConnection
 from qat.core import Result
 from qat.fermion.circuits import make_ldca_circ, make_general_hwe_circ
+from utils import create_folder, get_qpu
+logger = logging.getLogger('__name__')
 
+def angles_ansatz01(circuit, pdf_parameters=None):
+    """
+    Create the angles for ansatz01
+
+    Parameters
+    ----------
+
+    circuit : QLM circuit
+        QLM circuit with the parametrized ansatzes
+    parameters : pandas DataFrame
+        For providing the parameters to the circuit. If None is provide
+        the parameters are set using som formula
+
+    Returns
+    _______
+
+    circuit : QLM circuit
+        QLM circuit with the parameters fixed
+    pdf_parameters : pandas DataFrame
+        DataFrame with the values of the parameters
+    """
+    if pdf_parameters is None:
+        parameter_name = circuit.get_variables()
+        # Computing number of layers
+        n_layers = len(parameter_name) // 2
+        # Setting delta_theta
+        theta = np.pi/4.0
+        delta_theta = theta / (n_layers + 1)
+        parameters = {v_ : (i_+1) * delta_theta \
+            for i_, v_ in enumerate(parameter_name)}
+        angles = [k for k, v in parameters.items()]
+        values = [v for k, v in parameters.items()]
+        # create pdf
+        pdf_parameters = pd.DataFrame(
+            [angles, values],
+            index=['key', 'value']).T
+    else:
+        if isinstance(pdf_parameters, pd.core.frame.DataFrame):
+            # Formating Parameters
+            parameters = {k:v for k, v in zip(
+                pdf_parameters['key'], pdf_parameters['value'])}
+        else:
+            raise ValueError("pdf_parameters MUST BE a DataFrame")
+    circuit = circuit(**parameters)
+    return circuit, pdf_parameters
 
 def ansatz_qlm_01(nqubits=7, depth=3):
     """
@@ -165,7 +217,24 @@ def proccess_qresults(result, qubits, complete=True):
         pdf.sort_values(["Int_lsb"], inplace=True)
     return pdf
 
-def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
+def submit_circuit(qlm_circuit, qlm_qpu):
+    """
+    Solving a complete qlm circuit
+
+    Parameters
+    ----------
+
+    qlm_circuit : QLM circuit
+        qlm circuit to solve
+    qlm_qpu : QLM qpu
+        QLM qpu for solving the circuit
+    """
+    # Creating the qlm_job
+    job = qlm_circuit.to_job()
+    qlm_state = qlm_qpu.submit(job)
+    return qlm_state
+
+def solving_circuit(qlm_state, nqubit, reverse=True):
     """
     Solving a complete qlm circuit
 
@@ -188,9 +257,6 @@ def solving_circuit(qlm_circuit, nqubit, qlm_qpu, reverse=True):
     state : pandas DataFrame
         DataFrame with the complete simulation of the circuit
     """
-    # Creating the qlm_job
-    job = qlm_circuit.to_job()
-    qlm_state = qlm_qpu.submit(job)
     if not isinstance(qlm_state, Result):
         qlm_state = qlm_state.join()
         # time_q_run = float(result.meta_data["simulation_time"])
@@ -246,7 +312,6 @@ def ansatz_selector(ansatz, **kwargs):
     else:
         text = "ansatz MUST BE simple01, simple02, lda or hwe"
     return circuit
-    
 
 class SolveCircuit:
 
@@ -257,94 +322,270 @@ class SolveCircuit:
 
         """
         self.circuit = qlm_circuit
-        self.nqubits = self.circuit.nbqbits
-        self.parameter_names = self.circuit.get_variables()
-        self.kwargs = kwargs
         self.parameters = kwargs.get("parameters", None)
-        if self.parameters is None:
-            text = "Parameters MUST BE provided"
-            raise ValueError(text)
+        self.nqubits = kwargs.get("nqubits", None)
 
-        angles = [k for k, v in self.parameters.items()]
-        values = [v for k, v in self.parameters.items()]
-        self.pdf_parameters = pd.DataFrame(
-            [angles, values],
-            index=['key', 'value']).T
         # For Saving
         self._save = kwargs.get("save", False)
         self.filename = kwargs.get("filename", None)
 
         # Set the QPU to use
-        self._qpu = None
         self.qpu = kwargs.get("qpu", None)
+
         # For Storing Results
         self.state = None
-
-    #@property
-    #def parameters(self):
-    #    """
-    #    creating parameters property
-    #    """
-    #    return self._parameters
-
-    #@parameters.setter
-    #def parameters(self, value):
-    #    """
-    #    setter of the parameters property
-    #    """
-
-    #    if value is None:
-    #        # Random Initialization will be used
-    #        angles = list(2* np.pi * np.random.rand(len(self.parameter_names)))
-    #        self._parameters = {v_ : angles[i_] for i_, v_ in enumerate(
-    #            self.parameter_names)}
-    #    else:
-    #        if isinstance(value, (list, dict)) != True:
-    #            text = "input must be a list, a dictionary or None"
-    #            raise ValueError(text)
-
-    #        if len(value) != len(self.parameter_names):
-    #            text = "Number of parameter not equal to Cricuit Variables"
-    #            raise ValueError(text)
-
-
-    #        if  isinstance(value, list):
-    #            self._parameters = {v_ : value[i_] for i_, v_ in enumerate(
-    #                self.parameter_names)}
-
-    #        if isinstance(value, dict):
-    #            self._parameters = value
-
-    @property
-    def qpu(self):
-        """
-        creating qpu property
-        """
-        return self._qpu
-
-    @qpu.setter
-    def qpu(self, value):
-        """
-        setter of the qpu property
-        """
-        if value is None:
-            error_text = "Please provide a QPU."
-            raise ValueError(error_text)
-        self._qpu = value
+        self.solve_ansatz_time = None
 
     def run(self):
         """
         Solve Circuit
         """
-        self.circuit = self.circuit(**self.parameters)
-        self.state = solving_circuit(self.circuit, self.nqubits, self.qpu)
+        tick = time.time()
+        state = submit_circuit(self.circuit, self.qpu)
+        self.state = solving_circuit(state, self.nqubits)
+        tack = time.time()
+        self.solve_ansatz_time = tack - tick
         if self._save:
-            self.save()
+            self.save_state()
+            self.save_parameters()
 
-    def save(self):
+    def submit(self):
         """
-        Saving Staff
+        Submit circuit
         """
-        self.state.to_csv(self.filename+"_state.csv", sep=";")
-        self.pdf_parameters.to_csv(
+        #self.circuit = self.circuit(**self.parameters)
+        self.state = submit_circuit(self.circuit, self.qpu)
+        if self._save:
+            self.save_parameters()
+
+    def get_job_results(self, jobid):
+        """
+        Given a Jobid retrieve the result and procces output
+        """
+        # Open QLM connection
+        connection = QLMaaSConnection()
+        # Get Info of the job
+        job_info = connection.get_job_info(jobid)
+        nbqbits = job_info.resources.nbqbits
+        end = datetime.strptime(
+            job_info.ending_date.rsplit(".")[0],
+            "%Y-%m-%d %H:%M:%S")
+        start = datetime.strptime(
+            job_info.starting_date.rsplit(".")[0],
+            "%Y-%m-%d %H:%M:%S")
+        elapsed = end - start
+        elapsed = elapsed.total_seconds()
+        self.solve_ansatz_time = elapsed
+        state = connection.get_result(jobid)
+        self.state = solving_circuit(state, self.nqubits)
+        if self._save:
+            self.save_state()
+
+    def save_parameters(self):
+        """
+        Saving Parameters
+        """
+        self.parameters.to_csv(
             self.filename+"_parameters.csv", sep=";")
+    def save_state(self):
+        """
+        Saving State
+        """
+        state_for_saving = self.state[["Amplitude", "Int"]]
+        state_for_saving.to_csv(self.filename+"_state.csv", sep=";")
+
+def run_ansatz(**configuration):
+    """
+    For creating an ansatz and solving it
+    """
+
+    nqubits = configuration.get("nqubits", None)
+    depth = configuration.get("depth", None)
+    ansatz = configuration.get("ansatz", None)
+    qpu_ansatz_name = configuration.get("qpu_ansatz", None)
+    save = configuration.get("save", False)
+    folder = configuration.get("folder", None)
+
+    # Create Ansatz Circuit
+    logger.info("Creating ansatz circuit")
+    ansatz_conf = {
+        "nqubits" :nqubits,
+        "depth" : depth,
+    }
+    tick = time.time()
+    circuit = ansatz_selector(ansatz, **ansatz_conf)
+    tack = time.time()
+    create_ansatz_time = tack - tick
+    logger.info("Created ansatz circuit in: %s", create_ansatz_time)
+    #from qat.core.console import display
+    #display(circuit)
+
+    # Fixing Parameters of the Circuit
+    if ansatz == "simple01":
+        #If ansatz is simple we use fixed angles
+        circuit, pdf_parameters = angles_ansatz01(circuit)
+    else:
+        # For other ansatzes we use random parameters
+        parameters = {v_ : 2 * np.pi * np.random.rand() for i_, v_ in enumerate(
+            circuit.get_variables())}
+        # Create the DataFrame with the info
+        angles = [k for k, v in parameters.items()]
+        values = [v for k, v in parameters.items()]
+        # create pdf
+        pdf_parameters = pd.DataFrame(
+            [angles, values],
+            index=['key', 'value']).T
+        circuit, _ = angles_ansatz01(circuit, pdf_parameters)
+    #display(circuit)
+
+    # For creating the folder for saving
+    if save:
+        folder = create_folder(folder)
+        fold_name = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}".format(
+            ansatz, nqubits, depth, qpu_ansatz_name)
+        fold_name = create_folder(folder + fold_name)
+        filename = fold_name + str(uuid.uuid1())
+    else:
+        filename = ""
+
+    # Solving Ansatz
+    solve_conf = {
+        "qpu" : get_qpu(qpu_ansatz_name),
+        "nqubits" :nqubits,
+        "parameters" : pdf_parameters,
+        "filename": filename,
+        "save": save
+    }
+    solv_ansatz = SolveCircuit(circuit, **solve_conf)
+    solve = configuration["solve"]
+    submit = configuration["submit"]
+    if solve:
+        logger.info("Solving ansatz circuit")
+        solv_ansatz.run()
+        solve_ansatz_time = solv_ansatz.solve_ansatz_time
+        logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
+        print(solv_ansatz.state)
+    if submit:
+        logger.info("Ansatz will be submited to QLM")
+        solv_ansatz.submit()
+
+def getting_job(**configuration):
+    """
+    For getting a job from QLM. Configuration need to have following
+    keys: nqubits, job_id, save, filename
+    """
+    nqubits = configuration.get("nqubits", None)
+    job_id = configuration["job_id"]
+    save = configuration.get("save", False)
+    filename = configuration["filename"]
+    logger.info("Job id: %s will be obtained form QLM", job_id)
+    solve_conf = {
+        "qpu" : None,
+        "nqubits" :nqubits,
+        "parameters" : None,
+        "filename": filename,
+        "save": save
+    }
+    solv_ansatz = SolveCircuit(None, **solve_conf)
+    solv_ansatz.get_job_results(job_id)
+    print(solv_ansatz.state)
+
+
+
+if __name__ == "__main__":
+    # For sending ansatzes to QLM
+    import argparse
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO
+        #level=logging.DEBUG
+    )
+    logger = logging.getLogger('__name__')
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-nqubits",
+        dest="nqubits",
+        type=int,
+        help="Number of qbits for the ansatz.",
+        default=None,
+    )
+    parser.add_argument(
+        "-depth",
+        dest="depth",
+        type=int,
+        help="Depth for ansatz.",
+        default=None,
+    )
+    parser.add_argument(
+        "-ansatz",
+        dest="ansatz",
+        type=str,
+        help="Ansatz type: simple01, simple02, lda or hwe.",
+        default=None,
+    )
+    #QPU argument
+    parser.add_argument(
+        "-qpu_ansatz",
+        dest="qpu_ansatz",
+        type=str,
+        default=None,
+        help="QPU for ansatz simulation: [qlmass, python, c, mps]",
+    )
+    parser.add_argument(
+        "-folder",
+        dest="folder",
+        type=str,
+        default="./",
+        help="Path for storing results",
+    )
+    parser.add_argument(
+        "-filename",
+        dest="filename",
+        type=str,
+        default="",
+        help="Base Filename for saving. Only Valid with get_job",
+    )
+    parser.add_argument(
+        "--save",
+        dest="save",
+        default=False,
+        action="store_true",
+        help="For storing results",
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--solve",
+        dest="solve",
+        default=False,
+        action="store_true",
+        help="For solving complete ansatz",
+    )
+    group.add_argument(
+        "--submit",
+        dest="submit",
+        default=False,
+        action="store_true",
+        help="For submiting ansatz to QLM",
+    )
+    group.add_argument(
+        "--get_job",
+        dest="get_job",
+        default=False,
+        action="store_true",
+        help="For getting a job from QLM",
+    )
+    parser.add_argument(
+        "-jobid",
+        dest="job_id",
+        type=str,
+        default=None,
+        help="jobid of the QLM job",
+    )
+    args = parser.parse_args()
+    if args.get_job:
+        getting_job(**vars(args))
+    else:
+        run_ansatz(**vars(args))

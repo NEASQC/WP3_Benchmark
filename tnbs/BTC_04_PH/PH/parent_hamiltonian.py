@@ -9,6 +9,7 @@ Complete implementation of the Parent Hamiltonian following:
 Author: Gonzalo Ferro
 """
 import logging
+import time
 import numpy as np
 import pandas as pd
 from scipy import linalg
@@ -167,6 +168,7 @@ class PH:
         self.pauli_coeficients = None
         self.pauli_strings = None
         self.pauli_pdf = None
+        self.ph_time = None
 
 
     def get_density_matrix(self):
@@ -205,6 +207,7 @@ class PH:
         """
 
         logger.debug("Computing Local Parent Hamiltonian")
+        tick = time.time()
         self.reduced_rho = []
         self.local_free_qubits = []
         self.local_parent_hamiltonians = []
@@ -250,6 +253,8 @@ class PH:
                     len(self.local_free_qubits[0]))]
                 self.qubits_list = self.qubits_list + [step] * terms
         self.get_pauli_pdf()
+        tack = time.time()
+        self.ph_time = tack - tick
         if self._save:
             self.save()
 
@@ -261,6 +266,7 @@ class PH:
         """
 
         logger.debug("Computing Naive Parent Hamiltonian")
+        tick = time.time()
         if self.nqubits > 11:
             text = "The number of elements of the linear combination \
             scales as 4^n. Decomposition can be only done for n <=11"
@@ -277,6 +283,8 @@ class PH:
         self.qubits_list = [list(range(self.nqubits))] \
             * len(self.pauli_coeficients)
         self.get_pauli_pdf()
+        tack = time.time()
+        self.ph_time = tack - tick
 
     def save(self):
         """
