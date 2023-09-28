@@ -348,6 +348,7 @@ class SolveCircuit:
         if self._save:
             self.save_state()
             self.save_parameters()
+            self.save_time()
 
     def submit(self):
         """
@@ -380,6 +381,7 @@ class SolveCircuit:
         self.state = solving_circuit(state, self.nqubits)
         if self._save:
             self.save_state()
+            self.save_time()
 
     def save_parameters(self):
         """
@@ -393,6 +395,10 @@ class SolveCircuit:
         """
         state_for_saving = self.state[["Amplitude", "Int"]]
         state_for_saving.to_csv(self.filename+"_state.csv", sep=";")
+    def save_time(self):
+        pdf = pd.DataFrame(
+            [self.solve_ansatz_time], index=["solve_ansatz_time"]).T
+        pdf.to_csv(self.filename+"_solve_ansatz_time.csv", sep=";")
 
 def run_ansatz(**configuration):
     """
@@ -468,6 +474,8 @@ def run_ansatz(**configuration):
     if submit:
         logger.info("Ansatz will be submited to QLM")
         solv_ansatz.submit()
+        solve_ansatz_time = solv_ansatz.solve_ansatz_time
+        logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
 
 def getting_job(**configuration):
     """
