@@ -10,6 +10,9 @@ import time
 import pandas as pd
 import numpy as np
 from qat.core import Observable, Term
+from utils import get_info_basefn
+from ansatzes import ansatz_selector, angles_ansatz01
+from utils import get_qpu
 
 logger = logging.getLogger("__name__")
 
@@ -59,6 +62,7 @@ class PH_EXE:
         self.quantum_time = None
         self.gse = None
         self.pdf_result = None
+        self.pdf = None
 
     def run(self):
         """
@@ -73,6 +77,20 @@ class PH_EXE:
         pauli_coefs = list(self.pauli_pdf["PauliCoefficients"])
         pauli_strings = list(self.pauli_pdf["PauliStrings"])
         affected_qubits = list(self.pauli_pdf["Qbits"])
+
+        if self.t_inv:
+            # For translational invariant ansatzes we must replicate
+            # the pauli terms for all the qubits
+            print("Invariant Ansatz: Replicating Pauli Strings accross qubits")
+            terms = len(pauli_coefs)
+            pauli_coefs = pauli_coefs * self.nqubits
+            pauli_strings = pauli_strings * self.nqubits
+            qubits_list = []
+            for qb_pos in range(self.nqubits):
+                step = [(qb_pos + k) % self.nqubits for k in range(
+                    len(affected_qubits[0]))]
+                qubits_list = qubits_list + [step] * terms
+            affected_qubits = qubits_list
 
         logger.debug("Creating Observables for Pauli configuration")
         tick = time.time()
@@ -107,20 +125,74 @@ class PH_EXE:
             values,
             index=text
         ).T
+        self.pdf = pd.concat([self.pdf_info, self.pdf_result], axis=1)
         if self._save:
             self.save()
+
     def save(self):
         """
         Saving Staff
         """
-        pdf = pd.concat([self.pdf_info, self.pdf_result], axis=1)
-        pdf.to_csv(
+        self.pdf.to_csv(
             self.filename+"_phexe.csv", sep=";")
+
+def run_ph_execution(**configuration):
+    """
+    Given an ansatz circuit, the parameters and the Pauli decomposition
+    of the corresponding local PH executes a VQE step for computing
+    the energy of the ansatz under the Hamiltonian that MUST BE near 0
+    """
+
+    logger.info("Creating ansatz circuit")
+    base_fn = configuration["base_fn"]
+    depth, nqubits, ansatz = get_info_basefn(base_fn)
+    ansatz_conf = {
+        "nqubits" :nqubits,
+        "depth" : depth,
+    }
+    circuit = ansatz_selector(ansatz, **ansatz_conf)
+
+    logger.info("Loading Parameters")
+    parameters_pdf = pd.read_csv(
+        base_fn + "_parameters.csv", sep=";", index_col=0)
+    # Formating Parameters
+    circuit, _ = angles_ansatz01(circuit, parameters_pdf)
+    #from qat.core.console import display
+    #display(circuit)
+
+    # Loading PH Pauli decomposition
+    logger.info("Loading PH Pauli decomposition")
+    # Loading Pauli
+    pauli_pdf = pd.read_csv(
+        base_fn + "_pauli.csv", sep=";", index_col=0)
+    affected_qubits = [ast.literal_eval(i_) for i_ in list(pauli_pdf["Qbits"])]
+    pauli_pdf["Qbits"] = affected_qubits
+
+    # Executing VQE step
+    logger.info("Executing VQE step")
+    vqe_conf = {
+        "qpu" : get_qpu(configuration["qpu_ph"]),
+        "nb_shots": configuration["nb_shots"],
+        "truncation": configuration["truncation"],
+        "t_inv": configuration["t_inv"],
+        "filename": base_fn,
+        "save": configuration["save"],
+    }
+    exe_ph = PH_EXE(circuit, pauli_pdf, nqubits, **vqe_conf)
+    exe_ph.run()
+    return exe_ph.pdf
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-basefn",
+        dest="base_fn",
+        type=str,
+        default="",
+        help="Base Filename for Saving Pauli Decomposition",
+    )
     parser.add_argument(
         "-nb_shots",
         dest="nb_shots",
@@ -129,18 +201,18 @@ if __name__ == "__main__":
         default=0,
     )
     parser.add_argument(
-        "-qpu_ph",
-        dest="qpu_ph",
-        type=str,
-        default=None,
-        help="QPU for parent hamiltonian simulation: [qlmass, python, c]",
-    )
-    parser.add_argument(
         "-truncation",
         dest="truncation",
         type=int,
         help="Truncation for Pauli coeficients.",
         default=None,
+    )
+    parser.add_argument(
+        "-qpu_ph",
+        dest="qpu_ph",
+        type=str,
+        default=None,
+        help="QPU for parent hamiltonian simulation: [qlmass, python, c]",
     )
     parser.add_argument(
         "--t_inv",
@@ -156,64 +228,6 @@ if __name__ == "__main__":
         action="store_true",
         help="For storing results",
     )
-    #Execution argument
-    parser.add_argument(
-        "--exe",
-        dest="execution",
-        default=False,
-        action="store_true",
-        help="For executing program",
-    )
     args = parser.parse_args()
 
-    # Given ansatz with parameters and Pauli of PH executes VQE step
-    from utils import get_filelist, get_info_basefn, get_qpu
-    from ansatzes import ansatz_selector
-
-
-
-    folder = "/mnt/netapp1/Store_CESGA/home/cesga/gferro/PH/"
-    folder_n = "kk/"
-    depth, nqubits, ansatz = get_info_basefn(folder_n)
-    # Read the state from csv
-    base_fn = get_filelist(folder + folder_n)[0]
-
-    # Ansatz Configuration
-    ansatz_conf = {
-        'nqubits' : nqubits,
-        'depth' : depth
-    }
-
-    # Create Ansatz Circuit
-    logger.info("Creating ansatz circuit")
-    circuit = ansatz_selector(ansatz, **ansatz_conf)
-    # Load Parameters
-    logger.info("Loading Parameters")
-    parameters_pdf = pd.read_csv(
-        base_fn + "_parameters.csv", sep=";", index_col=0)
-    # Formating Parameters
-    parameters = {k:v for k, v in zip(
-        parameters_pdf['key'], parameters_pdf['value'])}
-    circuit = circuit(**parameters)
-
-    # Loading PH Pauli decomposition
-    logger.info("Loading PH Pauli decomposition")
-
-    # Loading Pauli
-    pauli_pdf = pd.read_csv(
-        base_fn + "_pauli.csv", sep=";", index_col=0)
-    affected_qubits = [ast.literal_eval(i_) for i_ in list(pauli_pdf["Qbits"])]
-    pauli_pdf["Qbits"] = affected_qubits
-
-    # Executing VQE step
-    logger.info("Executing VQE step")
-    vqe_conf = {
-        "qpu" : get_qpu(args.qpu_ph),
-        "nb_shots": args.nb_shots,
-        "truncation": args.truncation,
-        "filename": base_fn,
-        "save": args.save
-    }
-    exe_ph = PH_EXE(circuit, pauli_pdf, nqubits, **vqe_conf)
-    if args.execution:
-        exe_ph.run()
+    run_ph_execution(**vars(args))

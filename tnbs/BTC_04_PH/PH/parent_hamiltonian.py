@@ -15,6 +15,7 @@ import pandas as pd
 from scipy import linalg
 from pauli import pauli_decomposition
 from contractions import reduced_matrix
+import logging
 logger = logging.getLogger('__name__')
 
 
@@ -110,8 +111,6 @@ def get_local_reduced_matrix(state, qb_pos):
             local_qubits = free_indices
         logger.debug("\t STOP: %s", stop)
     return local_qubits, local_rho
-
-
 
 class PH:
     """
@@ -218,6 +217,7 @@ class PH:
         if self.t_invariant:
             # For translational invariant ansatz only reduced density
             # matrix for one qubit should be computed
+            print("Invariant Ansatz: Only First Qubit computations")
             iterator = [0]
         else:
             # Reduced density matrices for all aqubits should be computed
@@ -241,17 +241,17 @@ class PH:
             self.pauli_strings = self.pauli_strings + paulis
             self.qubits_list = self.qubits_list + [lq for i in paulis]
 
-        if self.t_invariant:
-            # For translational invariant ansatzes we must replicate
-            # the pauli terms for all the qubits
-            terms = len(self.pauli_coeficients)
-            self.pauli_coeficients = self.pauli_coeficients * self.nqubits
-            self.pauli_strings = self.pauli_strings * self.nqubits
-            self.qubits_list = []
-            for qb_pos in range(self.nqubits):
-                step = [(qb_pos + k) % self.nqubits for k in range(
-                    len(self.local_free_qubits[0]))]
-                self.qubits_list = self.qubits_list + [step] * terms
+        # if self.t_invariant:
+        #     # For translational invariant ansatzes we must replicate
+        #     # the pauli terms for all the qubits
+        #     terms = len(self.pauli_coeficients)
+        #     self.pauli_coeficients = self.pauli_coeficients * self.nqubits
+        #     self.pauli_strings = self.pauli_strings * self.nqubits
+        #     self.qubits_list = []
+        #     for qb_pos in range(self.nqubits):
+        #         step = [(qb_pos + k) % self.nqubits for k in range(
+        #             len(self.local_free_qubits[0]))]
+        #         self.qubits_list = self.qubits_list + [step] * terms
         self.get_pauli_pdf()
         tack = time.time()
         self.ph_time = tack - tick
@@ -292,3 +292,84 @@ class PH:
         """
         self.pauli_pdf.to_csv(
             self.filename+"_pauli.csv", sep=";")
+        pdf = pd.DataFrame(
+            [self.ph_time], index=["ph_time"]).T
+        pdf.to_csv(self.filename+"_ph_time.csv", sep=";")
+
+def run_parent_hamiltonian(**configuration):
+    state_file = configuration["state"]
+    base_fn = configuration["base_fn"]
+    save = configuration["save"]
+    t_inv = configuration["t_inv"]
+
+    logger.info("Loading State")
+    state = pd.read_csv(state_file, sep=";", index_col=0)
+    print(state)
+
+    # Create PH
+    logger.info("Computing Local Parent Hamiltonian")
+    amplitudes = state[["Amplitude"]].astype(complex)
+    print(amplitudes)
+    # Compute Local PH
+    ph_conf = {
+        "filename": base_fn,
+        "save": save
+    }
+    ph_object = PH(amplitudes, t_inv, **ph_conf)
+    ph_object.local_ph()
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO
+        #level=logging.DEBUG
+    )
+    logger = logging.getLogger('__name__')
+    # Given a state Compute its Parent Hamiltonian
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--save",
+        dest="save",
+        default=False,
+        action="store_true",
+        help="For storing results",
+    )
+    parser.add_argument(
+        "--t_inv",
+        dest="t_inv",
+        default=False,
+        action="store_true",
+        help="Setting translational invariant of the ansatz",
+    )
+    parser.add_argument(
+        "-state",
+        dest="state",
+        type=str,
+        default="",
+        help="Filename of the state",
+    )
+    parser.add_argument(
+        "-basefn",
+        dest="base_fn",
+        type=str,
+        default="",
+        help="Base Filename for Saving Pauli Decomposition",
+    )
+    args = parser.parse_args()
+    run_parent_hamiltonian(**vars(args))
+
+
+    # folder = "/mnt/netapp1/Store_CESGA/home/cesga/gferro/PH/"
+    # folder_n = "ansatz_simple01_nqubits_20_depth_3_qpu_ansatz_mps/"
+    # # Read the state from csv
+    # base_fn = get_filelist(folder + folder_n)[0]
+    # logger.info("Loading State")
+    # ph_time = ph_object.ph_time
+    # logger.info("Computed Local Parent Hamiltonian in: %s", ph_time)
+    # pdf_ph_time = pd.DataFrame([ph_time], index=["ph_time"]).T
+    # if args.save:
+    #     pdf_ph_time.to_csv(base_fn+"_ph_time.csv", sep=";")

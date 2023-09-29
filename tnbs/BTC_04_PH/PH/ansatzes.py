@@ -463,19 +463,26 @@ def run_ansatz(**configuration):
         "save": save
     }
     solv_ansatz = SolveCircuit(circuit, **solve_conf)
-    solve = configuration["solve"]
-    submit = configuration["submit"]
+    solve = configuration.get("solve", True)
+    submit = configuration.get("submit", False)
     if solve:
         logger.info("Solving ansatz circuit")
         solv_ansatz.run()
         solve_ansatz_time = solv_ansatz.solve_ansatz_time
         logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
-        print(solv_ansatz.state)
+        output_dict = {
+            "state" : solv_ansatz.state,
+            "parameters": pdf_parameters,
+            "solve_ansatz_time": solve_ansatz_time,
+            "filename" : filename,
+            "circuit": circuit
+        }
+        return output_dict
     if submit:
         logger.info("Ansatz will be submited to QLM")
         solv_ansatz.submit()
         solve_ansatz_time = solv_ansatz.solve_ansatz_time
-        logger.info("Solved ansatz circuit in: %s", solve_ansatz_time)
+        return None, None, None, None
 
 def getting_job(**configuration):
     """
@@ -496,7 +503,7 @@ def getting_job(**configuration):
     }
     solv_ansatz = SolveCircuit(None, **solve_conf)
     solv_ansatz.get_job_results(job_id)
-    print(solv_ansatz.state)
+    return solv_ansatz.state
 
 
 
@@ -594,6 +601,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.get_job:
-        getting_job(**vars(args))
+        state = getting_job(**vars(args))
     else:
-        run_ansatz(**vars(args))
+        output = run_ansatz(**vars(args))
+        state = output["state"]
+    print(state)

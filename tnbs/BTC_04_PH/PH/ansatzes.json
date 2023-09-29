@@ -1,13 +1,13 @@
 [
     {
-        "nqubits": [6],
+        "nqubits": [4, 5, 6, 7],
         "depth": [1, 2, 3],
-        "ansatz" : ["simple02"],
-        "qpu_ansatz": ["mps"],
+        "ansatz" : ["simple01"],
+        "qpu_ansatz": ["c"],
         "t_inv": [true],
-        "folder": ["Gonzalo/"],
+        "folder": ["Savings/"],
         "save": [true],
-        "solve" : [false],
-        "submit": [true]
+        "solve" : [true],
+        "submit": [false]
     }
 ]

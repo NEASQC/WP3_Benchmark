@@ -1,14 +1,16 @@
 """
-For launching a VQE quantum step execution
+For launching a complete workflow PH execution
 Author: Gonzalo Ferro
 """
 
 import json
 from utils import combination_for_list
-from ansatzes import run_ansatz
+from workflow import workflow
 
 def run_id(**configuration):
-    _ = run_ansatz(**configuration)
+    pdf = workflow(**configuration)
+
+
 
 
 if __name__ == "__main__":
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load json file
-    json_file = "ansatzes.json"
+    json_file = "workflow.json"
     f_ = open(json_file)
     conf = json.load(f_)
     # Creating Combination list
