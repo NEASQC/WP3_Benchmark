@@ -5,11 +5,13 @@ Author: Gonzalo Ferro
 
 import os
 import json
+import pandas as pd
 from utils import get_filelist
 from parent_hamiltonian import run_parent_hamiltonian
 
-def list_files(folder):
-    filelist = os.listdir(folder)
+def list_files(folder, filelistname):
+    #filelist = os.listdir(folder)
+    filelist = list(pd.read_csv(filelistname, header=None)[0])
     final_files = []
     for file_ in filelist:
         final_files = final_files + get_filelist(folder + file_+"/")
@@ -27,6 +29,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
 
+    parser.add_argument(
+        "-filelist",
+        dest="filelist",
+        type=str,
+        default="./",
+        help="Filename with folder to use",
+    )
     parser.add_argument(
         "-folder",
         dest="folder",
@@ -76,7 +85,7 @@ if __name__ == "__main__":
     f_ = open(json_file)
     conf = json.load(f_)
     print(conf)
-    files_list = list_files(args.folder)
+    files_list = list_files(args.folder, args.filelist)
     if args.print:
         if args.id is not None:
             print(files_list[args.id])

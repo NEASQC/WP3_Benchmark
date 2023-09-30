@@ -4,50 +4,48 @@ Author: Gonzalo Ferro
 """
 
 import os
-import json
 import pandas as pd
 from utils import get_filelist
-from execution_ph import run_ph_execution
+from ansatzes import getting_job
 
-def list_files(folder, filelistname):
+def list_files(filelistname):
     #filelist = os.listdir(folder)
-    filelist = list(pd.read_csv(filelistname, header=None)[0])
-    final_files = []
-    for file_ in filelist:
-        final_files = final_files + get_filelist(folder + file_+"/")
-    return final_files
+    filelist = pd.read_csv(filelistname, header=None)
+    job = filelist[1]
+    filename = filelist[0]
+    filelist = [get_filelist(file_)[0] for file_ in filename]
+    return job, filelist
 
-def run_id(basefn, **configuration):
-    configuration.update({"base_fn": basefn})
-    pdf = run_ph_execution(**configuration)
-    print(pdf)
+def run_id(configuration):
+    jobid = configuration[0]
+    filename = configuration[1]
+    conf_dict = {
+        "job_id" : jobid,
+        "filename": filename,
+        "save": True
+    }
+    state = getting_job(**conf_dict)
+    print(state)
+
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO
+        #level=logging.DEBUG
+    )
+    logger = logging.getLogger('__name__')
     import argparse
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-
     parser.add_argument(
         "-filelist",
         dest="filelist",
         type=str,
         default="./",
         help="Filename with folder to use",
-    )
-    parser.add_argument(
-        "-folder",
-        dest="folder",
-        type=str,
-        default="./",
-        help="Path for searching the folder",
-    )
-    parser.add_argument(
-        "--count",
-        dest="count",
-        default=False,
-        action="store_true",
-        help="Getting the number of elements",
     )
     group.add_argument(
         "--all",
@@ -78,26 +76,33 @@ if __name__ == "__main__":
         action="store_true",
         help="For executing program",
     )
+    #Execution argument
+    parser.add_argument(
+        "--count",
+        dest="count",
+        default=False,
+        action="store_true",
+        help="Getting the number of elements",
+    )
     args = parser.parse_args()
-    # Load json file
-    json_file = "execution_ph.json"
-    f_ = open(json_file)
-    conf = json.load(f_)
-    print(conf)
-    files_list = list_files(args.folder, args.filelist)
+
+    job, files_list = list_files(args.filelist)
+    conf_list = list(zip(job, files_list))
+
+
+
     if args.print:
         if args.id is not None:
-            print(files_list[args.id])
+            print(conf_list[args.id])
         elif args.all:
-            print(files_list)
+            print(conf_list)
         else:
             print("Provide -id or --all")
     if args.count:
-        print("Number of elements: {}".format(len(files_list)))
+        print("Number of elements: {}".format(len(conf_list)))
     if args.execution:
         if args.id is not None:
-            configuration = files_list[args.id]
-            run_id(configuration, **conf)
+            run_id(conf_list[args.id])
         if args.all:
-            for configuration in files_list:
-                run_id(configuration, **conf)
+            for conf_ in conf_list:
+                run_id(conf_)

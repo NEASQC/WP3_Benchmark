@@ -367,7 +367,8 @@ class SolveCircuit:
         connection = QLMaaSConnection()
         # Get Info of the job
         job_info = connection.get_job_info(jobid)
-        nbqbits = job_info.resources.nbqbits
+        nqubits = job_info.resources.nbqbits
+        print(nqubits)
         end = datetime.strptime(
             job_info.ending_date.rsplit(".")[0],
             "%Y-%m-%d %H:%M:%S")
@@ -377,8 +378,9 @@ class SolveCircuit:
         elapsed = end - start
         elapsed = elapsed.total_seconds()
         self.solve_ansatz_time = elapsed
-        state = connection.get_result(jobid)
-        self.state = solving_circuit(state, self.nqubits)
+        #state = connection.get_result(jobid)
+        state = connection.get_job(jobid)
+        self.state = solving_circuit(state, nqubits)
         if self._save:
             self.save_state()
             self.save_time()
@@ -489,14 +491,14 @@ def getting_job(**configuration):
     For getting a job from QLM. Configuration need to have following
     keys: nqubits, job_id, save, filename
     """
-    nqubits = configuration.get("nqubits", None)
+    #nqubits = configuration.get("nqubits", None)
     job_id = configuration["job_id"]
     save = configuration.get("save", False)
     filename = configuration["filename"]
-    logger.info("Job id: %s will be obtained form QLM", job_id)
+    logger.info("Job id: %s will be obtained from QLM", job_id)
     solve_conf = {
         "qpu" : None,
-        "nqubits" :nqubits,
+        "nqubits" :None,
         "parameters" : None,
         "filename": filename,
         "save": save
