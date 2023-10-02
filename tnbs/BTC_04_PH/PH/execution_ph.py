@@ -82,6 +82,8 @@ class PH_EXE:
             # For translational invariant ansatzes we must replicate
             # the pauli terms for all the qubits
             print("Invariant Ansatz: Replicating Pauli Strings accross qubits")
+            logger.info(
+                "Invariant Ansatz: Replicating Pauli Strings accross qubits")
             terms = len(pauli_coefs)
             pauli_coefs = pauli_coefs * self.nqubits
             pauli_strings = pauli_strings * self.nqubits
@@ -92,7 +94,7 @@ class PH_EXE:
                 qubits_list = qubits_list + [step] * terms
             affected_qubits = qubits_list
 
-        logger.debug("Creating Observables for Pauli configuration")
+        logger.info("Creating Observables for Pauli configuration")
         tick = time.time()
         terms = [Term(coef, ps, qb) for coef, ps, qb in \
             zip(pauli_coefs, pauli_strings, affected_qubits)]
@@ -183,6 +185,14 @@ def run_ph_execution(**configuration):
     return exe_ph.pdf
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO
+        #level=logging.DEBUG
+    )
+    logger = logging.getLogger('__name__')
     import argparse
 
     parser = argparse.ArgumentParser()
