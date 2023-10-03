@@ -14,6 +14,14 @@ def run_id(**configuration):
 
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO
+        #level=logging.DEBUG
+    )
+    logger = logging.getLogger('__name__')
     import argparse
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
