@@ -3,11 +3,28 @@ Template for generic Benchmark Test Case Workflow
 """
 
 import sys
-import json
-import copy
+import ast
+import logging
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
+
+l_sys = sys.path
+l_path = l_sys[['BTC_04_PH' in i for i in l_sys].index(True)]
+sys.path.append(l_path+'/PH')
+
+from PH.ansatzes import ansatz_selector, angles_ansatz01
+from PH.execution_ph import PH_EXE
+from PH.utils import get_qpu
+
+
+logging.basicConfig(
+    format='%(asctime)s-%(levelname)s: %(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+    level=logging.INFO
+    #level=logging.DEBUG
+)
+logger = logging.getLogger('__name__')
 
 def build_iterator(**kwargs):
     """
@@ -50,60 +67,75 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
 
     """
 
-    from PH.btc_ph import ph_btc, get_qpu, create_folder
     if stage_bench not in ["benchmark", "pre-benchmark"]:
         raise ValueError(
             "Valid values for stage_bench: benchmark or pre-benchmark")
-
     if repetitions is None:
         raise ValueError("samples CAN NOT BE None")
     #Here the code for configuring and execute the benchmark kernel
     kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
+    del kernel_configuration["gse_error"]
+    del kernel_configuration["time_error"]
+    del kernel_configuration["depth"]
     if kernel_configuration is None:
         raise ValueError("kernel_configuration can not be None")
     # Configuring kernel
-    kernel_configuration.update({"nqubits": iterator_step[0]})
-    kernel_configuration.update({"depth": iterator_step[1]})
 
-    fold_name = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}_qpu_ph_{}".format(
-        kernel_configuration["ansatz"],
-        kernel_configuration["nqubits"],
-        kernel_configuration["depth"],
-        kernel_configuration["qpu_ansatz"],
-        kernel_configuration["qpu_ph"])
+    nqubits = str(iterator_step[0]).zfill(2)
+    depth = str(iterator_step[1])
+    logger.info("Creating ansatz circuit")
+    ansatz_conf = {
+        "nqubits" :int(nqubits),
+        "depth" : int(depth),
+    }
+    circuit = ansatz_selector("simple01", **ansatz_conf)
+    # Formating Parameters
+    base_fn = "configuration_files/nqubits_{}_depth_{}".format(nqubits, depth)
+    param_file = base_fn + "_parameters.csv"
+    logger.info("Loading Parameters from: %s", param_file)
 
-    folder_name = kwargs["saving_folder"] + fold_name
+    parameters_pdf = pd.read_csv(param_file, sep=";", index_col=0)
+    circuit, _ = angles_ansatz01(circuit, parameters_pdf)
 
-    # Load QPU for solving ansatz
-    kernel_configuration.update(
-        {"qpu_ansatz": get_qpu(kernel_configuration["qpu_ansatz"])})
-    # Load QPU for solving parent hamiltonian
-    kernel_configuration.update(
-        {"qpu_ph": get_qpu(kernel_configuration["qpu_ph"])})
-    # Update and create the folder for intermediate storing
-    kernel_configuration.update(
-        {"folder": create_folder(folder_name)})
+    # Loading PH Pauli decomposition
+    pauli_file = base_fn + "_pauli.csv"
+    logger.info("Loading PH Pauli decomposition from: %s", pauli_file)
+    # Loading Pauli
+    pauli_pdf = pd.read_csv(pauli_file, sep=";", index_col=0)
+    affected_qubits = [ast.literal_eval(i_) for i_ in list(pauli_pdf["Qbits"])]
+    pauli_pdf["Qbits"] = affected_qubits
 
-
-    # following keys are not mandatory for executing kernel
-    del kernel_configuration["gse_error"]
-    del kernel_configuration["time_error"]
-    print(kernel_configuration)
-
+    # Executing VQE step
+    logger.info("Executing VQE step")
+    vqe_conf = {
+        "qpu" : get_qpu(kernel_configuration["qpu_ph"]),
+        "nb_shots": kernel_configuration["nb_shots"],
+        "truncation": kernel_configuration["truncation"],
+        "t_inv": kernel_configuration["t_inv"],
+        "filename": None,
+        "save": False,
+    }
     list_of_metrics = []
-    #print(qpe_rz_dict)
     for i in range(repetitions):
-        metric_step = ph_btc(**kernel_configuration)
-        list_of_metrics.append(metric_step)
-
+        exe_ph = PH_EXE(circuit, pauli_pdf, int(nqubits), **vqe_conf)
+        exe_ph.run()
+        pdf_info = pd.DataFrame(
+            [int(nqubits), int(depth)], index=["nqubits", "depth"]).T
+        list_ = [
+            pdf_info,
+            pd.DataFrame(kernel_configuration, index=[0]),
+            exe_ph.pdf_result
+        ]
+        pdf_info = pd.concat(list_, axis=1)
+        list_of_metrics.append(pdf_info)
     metrics = pd.concat(list_of_metrics)
     metrics.reset_index(drop=True, inplace=True)
-
+    metrics["elapsed_time"] = metrics["observable_time"] + \
+        metrics["quantum_time"]
     if stage_bench == "pre-benchmark":
         # Name for storing Pre-Benchmark results
-        save_name = "pre_benchmark_nq_{}_ansatz_{}_depth_{}.csv".format(
+        save_name = "pre_benchmark_nq_{}_depth_{}.csv".format(
             iterator_step[0],
-            kernel_configuration["ansatz"],
             iterator_step[1]
             )
     if stage_bench == "benchmark":
@@ -186,12 +218,14 @@ def summarize_results(**kwargs):
     #kernel of the benchmark
     pdf = pd.read_csv(csv_results, index_col=0, sep=";")
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
-    pdf.drop(["save", "folder"], axis=1, inplace=True)
-    # The angles are randomly selected. Not interesting for aggregation
-    columns = pdf.columns
-    columns = list(columns.drop(
-        ["gse", "elapsed_time", "quantum_time", "classic_time"]))
-    results = pdf.groupby(columns).agg(["mean", "std", "count"])
+    pdf.fillna("None", inplace=True)
+    group_columns = [
+        "nqubits", "depth", "t_inv", "qpu_ph",
+        "nb_shots", "truncation"]
+    metric_columns = ["gse", "elapsed_time", "quantum_time", "classic_time"]
+    results = pdf.groupby(group_columns)[metric_columns].agg(
+        ["mean", "std", "count"])
+    results = results.replace('None', None)
     return results
 
 class KERNEL_BENCHMARK:
@@ -294,7 +328,6 @@ class KERNEL_BENCHMARK:
                 #Using pre benchmark results for computing the number of
                 #repetitions
                 self.kwargs.update({"pre_metrics": pre_metrics})
-
             #Compute needed samples for desired
             #statistical significance
             samples_ = compute_samples(**self.kwargs)
@@ -319,31 +352,35 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
 
-    import os
-    import shutil
 
-    ansatz = "simple02"
-    qpu_ansatz = "mps"
+    #Anstaz
+    depth = [1, 2, 3, 4]
     qpu_ph = "c"
-    depth = [2, 3]
+    nb_shots = 0
+    truncation = None
 
     kernel_configuration = {
-        "ansatz": ansatz,
+        #Ansatz
         "depth": depth,
-        "qpu_ansatz" : qpu_ansatz,
+        "t_inv": True,
+        # Ground State Energy
         "qpu_ph" : qpu_ph,
-        "nb_shots" : 0,
+        "nb_shots" : nb_shots,
+        "truncation": truncation,
+        # Saving
         "save": True,
         "folder": None,
+        # Errors for confidence level
         "gse_error" : None,
-        "time_error": None
+        "time_error": None,
     }
 
-
+    list_of_qbits = list(range(3, 9))
+    list_of_qbits = [3, 4]
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
-        "pre_samples": None,
+        "pre_samples":  None,
         "pre_save": True,
         #Saving stuff
         "save_append" : True,
@@ -354,12 +391,13 @@ if __name__ == "__main__":
         #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
-        "max_meas": None,
+        "max_meas": 100,
         #List number of qubits tested
-        "list_of_qbits": [4, 6],
+        "list_of_qbits": list_of_qbits,
     }
 
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()
+

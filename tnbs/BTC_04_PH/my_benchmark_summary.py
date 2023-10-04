@@ -20,7 +20,7 @@ def summarize_results(**kwargs):
 
     import pandas as pd
     benchmark_file = kwargs.get("benchmark_file", None)
-    index_columns = [0, 1, 2, 3, 4, 5, 6, 7]
+    index_columns = [0, 1, 2, 3, 4, 5]
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
     pdf.reset_index(inplace=True)
     n_qbits = list(set(pdf["nqubits"]))
@@ -49,13 +49,9 @@ def summarize_results(**kwargs):
             result["SigmaClassicalTime"] = step_pdf["classic_time"]["std"].iloc[0]
 
             # For identifying the test
-            result['AnsatzName'] = step_pdf["ansatz"].iloc[0]
             result["AnsatzDepth"] = depth_
-            result["QPUforAnsatz"] = step_pdf["qpu_ansatz"].iloc[0]
-            result["QPUforPH"] = step_pdf["qpu_ph"].iloc[0]
             result["Shots"] = int(step_pdf["nb_shots"].iloc[0])
-            result["Truncation"] = step_pdf["nb_shots"].iloc[0]
-            result["TranslatationaInvariant"] = step_pdf["t_inv"].iloc[0]
+            result["Truncation"] = int(step_pdf["nb_shots"].iloc[0])
             metrics = []
             #For each fixed number of qbits several metrics can be reported
             for metric_name in list_of_metrics:

@@ -201,7 +201,7 @@ if __name__ == "__main__":
         dest="base_fn",
         type=str,
         default="",
-        help="Base Filename for Saving Pauli Decomposition",
+        help="Base Filename for Loading Files",
     )
     parser.add_argument(
         "-nb_shots",

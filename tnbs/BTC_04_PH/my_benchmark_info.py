@@ -126,24 +126,24 @@ def my_metadata_info(**kwargs):
     """
 
     metadata = OrderedDict()
-    benchmark_file = kwargs.get("benchmark_file", None)
-    index_columns = [0, 1, 2, 3, 4, 5]
-    pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
-    ansatz = list(set(pdf.index.get_level_values('ansatz')))
-    if len(ansatz) != 1:
-        raise ValueError("Found more than 1 ansatzes")
-    metadata["AnsatzName"] = ansatz[0]
+    # benchmark_file = kwargs.get("benchmark_file", None)
+    # index_columns = [0, 1, 2, 3, 4, 5]
+    # pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
+    # ansatz = list(set(pdf.index.get_level_values('ansatz')))
+    # if len(ansatz) != 1:
+    #     raise ValueError("Found more than 1 ansatzes")
+    # metadata["AnsatzName"] = ansatz[0]
 
-    qpu_ansatz = list(set(pdf.index.get_level_values('qpu_ansatz')))
-    if len(qpu_ansatz) != 1:
-        raise ValueError("Found more than 1 qpu_ansatzes")
-    metadata["QPUforAnsatz"] = qpu_ansatz[0]
+    # qpu_ansatz = list(set(pdf.index.get_level_values('qpu_ansatz')))
+    # if len(qpu_ansatz) != 1:
+    #     raise ValueError("Found more than 1 qpu_ansatzes")
+    # metadata["QPUforAnsatz"] = qpu_ansatz[0]
 
-    qpu_ph = list(set(pdf.index.get_level_values('qpu_ph')))
-    if len(qpu_ph) != 1:
-        raise ValueError("Found more than 1 qpu_phes")
-    metadata["QPUforPH"] = qpu_ph[0]
-    metadata["AnsatzDepths"] = list(set(pdf.index.get_level_values('depth')))
+    # qpu_ph = list(set(pdf.index.get_level_values('qpu_ph')))
+    # if len(qpu_ph) != 1:
+    #     raise ValueError("Found more than 1 qpu_phes")
+    # metadata["QPUforPH"] = qpu_ph[0]
+    # metadata["AnsatzDepths"] = list(set(pdf.index.get_level_values('depth')))
 
     return metadata
 
