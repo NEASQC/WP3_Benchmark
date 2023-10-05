@@ -384,7 +384,7 @@ if __name__ == "__main__":
     }
 
     list_of_qbits = list(range(3, 9))
-    list_of_qbits = [3, 4]
+    list_of_qbits = [3]
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
@@ -399,7 +399,7 @@ if __name__ == "__main__":
         #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
-        "max_meas": 100,
+        "max_meas": None,
         #List number of qubits tested
         "list_of_qbits": list_of_qbits,
     }
