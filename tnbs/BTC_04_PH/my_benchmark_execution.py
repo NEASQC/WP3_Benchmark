@@ -107,11 +107,19 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
 
     # Executing VQE step
     logger.info("Executing VQE step")
+    nb_shots = kernel_configuration.get("nb_shots", None)
+    if nb_shots is None:
+        nb_shots = 10000
+    truncation = kernel_configuration.get("truncation", None)
+    t_inv = kernel_configuration.get("t_inv", None)
+    if t_inv is None:
+        t_inv = True
+
     vqe_conf = {
         "qpu" : get_qpu(kernel_configuration["qpu_ph"]),
-        "nb_shots": kernel_configuration["nb_shots"],
-        "truncation": kernel_configuration["truncation"],
-        "t_inv": kernel_configuration["t_inv"],
+        "nb_shots": nb_shots,#kernel_configuration["nb_shots"],
+        "truncation": truncation, #kernel_configuration["truncation"],
+        "t_inv": t_inv,#kernel_configuration["t_inv"],
         "filename": None,
         "save": False,
     }
