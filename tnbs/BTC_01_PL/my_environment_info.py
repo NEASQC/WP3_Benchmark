@@ -1,8 +1,6 @@
-""" For gathering different hardware information for main fields of
-NEASQC report generation for the Benchmark Test Case of PL kernel
-
-Authors: Gonzalo Ferro
-
+"""
+Module for gathering different hardware information for main fields of
+NEASQC report generation for reporting BTC of a PL kernel
 """
 import platform
 import psutil

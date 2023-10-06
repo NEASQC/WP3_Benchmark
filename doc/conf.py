@@ -8,7 +8,14 @@ from sphinx.ext.autodoc import between
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.append(os.path.abspath('../'))
+sys.path.append(os.path.abspath('../tnbs/BTC_01_PL'))
+sys.path.append(os.path.abspath('../tnbs/BTC_01_PL/PL'))
+sys.path.append(os.path.abspath('../tnbs/BTC_02_AE'))
+sys.path.append(os.path.abspath('../tnbs/BTC_03_QPE'))
+sys.path.append(os.path.abspath('../tnbs/BTC_03_QPE/QPE'))
+sys.path.append(os.path.abspath('../tnbs/BTC_04_PH'))
+sys.path.append(os.path.abspath('../tnbs/BTC_04_PH/PH'))
 
 # -- General configuration ----------------------------------------------------
 

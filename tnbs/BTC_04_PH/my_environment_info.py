@@ -1,6 +1,6 @@
 """
-Template for gathering different hardware information for main fields of
-NEASQC report generation
+Module for gathering different hardware information for main fields of
+NEASQC report generation for reporting BTC of a PH kernel
 """
 
 import platform

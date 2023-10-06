@@ -1,5 +1,5 @@
 """
-Workflow configuration and execution for Benchmark Test Case of PL kernel
+This module execute a complete BTC of the PL kernel 
 """
 
 import sys

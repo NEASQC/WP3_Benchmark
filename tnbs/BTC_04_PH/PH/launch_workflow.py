@@ -4,7 +4,7 @@ Author: Gonzalo Ferro
 """
 
 import json
-from utils import combination_for_list
+from utils_ph import combination_for_list
 from workflow import workflow
 
 def run_id(**configuration):

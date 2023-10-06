@@ -1,5 +1,5 @@
 """
-Workflow configuration and execution for Benchmark Test Case of AE kernel
+This module execute a complete BTC of the AE kernel 
 """
 
 import json

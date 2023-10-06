@@ -1,8 +1,6 @@
-""" Gather mandatory information for Benchmarks field of NEASQC report
-generation for Benchmark Test Case of PL kernel
-
-Authors: Gonzalo Ferro
-
+"""
+This module gathers all mandatory information for Benchmarks field
+of NEASQC JSON report for a BTC PL kernel execution.
 """
 import sys
 import platform

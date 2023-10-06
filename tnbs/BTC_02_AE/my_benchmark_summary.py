@@ -1,6 +1,7 @@
 """
-Formatting the sub-field Results of Benchmarks field of the NEASQC
-report for Benchmark Test Case of AE kernel
+This module is for properly formating the Results sub-field of
+Benchmarks field of the NEASQC JSON report by gathering the results of
+a complete BTC of the AE kernel.
 """
 from collections import OrderedDict
 import psutil

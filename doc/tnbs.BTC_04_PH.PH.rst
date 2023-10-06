@@ -10,10 +10,26 @@ PH.ansatzes
    :undoc-members:
    :show-inheritance:
 
-PH.btc\_ph
-----------
+PH.parent\_hamiltonian
+----------------------
 
-.. automodule:: tnbs.BTC_04_PH.PH.btc_ph
+.. automodule:: tnbs.BTC_04_PH.PH.parent_hamiltonian
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PH.execution\_ph
+----------------
+
+.. automodule:: tnbs.BTC_04_PH.PH.execution_ph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+PH.workflow
+-----------
+
+.. automodule:: tnbs.BTC_04_PH.PH.workflow
    :members:
    :undoc-members:
    :show-inheritance:
@@ -26,22 +42,6 @@ PH.contractions
    :undoc-members:
    :show-inheritance:
 
-PH.naive
---------
-
-.. automodule:: tnbs.BTC_04_PH.PH.naive
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PH.parent\_hamiltonian
-----------------------
-
-.. automodule:: tnbs.BTC_04_PH.PH.parent_hamiltonian
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 PH.pauli
 --------
 
@@ -50,3 +50,10 @@ PH.pauli
    :undoc-members:
    :show-inheritance:
 
+PH.utils\_ph
+------------
+
+.. automodule:: tnbs.BTC_04_PH.PH.utils_ph
+   :members:
+   :undoc-members:
+   :show-inheritance:

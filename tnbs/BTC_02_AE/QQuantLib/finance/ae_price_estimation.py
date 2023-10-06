@@ -11,10 +11,9 @@ estimation.
 Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 """
 
-#import sys
 import numpy as np
 import pandas as pd
-#sys.path.append('../../')
+
 from probability_class import DensityProbability
 from payoff_class import PayOff
 from quantum_integration import q_solve_integral

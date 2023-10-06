@@ -1,5 +1,5 @@
 """
-Template for generic Benchmark Test Case Workflow
+This module execute a complete BTC of the QPE kernel 
 """
 
 import sys
