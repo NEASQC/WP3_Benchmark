@@ -1,7 +1,6 @@
-""" This module contains a class for doing benchmark for NEASQC
-
-Authors: Gonzalo Ferro
-
+"""
+Module for complete generation of NEASQC Benhmark Test Case report
+for a BTC AE kernel
 """
 import json
 from collections import OrderedDict

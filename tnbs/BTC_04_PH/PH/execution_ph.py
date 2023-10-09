@@ -10,9 +10,9 @@ import time
 import pandas as pd
 import numpy as np
 from qat.core import Observable, Term
-from utils import get_info_basefn
+from utils_ph import get_info_basefn
 from ansatzes import ansatz_selector, angles_ansatz01
-from utils import get_qpu
+from utils_ph import get_qpu
 
 logger = logging.getLogger("__name__")
 

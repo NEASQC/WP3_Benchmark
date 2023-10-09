@@ -9,8 +9,6 @@ import pandas as pd
 from scipy.stats import entropy, chisquare, chi2
 from data_loading import get_theoric_probability, get_qlm_probability, get_qpu
 
-
-
 class LoadProbabilityDensity:
     """
     Probability Loading

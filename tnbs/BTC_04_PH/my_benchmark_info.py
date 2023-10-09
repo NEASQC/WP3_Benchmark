@@ -1,6 +1,6 @@
 """
-Template for gathering the mandatory info for Benchmarks field of NEASQC
-report
+This module gathers all mandatory information for Benchmarks field
+of NEASQC JSON report for a BTC PH kernel execution.
 """
 
 import sys

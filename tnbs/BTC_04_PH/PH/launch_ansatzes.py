@@ -4,7 +4,7 @@ Author: Gonzalo Ferro
 """
 
 import json
-from utils import combination_for_list
+from utils_ph import combination_for_list
 from ansatzes import run_ansatz
 
 def run_id(**configuration):

@@ -1,8 +1,9 @@
 """
-Template for generic Benchmark Test Case Workflow
+This module execute a complete BTC of the PH kernel 
 """
 
 import sys
+import os
 import ast
 import logging
 from datetime import datetime
@@ -15,7 +16,7 @@ sys.path.append(l_path+'/PH')
 
 from PH.ansatzes import ansatz_selector, angles_ansatz01
 from PH.execution_ph import PH_EXE
-from PH.utils import get_qpu
+from PH.utils_ph import get_qpu
 
 
 logging.basicConfig(
@@ -90,7 +91,10 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     }
     circuit = ansatz_selector("simple01", **ansatz_conf)
     # Formating Parameters
-    base_fn = "configuration_files/nqubits_{}_depth_{}".format(nqubits, depth)
+    conf_files_folder = kernel_configuration.get("conf_files_folder", None)
+    if conf_files_folder is None:
+        conf_files_folder = "configuration_files"
+    base_fn = conf_files_folder + "/nqubits_{}_depth_{}".format(nqubits, depth)
     param_file = base_fn + "_parameters.csv"
     logger.info("Loading Parameters from: %s", param_file)
 
@@ -370,6 +374,7 @@ if __name__ == "__main__":
 
     kernel_configuration = {
         #Ansatz
+        "conf_files_folder": None,
         "depth": depth,
         "t_inv": True,
         # Ground State Energy

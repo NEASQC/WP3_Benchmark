@@ -1,5 +1,6 @@
 """
-Template for complete generation of NEASQC Benhmark Test Case report
+Module for complete generation of NEASQC Benhmark Test Case report
+for a BTC QPE kernel
 """
 
 import json

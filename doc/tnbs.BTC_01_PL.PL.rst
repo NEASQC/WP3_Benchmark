@@ -17,10 +17,18 @@ PL.load\_probabilities
    :undoc-members:
    :show-inheritance:
 
+PL.data\_extracting
+-------------------
+
+.. automodule:: tnbs.BTC_01_PL.PL.data_extracting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 PL.utils
 --------
 
-.. toctree::
-   :maxdepth: 4
-
-   tnbs.BTC_01_PL.PL.utils
+.. automodule:: tnbs.BTC_01_PL.PL.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

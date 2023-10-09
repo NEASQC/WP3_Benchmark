@@ -1,6 +1,8 @@
 BTC\_04\_PH: Parent Hamiltonian
 ===============================
 
+Implementation of the **BTC** for the **PH kernel** of **TNBS**.
+
 
 my\_benchmark\_execution
 ------------------------

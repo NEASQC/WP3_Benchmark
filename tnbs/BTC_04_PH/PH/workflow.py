@@ -8,7 +8,7 @@ import pandas as pd
 from ansatzes import run_ansatz
 from parent_hamiltonian import PH
 from execution_ph import PH_EXE
-from utils import get_qpu
+from utils_ph import get_qpu
 
 logger = logging.getLogger('__name__')
 

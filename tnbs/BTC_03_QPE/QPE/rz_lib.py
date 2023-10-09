@@ -20,9 +20,9 @@ def get_qpu(qpu=None):
     ----------
 
     qpu : str
-        * qlmass: for trying to use QLM as a Service connection to CESGA QLM
-        * python: for using PyLinalg simulator.
-        * c: for using CLinalg simulator
+    * qlmass: for trying to use QLM as a Service connection to CESGA QLM
+    * python: for using PyLinalg simulator.
+    * c: for using CLinalg simulator
 
     Returns
     ----------

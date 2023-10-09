@@ -6,7 +6,7 @@ Author: Gonzalo Ferro
 import os
 import json
 import pandas as pd
-from utils import get_filelist
+from utils_ph import get_filelist
 from parent_hamiltonian import run_parent_hamiltonian
 
 def list_files(folder, filelistname):

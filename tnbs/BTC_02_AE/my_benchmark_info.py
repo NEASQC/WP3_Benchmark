@@ -1,6 +1,6 @@
 """
-Gather mandatory information for Benchmarks field of NEASQC report
-generation for Benchmark Test Case of AE kernel
+This module gathers all mandatory information for Benchmarks field
+of NEASQC JSON report for a BTC AE kernel execution.
 """
 import platform
 import psutil

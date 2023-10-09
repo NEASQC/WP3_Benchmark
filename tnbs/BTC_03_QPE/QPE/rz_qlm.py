@@ -30,9 +30,9 @@ def qpe_rz_qlm(angles, auxiliar_qbits_number, shots=0, qpu=None):
         pandas DataFrame with the distribution of the eigenvalues with
         a bin discretization of 2^auxiliar_qbits_number
         * lambda : bin discretization for eigenvalues based on the
-            discretization input (auxiliar_qbits_number input)
+        discretization input (auxiliar_qbits_number input)
         * Probability: probability of finding any eigenvalue inside
-            of the correspoondent lambda bin
+        of the correspoondent lambda bin
 
     qft_pe : CQPE object
 

@@ -1,13 +1,6 @@
 QQuantLib.finance
 =================
 
-QQuantLib.finance.ae\_price\_estimation
----------------------------------------
-
-.. automodule:: tnbs.BTC_02_AE.QQuantLib.finance.ae_price_estimation
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 QQuantLib.finance.classical\_finance
 ------------------------------------

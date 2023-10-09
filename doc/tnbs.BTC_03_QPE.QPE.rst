@@ -18,10 +18,18 @@ QPE.rz\_lib
    :undoc-members:
    :show-inheritance:
 
-QPE.utils
----------
+QPE.rz\_qlm
+-----------
 
-.. toctree::
-   :maxdepth: 4
+.. automodule:: tnbs.BTC_03_QPE.QPE.rz_qlm
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   tnbs.BTC_03_QPE.QPE.utils
+QPE.qpe
+-------
+
+.. automodule:: tnbs.BTC_03_QPE.QPE.qpe
+   :members:
+   :undoc-members:
+   :show-inheritance:
