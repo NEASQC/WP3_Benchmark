@@ -129,9 +129,10 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         exe_ph.run()
         pdf_info = pd.DataFrame(
             [int(nqubits), int(depth)], index=["nqubits", "depth"]).T
+        step = pd.DataFrame.from_dict(vqe_conf, orient="index").T
         list_ = [
             pdf_info,
-            pd.DataFrame(kernel_configuration, index=[0]),
+            step,
             exe_ph.pdf_result
         ]
         pdf_info = pd.concat(list_, axis=1)
@@ -228,7 +229,7 @@ def summarize_results(**kwargs):
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
     pdf.fillna("None", inplace=True)
     group_columns = [
-        "nqubits", "depth", "t_inv", "qpu_ph",
+        "nqubits", "depth", "t_inv", "qpu",
         "nb_shots", "truncation"]
     metric_columns = ["gse", "elapsed_time", "quantum_time", "classic_time"]
     results = pdf.groupby(group_columns)[metric_columns].agg(
@@ -384,7 +385,6 @@ if __name__ == "__main__":
     }
 
     list_of_qbits = list(range(3, 9))
-    list_of_qbits = [3]
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,

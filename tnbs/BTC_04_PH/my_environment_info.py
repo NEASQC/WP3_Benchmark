@@ -25,7 +25,7 @@ def my_qpu_model(**kwargs):
     """
     Name of the model of the QPU
     """
-    qpu_model = "None"
+    qpu_model = "CLinAlg"
     return qpu_model
 
 def my_qpu(**kwargs):

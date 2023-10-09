@@ -295,13 +295,13 @@ class KERNEL_BENCHMARK:
 if __name__ == "__main__":
     from ae_sine_integral import select_ae
 
-    AE = "IQAE"
+    AE = "RQAE"
     #Setting the AE algorithm configuration
     ae_problem = select_ae(AE)
 
     ae_problem.update({
         "qpu": "c",
-        "integrals": [0]
+        "integrals": [0, 1]
     })
 
     benchmark_arguments = {
