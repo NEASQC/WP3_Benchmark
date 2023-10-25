@@ -62,7 +62,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     ae_configuration = kwargs.get("kernel_configuration")
 
     columns = [
-        "interval", "n_qbits", "absolute_error_sum", "oracle_calls",
+        "interval", "n_qbits", "IntegralAbsoluteError", "oracle_calls",
         "elapsed_time", "run_time", "quantum_time"
     ]
 
@@ -133,7 +133,7 @@ def compute_samples(**kwargs):
     absolute_error = kwargs.get("absolute_error", None)
     if absolute_error is None:
         absolute_error = 1e-4
-    samples_ae = (zalpha * metrics[['absolute_error_sum']].std() \
+    samples_ae = (zalpha * metrics[['IntegralAbsoluteError']].std() \
         / absolute_error) ** 2
 
     #Maximum number of sampls will be used
@@ -322,7 +322,7 @@ if __name__ == "__main__":
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 5],
+        "list_of_qbits": [4],
     }
 
 

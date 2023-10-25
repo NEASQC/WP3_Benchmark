@@ -26,7 +26,7 @@ def summarize_results(**kwargs):
     #list_of_metrics = ["MRSE"]
     list_of_metrics = [
         #"absolute_error_exact", "relative_error_exact",
-        "absolute_error_sum", "oracle_calls"
+        "IntegralAbsoluteError", "oracle_calls"
     ]
 
     results = []

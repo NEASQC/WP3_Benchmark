@@ -132,7 +132,7 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     pdf["relative_error_exact"] = relative_error
 
     #Error vs Riemann Sum
-    pdf["absolute_error_sum"] = np.abs(pdf["integral_ae"] - pdf["riemann_sum"])
+    pdf["IntegralAbsoluteError"] = np.abs(pdf["integral_ae"] - pdf["riemann_sum"])
 
     #Error by Riemann aproximation to Integral
     pdf["absolute_riemann_error"] = np.abs(
