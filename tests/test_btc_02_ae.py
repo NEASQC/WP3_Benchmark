@@ -84,7 +84,7 @@ def test_ae_iqae():
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
     #print(a["absolute_error_sum"]["mean"])
     #print(100* list(a['KS']['mean'])[0])
-    assert(100* list(a['absolute_error_sum']['mean'])[0] < 1.0)
+    assert(100* list(a['IntegralAbsoluteError']['mean'])[0] < 1.0)
     shutil.rmtree(folder)
 
 def test_ae_mlae(): 
@@ -134,7 +134,7 @@ def test_ae_mlae():
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
     #print(a["absolute_error_sum"]["mean"])
     #print(100* list(a['KS']['mean'])[0])
-    assert(100* list(a['absolute_error_sum']['mean'])[0] < 1.0)
+    assert(100* list(a['IntegralAbsoluteError']['mean'])[0] < 1.0)
     shutil.rmtree(folder)
 
 def test_ae_rqae(): 
@@ -181,7 +181,7 @@ def test_ae_rqae():
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
     print(a["absolute_error_sum"]["mean"])
-    assert((a["absolute_error_sum"]["mean"] < 0.01).all())
+    assert((a["IntegralAbsoluteError"]["mean"] < 0.01).all())
     #print(100* list(a['KS']['mean'])[0])
     #assert(100* list(a['absolute_error_sum']['mean'])[0] < 1.0)
     shutil.rmtree(folder)
