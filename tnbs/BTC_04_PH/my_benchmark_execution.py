@@ -1,5 +1,5 @@
 """
-This module execute a complete BTC of the PH kernel 
+This module execute a complete BTC of the PH kernel
 """
 
 import sys
@@ -15,7 +15,7 @@ l_path = l_sys[['BTC_04_PH' in i for i in l_sys].index(True)]
 sys.path.append(l_path+'/PH')
 
 from PH.ansatzes import ansatz_selector, angles_ansatz01
-from PH.execution_ph import PH_EXE
+from PH.vqe_step import PH_EXE
 from PH.utils_ph import get_qpu
 
 

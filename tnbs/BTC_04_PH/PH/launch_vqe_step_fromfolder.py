@@ -7,7 +7,7 @@ import os
 import json
 import pandas as pd
 from utils_ph import get_filelist
-from execution_ph import run_ph_execution
+from vqe_step_fromfolder import run_ph_execution
 
 def list_files(folder, filelistname):
     #filelist = os.listdir(folder)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     # Load json file
-    json_file = "execution_ph.json"
+    json_file = "vqe_step_fromfolder.json"
     f_ = open(json_file)
     conf = json.load(f_)
     print(conf)
