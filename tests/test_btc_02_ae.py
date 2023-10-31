@@ -180,7 +180,7 @@ def test_ae_rqae():
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
-    print(a["absolute_error_sum"]["mean"])
+    #print(a["absolute_error_sum"]["mean"])
     assert((a["IntegralAbsoluteError"]["mean"] < 0.01).all())
     #print(100* list(a['KS']['mean'])[0])
     #assert(100* list(a['absolute_error_sum']['mean'])[0] < 1.0)

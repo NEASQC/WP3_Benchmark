@@ -1,12 +1,7 @@
-[
-    {
-        "nqubits": [28, 29, 30],
-        "depth": [1],
-        "t_inv": [true],
-        "truncation": [null],
-        "nb_shots": [0],
-        "qpu_ph": ["qlmass"],
-        "save": [true],
-        "base_fn":  ["/home/cesga/gferro/Codigo/TensorNetworks/Zalo"]
-    }
-]
+{
+    "nb_shots": null,
+    "truncation": null,
+    "t_inv": true,
+    "qpu_ph": "c",
+    "save": false
+}

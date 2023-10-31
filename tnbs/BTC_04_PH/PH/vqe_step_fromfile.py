@@ -1,14 +1,23 @@
 """
 For executing a VQE quantum step of a ansatz and a given
-Parent Hamiltonian
-In this case the input are a folder, base_fn, and it is expected
-that in the folder exist files with following pattern names
+Parent Hamiltonian.
+Here the input is a base file name that should have following pattern:
+    ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
+From this name following information should be extracted:
+* ansatz_{}: the name of the ansatz
+* nqubits_{}: the number of qubits for the ansatz
+* depth_{}: the depth of the ansatz
+* qpu_ansatz_{}: the qpu used for solving the ansatz
 
-    nqubits_{}_depth_{}_parameters.csv
-    nqubits_{}_depth_{}_pauli.csv
+For the input base file name following files has to exist:
+* {}_parameters.csv
+* {}_pauli.csv
 
-The nqubits and the depth is passed as input (keyowrd arguments)
-
+Here alwways talk about complete file names. The pattern can be found
+in the bare name of the file, or in the folder that contain the file.
+Example of valid names:
+* ansatz_simple01_nqubits_27_depth_4_qpu_ansatz_qat_qlmass/8b961e30-5fc2-11ee-b12a-080038bfd786
+* ansatz_simple01_nqubits_16_depth_4_qpu_c.csv
 
 Author: Gonzalo Ferro
 """
@@ -16,44 +25,41 @@ Author: Gonzalo Ferro
 import logging
 import ast
 import pandas as pd
-from utils_ph import get_qpu
+from utils_ph import get_info_basefn, get_qpu
 from ansatzes import ansatz_selector, angles_ansatz01
 from vqe_step import PH_EXE
 
 logger = logging.getLogger("__name__")
-
 
 def run_ph_execution(**configuration):
     """
     Given an ansatz circuit, the parameters and the Pauli decomposition
     of the corresponding local PH executes a VQE step for computing
     the energy of the ansatz under the Hamiltonian that MUST BE near 0
+    Given a Folder with following pattern:
+        * ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
+    That contains files with following patter:
+        * {}_parameters.csv
+        * {}_pauli.csv
     Workflow:
-        * Getting the nqubits and depth from keyword arguments.
-        * Using them and the base_fn following file names are created:
-        base_fn + nqubits_{}_depth_{}_parameters.csv
-        base_fn + nqubits_{}_depth_{}_pauli.csv
-        * The Parameter are loading from parameters file.
-        * The QLM circuit is created (simplest ansatz) using
-        nqubits and depth.
-        * Parameters are loading in QLM circuit.
-        * The Pauli decomposition is loaded from pauli files.
+        * Create QLM circuit using the ansatz type readed from the folder
+        * Loading parameters for the circuit from: {}_parameters.csv
+        * Loading Pauli Decomposition from: {}_pauli.csv
         * Executes VQE step.
+        * Stores the result of the execution: {}_phexe.csv
     """
 
     logger.info("Creating ansatz circuit")
-    nqubits = configuration["nqubits"]
-    depth = configuration["depth"]
+    base_fn = configuration["base_fn"]
+    print(base_fn)
+    depth, nqubits, ansatz = get_info_basefn(base_fn)
     ansatz_conf = {
         "nqubits" :nqubits,
         "depth" : depth,
     }
-    circuit = ansatz_selector("simple01", **ansatz_conf)
+    circuit = ansatz_selector(ansatz, **ansatz_conf)
 
     logger.info("Loading Parameters")
-    base_fn = configuration["base_fn"] + "/nqubits_{}_depth_{}".format(
-        str(nqubits).zfill(2), depth)
-    print(base_fn)
     parameters_pdf = pd.read_csv(
         base_fn + "_parameters.csv", sep=";", index_col=0)
     # Formating Parameters
@@ -83,7 +89,6 @@ def run_ph_execution(**configuration):
     exe_ph.run()
     return exe_ph.pdf
 
-
 if __name__ == "__main__":
     import logging
     logging.basicConfig(
@@ -102,20 +107,6 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="Base Filename for Loading Files",
-    )
-    parser.add_argument(
-        "-nqubits",
-        dest="nqubits",
-        type=int,
-        help="Number of qbits for the ansatz.",
-        default=None,
-    )
-    parser.add_argument(
-        "-depth",
-        dest="depth",
-        type=int,
-        help="Depth for ansatz.",
-        default=None,
     )
     parser.add_argument(
         "-nb_shots",
@@ -154,4 +145,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    run_ph_execution(**vars(args))
+    print(run_ph_execution(**vars(args)))

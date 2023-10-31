@@ -67,7 +67,9 @@ class PH_EXE:
         if self.truncation is not None:
             index = abs(self.pauli_ph["PauliCoefficients"]) > self.truncation
             self.pauli_pdf = self.pauli_ph[index]
-            logger.debug("Additional truncation of Pauli Coeficients")
+            logger.debug(
+                "Additional truncation of Pauli Coeficients: {}".format(
+                len(self.pauli_pdf)))
         else:
             self.pauli_pdf = self.pauli_ph
         pauli_coefs = list(self.pauli_pdf["PauliCoefficients"])
