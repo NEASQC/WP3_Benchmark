@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 from ansatzes import run_ansatz
 from parent_hamiltonian import PH
-from execution_ph import PH_EXE
+from vqe_step import PH_EXE
 from utils_ph import get_qpu
 
 logger = logging.getLogger('__name__')

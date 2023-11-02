@@ -1,7 +1,0 @@
-{
-    "nb_shots": null,
-    "truncation": null,
-    "t_inv": true,
-    "qpu_ph": "c",
-    "save": false
-}

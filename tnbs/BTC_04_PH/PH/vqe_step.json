@@ -1,7 +1,6 @@
 [
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_1_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -11,7 +10,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_2_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -21,7 +19,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -31,7 +28,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_4_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -41,7 +37,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -51,7 +46,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_2_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -61,7 +55,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_3_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
@@ -71,7 +64,6 @@
     },
     {
         "save": [true],
-        "t_inv": [true],
         "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_4_qpu_ansatz_c"],
         "nb_shots": [null],
         "truncation": [null],
