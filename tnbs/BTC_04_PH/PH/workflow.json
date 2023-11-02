@@ -9,6 +9,6 @@
         "qpu_ansatz": ["c"],
         "qpu_ph": ["c"],
         "save": [true],
-        "folder":  ["/mnt/netapp1/Store_CESGA/home/cesga/gferro/NEASQC/"]
+        "folder":  ["Test"]
     }
 ]

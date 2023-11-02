@@ -12,7 +12,7 @@ import numpy as np
 logger = logging.getLogger('__name__')
 
 
-def contract_indices(tensor1, tensor2, contraction1, contraction2):
+def contract_indices_old(tensor1, tensor2, contraction1, contraction2):
     """
     Compute the contraction of 2 input tensors for the input contraction
     indices.The computation is done by, transposing indices, reshaping
@@ -50,6 +50,7 @@ def contract_indices(tensor1, tensor2, contraction1, contraction2):
     # Transpose elements
     tensor1_t = tensor1.transpose(free_indices1 + contraction1)
     tensor2_t = tensor2.transpose(free_indices2 + contraction2)
+
     tensor1_t_matrix = tensor1_t.reshape(
         len(tensor1) ** len(free_indices1),
         len(tensor1) ** len(contraction1)
@@ -59,6 +60,105 @@ def contract_indices(tensor1, tensor2, contraction1, contraction2):
         len(tensor2) ** len(contraction2)
     )
     contraction_tensor = tensor1_t_matrix @ tensor2_t_matrix.T
+    return contraction_tensor
+
+def contract_indices(tensor1, tensor2, contraction1=[], contraction2=[]):
+    """
+    Compute the contraction of 2 input tensors for the input contraction
+    indices.The computation is done by, transposing indices, reshapin
+    and doing matrix multiplication. Tensor legs can be of different
+    dimension.
+    BE AWARE: Order in contraction indices it is very important:
+    contraction1 = [1, 2, 5] contraction2 = [2, 0, 6] -> Contractions
+    will be: [1-2, 2-0, 5-6]
+    But if contraction2 = [0, 2, 6] then contraction
+    will be: [1-0, 2-2,5-6]
+    If both contraction indices are empty then the tensors will be glued
+
+    Parameters
+    ----------
+
+    tensor1 : numpy array
+        first tensor
+    tensor2 : numpy array
+        second tensor
+    contraction1 : list
+        contraction indices for first tensor
+    contraction2 : list
+        contraction indices for second tensor
+
+    Returns
+    _______
+
+    rho : numpy array
+        Desired reduced density operator in matrix form
+
+    """
+
+    if len(contraction1) != len(contraction2):
+        raise ValueError("Different number of contraction indices!")
+    indices1 = list(range(tensor1.ndim))
+    indices2 = list(range(tensor2.ndim))
+
+    # Free indices for tensors
+    free_indices1 = [i for i in indices1 if i not in contraction1]
+    free_indices2 = [i for i in indices2 if i not in contraction2]
+
+    # Transpose elements
+    tensor1_t = tensor1.transpose(free_indices1 + contraction1)
+    tensor2_t = tensor2.transpose(free_indices2 + contraction2)
+
+    # If free_indices are empty
+    if len(free_indices1) == 0:
+        free_indices_1 = 1
+    else:
+        free_indices_1 = np.prod(
+            [tensor1.shape[i] for i in free_indices1])
+
+    # If contraction1 is empty
+    if len(contraction1) == 0:
+        contraction_indices_1 = 1
+    else:
+        contraction_indices_1 = np.prod(
+            [tensor1.shape[i] for i in contraction1])
+
+    # tensor1_t_matrix = tensor1_t.reshape(
+    #     free_indices_1,
+    #     np.prod([tensor1.shape[i] for i in contraction1]),
+    # )
+
+    tensor1_t_matrix = tensor1_t.reshape(
+        free_indices_1, contraction_indices_1)
+
+    # If free_indices are empty
+    if len(free_indices2) == 0:
+        free_indices_2 = 1
+    else:
+        free_indices_2 = np.prod(
+            [tensor2.shape[i] for i in free_indices2])
+
+    # If contraction1 is empty
+    if len(contraction2) == 0:
+        contraction_indices_2 = 1
+    else:
+        contraction_indices_2 = np.prod(
+            [tensor2.shape[i] for i in contraction2])
+
+    # tensor2_t_matrix = tensor2_t.reshape(
+    #     free_indices_2,
+    #     np.prod([tensor2.shape[i] for i in contraction2]),
+    # )
+
+    tensor2_t_matrix = tensor2_t.reshape(
+        free_indices_2, contraction_indices_2)
+
+    # Do the bare matrix multiplication
+    contraction_tensor = tensor1_t_matrix @ tensor2_t_matrix.T
+
+    free_contraction = [tensor1.shape[i] for i in free_indices1] + \
+        [tensor2.shape[i] for i in free_indices2]
+    contraction_tensor = contraction_tensor.reshape(free_contraction)
+
     return contraction_tensor
 
 
