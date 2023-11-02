@@ -3,28 +3,16 @@ For launching a VQE quantum step execution
 Author: Gonzalo Ferro
 """
 
-import os
-import pandas as pd
-from utils_ph import get_filelist
+import json
+from utils_ph import combination_for_list
 from ansatzes import getting_job
 
-def list_files(filelistname):
-    #filelist = os.listdir(folder)
-    filelist = pd.read_csv(filelistname, header=None)
-    job = filelist[1]
-    filename = filelist[0]
-    filelist = [get_filelist(file_)[0] for file_ in filename]
-    return job, filelist
 
-def run_id(configuration):
-    jobid = configuration[0]
-    filename = configuration[1]
-    conf_dict = {
-        "job_id" : jobid,
-        "filename": filename,
-        "save": True
-    }
-    state = getting_job(**conf_dict)
+def run_id(**configuration):
+    filename = configuration["filename"] + "/" + configuration["job_id"]
+    configuration.update({"filename": filename})
+    print(configuration)
+    state = getting_job(**configuration)
     print(state)
 
 
@@ -86,23 +74,26 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    job, files_list = list_files(args.filelist)
-    conf_list = list(zip(job, files_list))
-
-
+    # Load json file
+    json_file = "get_jobs.json"
+    f_ = open(json_file)
+    conf = json.load(f_)
+    # Creating Combination list
+    combination_list = combination_for_list(conf)
 
     if args.print:
         if args.id is not None:
-            print(conf_list[args.id])
+            print(combination_list[args.id])
         elif args.all:
-            print(conf_list)
+            print(combination_list)
         else:
             print("Provide -id or --all")
     if args.count:
-        print("Number of elements: {}".format(len(conf_list)))
+        print("Number of elements: {}".format(len(combination_list)))
     if args.execution:
         if args.id is not None:
-            run_id(conf_list[args.id])
+            configuration = combination_list[args.id]
+            run_id(**configuration)
         if args.all:
-            for conf_ in conf_list:
-                run_id(conf_)
+            for configuration in combination_list:
+                run_id(**configuration)

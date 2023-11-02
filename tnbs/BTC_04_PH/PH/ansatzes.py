@@ -367,23 +367,35 @@ class SolveCircuit:
         connection = QLMaaSConnection()
         # Get Info of the job
         job_info = connection.get_job_info(jobid)
-        nqubits = job_info.resources.nbqbits
-        print(nqubits)
-        end = datetime.strptime(
-            job_info.ending_date.rsplit(".")[0],
-            "%Y-%m-%d %H:%M:%S")
-        start = datetime.strptime(
-            job_info.starting_date.rsplit(".")[0],
-            "%Y-%m-%d %H:%M:%S")
-        elapsed = end - start
-        elapsed = elapsed.total_seconds()
-        self.solve_ansatz_time = elapsed
-        #state = connection.get_result(jobid)
-        state = connection.get_job(jobid)
-        self.state = solving_circuit(state, nqubits)
-        if self._save:
-            self.save_state()
-            self.save_time()
+        print(job_info)
+        status = job_info.status
+
+        if status == 3:
+            #Work done
+            nqubits = job_info.resources.nbqbits
+            print(nqubits)
+            end = datetime.strptime(
+                job_info.ending_date.rsplit(".")[0],
+                "%Y-%m-%d %H:%M:%S")
+            start = datetime.strptime(
+                job_info.starting_date.rsplit(".")[0],
+                "%Y-%m-%d %H:%M:%S")
+            elapsed = end - start
+            elapsed = elapsed.total_seconds()
+            self.solve_ansatz_time = elapsed
+            #state = connection.get_result(jobid)
+            state = connection.get_job(jobid)
+            self.state = solving_circuit(state, nqubits)
+            print(self.state)
+            if self._save:
+                self.save_state()
+                self.save_time()
+        elif status == 1:
+            print("JobId: {} is pending".format(jobid))
+        elif status == 4:
+            print("JobId: {} was cancelled".format(jobid))
+        elif status == 2:
+            print("JobId: {} is running".format(jobid))
 
     def save_parameters(self):
         """
@@ -449,10 +461,9 @@ def run_ansatz(**configuration):
     # For creating the folder for saving
     if save:
         folder = create_folder(folder)
-        fold_name = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}".format(
+        filename = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}".format(
             ansatz, nqubits, depth, qpu_ansatz_name)
-        fold_name = create_folder(folder + fold_name)
-        filename = fold_name + str(uuid.uuid1())
+        filename = folder + filename
     else:
         filename = ""
 
@@ -479,6 +490,7 @@ def run_ansatz(**configuration):
             "filename" : filename,
             "circuit": circuit
         }
+        print(output_dict["state"])
         return output_dict
     if submit:
         logger.info("Ansatz will be submited to QLM")
@@ -606,5 +618,3 @@ if __name__ == "__main__":
         state = getting_job(**vars(args))
     else:
         output = run_ansatz(**vars(args))
-        state = output["state"]
-    print(state)

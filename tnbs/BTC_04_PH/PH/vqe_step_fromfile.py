@@ -24,58 +24,73 @@ Author: Gonzalo Ferro
 
 import logging
 import ast
+import re
 import pandas as pd
-from utils_ph import get_info_basefn, get_qpu
+from utils_ph import get_qpu
 from ansatzes import ansatz_selector, angles_ansatz01
 from vqe_step import PH_EXE
 
 logger = logging.getLogger("__name__")
+
+def get_info_basefn(base_fn):
+    depth = int(re.findall(r"depth_(.*)_qpu", base_fn)[0])
+    nqubits = int(re.findall(r"nqubits_(.*)_depth_", base_fn)[0])
+    ansatz = re.findall(r"ansatz_(.*)_nqubits", base_fn)[0]
+    return depth, nqubits, ansatz
 
 def run_ph_execution(**configuration):
     """
     Given an ansatz circuit, the parameters and the Pauli decomposition
     of the corresponding local PH executes a VQE step for computing
     the energy of the ansatz under the Hamiltonian that MUST BE near 0
-    Given a Folder with following pattern:
-        * ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
-    That contains files with following patter:
-        * {}_parameters.csv
-        * {}_pauli.csv
-    Workflow:
-        * Create QLM circuit using the ansatz type readed from the folder
-        * Loading parameters for the circuit from: {}_parameters.csv
-        * Loading Pauli Decomposition from: {}_pauli.csv
-        * Executes VQE step.
-        * Stores the result of the execution: {}_phexe.csv
+    Given an input base_fn that MUST have following pattern:
+        * base_fn = ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
+    Additionally folowing files MUST exist:
+        * {base_fn}_parameters.csv
+        * {base_fn}_pauli.csv
+    The functions gets the information about: ansatz, nqubits and depth
+    and executes the following Workflow:
+        1. Create QLM circuit using the ansatz type readed from the folder
+        2 Loading parameters for the circuit from: {}_parameters.csv
+        3. Loading Pauli Decomposition from: {}_pauli.csv
+        4. Executes VQE step.
+    If save is True the result of the execution is stored as:
+        * {base_fn}_phexe.csv
     """
 
+    # 1. Create QLM circuit using the ansatz type readed from the folder
     logger.info("Creating ansatz circuit")
     base_fn = configuration["base_fn"]
-    print(base_fn)
     depth, nqubits, ansatz = get_info_basefn(base_fn)
+    text = "ansatz: {0}, nqubits: {1} depth: {2}".format(ansatz, nqubits, depth)
+    logger.debug(text)
     ansatz_conf = {
         "nqubits" :nqubits,
         "depth" : depth,
     }
     circuit = ansatz_selector(ansatz, **ansatz_conf)
 
-    logger.info("Loading Parameters")
+    # 2 Loading parameters for the circuit from: {}_parameters.csv
+    text = "Loading Parameters from: {}".format(base_fn + "_parameters.csv")
+    logger.info(text)
     parameters_pdf = pd.read_csv(
         base_fn + "_parameters.csv", sep=";", index_col=0)
     # Formating Parameters
     circuit, _ = angles_ansatz01(circuit, parameters_pdf)
-    #from qat.core.console import display
-    #display(circuit)
+    # from qat.core.console import display
+    # display(circuit)
 
-    # Loading PH Pauli decomposition
-    logger.info("Loading PH Pauli decomposition")
+    # 3. Loading Pauli Decomposition from: {}_pauli.csv
+    text = "Loading PH Pauli decomposition from: {}".format(
+        base_fn + "_parameters.csv")
+    logger.info(text)
     # Loading Pauli
     pauli_pdf = pd.read_csv(
         base_fn + "_pauli.csv", sep=";", index_col=0)
     affected_qubits = [ast.literal_eval(i_) for i_ in list(pauli_pdf["Qbits"])]
     pauli_pdf["Qbits"] = affected_qubits
 
-    # Executing VQE step
+    # 4. Executes VQE step.
     logger.info("Executing VQE step")
     vqe_conf = {
         "qpu" : get_qpu(configuration["qpu_ph"]),
@@ -94,8 +109,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
-        level=logging.INFO
-        #level=logging.DEBUG
+        #level=logging.INFO
+        level=logging.DEBUG
     )
     logger = logging.getLogger('__name__')
     import argparse

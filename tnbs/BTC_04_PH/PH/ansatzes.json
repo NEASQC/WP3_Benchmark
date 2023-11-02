@@ -1,13 +1,13 @@
 [
     {
-        "nqubits": [25, 26],
+        "nqubits": [12, 14],
         "depth": [1, 2, 3, 4],
         "ansatz" : ["simple01"],
-        "qpu_ansatz": ["mps"],
+        "qpu_ansatz": ["c"],
         "t_inv": [true],
-        "folder":  ["/mnt/netapp1/Store_CESGA/home/cesga/gferro/NEASQC/"],
+        "folder":  ["Test"],
         "save": [true],
-        "solve" : [false],
-        "submit": [true]
+        "solve" : [true],
+        "submit": [false]
     }
 ]
