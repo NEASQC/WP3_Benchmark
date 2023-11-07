@@ -431,12 +431,12 @@ def run_parent_hamiltonian(**configuration):
     return ph_ob_mps.pauli_pdf, pdf_angles
 
 if __name__ == "__main__":
-    # logging.basicConfig(
-    #     format='%(asctime)s-%(levelname)s: %(message)s',
-    #     datefmt='%m/%d/%Y %I:%M:%S %p',
-    #     #level=logging.INFO
-    #     level=logging.DEBUG
-    # )
+    logging.basicConfig(
+        format='%(asctime)s-%(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        #level=logging.INFO
+        level=logging.DEBUG
+    )
     logger = logging.getLogger('__name__')
     # Given a state Compute its Parent Hamiltonian
     import argparse
@@ -471,13 +471,13 @@ if __name__ == "__main__":
         help="Truncation Value for SVD in the MPS computations",
         default=None,
     )
-    # parser.add_argument(
-    #     "--t_inv",
-    #     dest="t_inv",
-    #     default=False,
-    #     action="store_true",
-    #     help="Setting translational invariant of the ansatz",
-    # )
+    parser.add_argument(
+        "--t_inv",
+        dest="t_inv",
+        default=False,
+        action="store_true",
+        help="Setting translational invariant of the ansatz",
+    )
     parser.add_argument(
         "--save",
         dest="save",
