@@ -141,7 +141,7 @@ class PH_EXE:
             self.filename+"_phexe.csv", sep=";")
 
 def get_info_basefn(base_fn):
-    depth = int(re.findall(r"depth_(.*)_", base_fn)[0])
+    depth = int(re.findall(r"depth_(.*)_qpu", base_fn)[0])
     nqubits = int(re.findall(r"nqubits_(.*)_depth_", base_fn)[0])
     ansatz = re.findall(r"ansatz_(.*)_nqubits", base_fn)[0]
     return depth, nqubits, ansatz
