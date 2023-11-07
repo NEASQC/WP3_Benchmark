@@ -496,7 +496,7 @@ def run_ansatz(**configuration):
         logger.info("Ansatz will be submited to QLM")
         solv_ansatz.submit()
         solve_ansatz_time = solv_ansatz.solve_ansatz_time
-        return None, None, None, None
+        return None
 
 def getting_job(**configuration):
     """
@@ -618,4 +618,5 @@ if __name__ == "__main__":
         state = getting_job(**vars(args))
     else:
         output = run_ansatz(**vars(args))
-        print(output["state"])
+        if output is not None:
+            print(output["state"])

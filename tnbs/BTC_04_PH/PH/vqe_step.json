@@ -1,12 +1,11 @@
 [
     {
         "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_1_qpu_ansatz_c"],
+        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_c"],
         "nb_shots": [null],
-        "truncation": [null],
+        "truncation": [1e-5],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -14,8 +13,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -23,8 +21,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -32,8 +29,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -41,8 +37,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -50,8 +45,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -59,8 +53,7 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     },
     {
         "save": [true],
@@ -68,7 +61,6 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"],
-        "save": [false]
+        "qpu_ph": ["c"]
     }
 ]
