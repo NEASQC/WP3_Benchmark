@@ -490,7 +490,7 @@ def run_ansatz(**configuration):
             "filename" : filename,
             "circuit": circuit
         }
-        print(output_dict["state"])
+        #print(output_dict["state"])
         return output_dict
     if submit:
         logger.info("Ansatz will be submited to QLM")
@@ -618,3 +618,4 @@ if __name__ == "__main__":
         state = getting_job(**vars(args))
     else:
         output = run_ansatz(**vars(args))
+        print(output["state"])
