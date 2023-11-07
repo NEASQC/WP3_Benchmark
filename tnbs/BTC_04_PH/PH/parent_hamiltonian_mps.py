@@ -409,7 +409,7 @@ def run_parent_hamiltonian(**configuration):
     if save:
         folder_name = create_folder(folder_name)
         base_fn = folder_name + \
-            "ansatz_simple01_nqubits_{}_depth_{}_mps".format(
+            "ansatz_simple01_nqubits_{}_depth_{}_qpu_mps".format(
                 str(nqubits).zfill(2), depth)
     # Build Angles
     angles = get_angles(depth)
