@@ -2,16 +2,18 @@
 This module execute a complete BTC of the PL kernel 
 """
 
+import os
 import sys
 import json
 from datetime import datetime
 from copy import deepcopy
 import pandas as pd
 
+from get_qpu import get_qpu
 l_sys = sys.path
 l_path = l_sys[['BTC_01' in i for i in l_sys].index(True)]
 sys.path.append(l_path+'/PL')
-from PL.load_probabilities import LoadProbabilityDensity, get_qpu
+from PL.load_probabilities import LoadProbabilityDensity
 
 def build_iterator(**kwargs):
     """
@@ -66,7 +68,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     n_qbits = iterator_step[0]
     list_of_metrics = []
     kernel_configuration.update({"number_of_qbits": n_qbits})
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
+    #kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     print(kernel_configuration)
     for i in range(repetitions):
         prob_dens = LoadProbabilityDensity(**kernel_configuration)
@@ -295,7 +297,7 @@ if __name__ == "__main__":
 
     kernel_configuration = {
         "load_method" : "multiplexor",
-        "qpu" : "c", #python, qlmass, default
+        "qpu" : "linalg", #"c", python, qlmass, default
         "relative_error": None,
         "absolute_error": None
     }
@@ -320,8 +322,14 @@ if __name__ == "__main__":
         "list_of_qbits": [4, 6, 8, 10],
     }
 
+    # Selecting the QPU
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
+
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
+    # Create Folder for storing results
+    if not os.path.exists(benchmark_arguments["saving_folder"]):
+        os.mkdir(benchmark_arguments["saving_folder"])
     ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     ae_bench.exe()
 

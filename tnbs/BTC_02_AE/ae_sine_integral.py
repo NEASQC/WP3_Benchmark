@@ -9,9 +9,9 @@ import time
 import numpy as np
 import pandas as pd
 from copy import deepcopy
+from get_qpu import get_qpu
 
 from QQuantLib.utils.benchmark_utils import combination_for_list
-from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.finance.quantum_integration import q_solve_integral
 
 def sine_integral(n_qbits, interval, ae_dictionary):
@@ -82,8 +82,10 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     #Now added the AE configuration.
     #The ae_dictionary_ has a local copy of the AE configuration.
     q_solve_configuration.update(ae_dictionary_)
+
     #The q_solve_integral needs a QPU object.
-    q_solve_configuration["qpu"] = get_qpu(q_solve_configuration["qpu"])
+    #q_solve_configuration["qpu"] = get_qpu(q_solve_configuration["qpu"])
+
     #Compute the integral using AE algorithms!!
     solution, solver_object = q_solve_integral(**q_solve_configuration)
 
@@ -253,7 +255,7 @@ if __name__ == "__main__":
         dest="qpu",
         type=str,
         default="python",
-        help="QPU for simulation: [qlmass, python, c]",
+        help="QPU for simulation: See function get_qpu in get_qpu module",
     )
     #Saving results arguments
     parser.add_argument(
@@ -279,10 +281,9 @@ if __name__ == "__main__":
         help="For executing program",
     )
     args = parser.parse_args()
-    print(args)
 
     ae_configuration = select_ae(args.ae_type)
-    ae_configuration.update({"qpu":args.qpu})
+    ae_configuration.update({"qpu":get_qpu(args.qpu)})
 
     if args.print:
         print(ae_configuration)

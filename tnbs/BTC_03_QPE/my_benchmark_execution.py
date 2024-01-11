@@ -13,7 +13,6 @@ l_path = l_sys[['BTC_03_QPE' in i for i in l_sys].index(True)]
 sys.path.append(l_path+'/QPE')
 
 from QPE.qpe_rz import QPE_RZ
-from QPE.rz_lib import get_qpu
 
 def build_iterator(**kwargs):
     """
@@ -75,12 +74,11 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     angles = iterator_step[2]
     # print('n_qbits :{}. aux_qbits: {}. angles: {}'.format(
     #     n_qbits, aux_qbits, angles))
-    qpu = get_qpu(kernel_configuration_['qpu'])
     qpe_rz_dict = {
         'number_of_qbits' : n_qbits,
         'auxiliar_qbits_number' : aux_qbits,
         'angles' : angles,
-        'qpu' : qpu,
+        'qpu' : kernel_configuration_["qpu"],
     }
 
     list_of_metrics = []
@@ -335,11 +333,12 @@ if __name__ == "__main__":
 
     import os
     import shutil
+    from get_qpu import get_qpu
 
     kernel_configuration = {
         "angles" : ["random", 'exact'],
         "auxiliar_qbits_number" : [6, 8],
-        "qpu" : "c", #qlmass, python, c
+        "qpu" : "c", #"c", python, qlmass, default, linalg
         "fidelity_error" : None,
         "ks_error" : None,
         "time_error": None
@@ -363,8 +362,11 @@ if __name__ == "__main__":
         #List number of qubits tested
         "list_of_qbits": [4, 6],
     }
+    kernel_configuration.update({'qpu': get_qpu(kernel_configuration['qpu'])})
 
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
+    if not os.path.exists(benchmark_arguments["saving_folder"]):
+        os.mkdir(benchmark_arguments["saving_folder"])
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()

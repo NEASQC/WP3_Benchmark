@@ -7,7 +7,7 @@ import time
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy, chisquare, chi2
-from data_loading import get_theoric_probability, get_qlm_probability, get_qpu
+from data_loading import get_theoric_probability, get_qlm_probability
 
 class LoadProbabilityDensity:
     """
@@ -149,6 +149,10 @@ class LoadProbabilityDensity:
 
 if __name__ == "__main__":
     import argparse
+    import sys
+    sys.path.append("../")
+    from get_qpu import get_qpu
+
 
     parser = argparse.ArgumentParser()
 
@@ -172,7 +176,7 @@ if __name__ == "__main__":
         dest="qpu",
         type=str,
         default="python",
-        help="QPU for simulation: [qlmass, python, c]",
+        help="QPU for simulation: See function get_qpu in get_qpu module",
     )
     args = parser.parse_args()
     print(args)

@@ -196,6 +196,9 @@ class QPE_RZ:
 
 if __name__ == "__main__":
     import argparse
+    import sys
+    sys.path.append("../")
+    from get_qpu import get_qpu
 
     parser = argparse.ArgumentParser()
 
@@ -219,7 +222,7 @@ if __name__ == "__main__":
         dest="qpu",
         type=str,
         default="python",
-        help="QPU for simulation: [qlmass, python, c]",
+        help="QPU for simulation: See function get_qpu in get_qpu module",
     )
     parser.add_argument(
         "-shots",
@@ -237,7 +240,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(args)
 
     if args.angles == 0:
         angles = 'exact'
@@ -249,7 +251,7 @@ if __name__ == "__main__":
     configuration = {
         "number_of_qbits" : args.n_qbits,
         "auxiliar_qbits_number" : args.aux_qbits,
-        "qpu" : rz_lib.get_qpu(args.qpu),
+        "qpu" : get_qpu(args.qpu),
         "shots" : args.shots,
         "angles" : angles
     }

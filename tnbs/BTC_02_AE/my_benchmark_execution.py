@@ -293,6 +293,8 @@ class KERNEL_BENCHMARK:
 
 
 if __name__ == "__main__":
+    import os
+    from get_qpu import get_qpu
     from ae_sine_integral import select_ae
 
     AE = "RQAE"
@@ -327,12 +329,15 @@ if __name__ == "__main__":
 
 
     json_object = json.dumps(ae_problem)
+    if not os.path.exists(benchmark_arguments["saving_folder"]):
+        os.mkdir(benchmark_arguments["saving_folder"])
     #Writing the AE algorithm configuration
     conf_file = benchmark_arguments["saving_folder"] + \
         "benchmark_ae_conf.json"
     with open(conf_file, "w") as outfile:
         outfile.write(json_object)
     #Added ae configuration
+    ae_problem.update({"qpu":get_qpu(ae_problem["qpu"])})
     benchmark_arguments.update({
         "kernel_configuration": ae_problem,
     })
