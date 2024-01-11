@@ -16,7 +16,6 @@ sys.path.append(l_path+'/PH')
 
 from PH.ansatzes import ansatz_selector, angles_ansatz01
 from PH.vqe_step import PH_EXE
-from PH.utils_ph import get_qpu
 
 
 logging.basicConfig(
@@ -120,7 +119,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         t_inv = True
 
     vqe_conf = {
-        "qpu" : get_qpu(kernel_configuration["qpu_ph"]),
+        "qpu" : kernel_configuration["qpu_ph"],
         "nb_shots": nb_shots,#kernel_configuration["nb_shots"],
         "truncation": truncation, #kernel_configuration["truncation"],
         "t_inv": t_inv,#kernel_configuration["t_inv"],
@@ -366,8 +365,9 @@ class KERNEL_BENCHMARK:
 if __name__ == "__main__":
 
 
+    from get_qpu import get_qpu
     #Anstaz
-    depth = [1, 2, 3, 4]
+    depth = [1]
     qpu_ph = "c"
     nb_shots = 0
     truncation = None
@@ -409,8 +409,11 @@ if __name__ == "__main__":
         "list_of_qbits": list_of_qbits,
     }
 
+    kernel_configuration.update({"qpu_ph": get_qpu(kernel_configuration["qpu_ph"])})
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
+    if not os.path.exists(benchmark_arguments["saving_folder"]):
+        os.mkdir(benchmark_arguments["saving_folder"])
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()
 

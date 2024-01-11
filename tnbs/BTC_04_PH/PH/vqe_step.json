@@ -1,66 +1,10 @@
 [
     {
         "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [1e-5],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_2_qpu_ansatz_c"],
+        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_linalg"],
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_12_depth_4_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_2_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_3_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
-    },
-    {
-        "save": [true],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_4_qpu_ansatz_c"],
-        "nb_shots": [null],
-        "truncation": [null],
-        "t_inv": [true],
-        "qpu_ph": ["c"]
+        "qpu_ph": ["linalg"]
     }
 ]

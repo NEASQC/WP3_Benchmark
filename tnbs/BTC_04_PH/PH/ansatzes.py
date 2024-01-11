@@ -12,6 +12,7 @@ Authors: Gonzalo Ferro
 
 """
 
+import sys
 import logging
 import time
 import uuid
@@ -22,7 +23,9 @@ from datetime import datetime
 from qat.qlmaas import QLMaaSConnection
 from qat.core import Result
 from qat.fermion.circuits import make_ldca_circ, make_general_hwe_circ
-from utils_ph import create_folder, get_qpu
+from utils_ph import create_folder
+sys.path.append("../")
+from get_qpu import get_qpu
 logger = logging.getLogger('__name__')
 
 def angles_ansatz01(circuit, pdf_parameters=None):

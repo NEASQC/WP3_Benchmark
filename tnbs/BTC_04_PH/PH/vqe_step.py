@@ -5,6 +5,7 @@ Parent Hamiltonian.
 Author: Gonzalo Ferro
 """
 
+import sys
 import logging
 import time
 import re
@@ -12,7 +13,9 @@ import ast
 import pandas as pd
 from qat.core import Observable, Term
 from ansatzes import ansatz_selector, angles_ansatz01
-from utils_ph import get_qpu
+sys.path.append("../")
+from get_qpu import get_qpu
+logger = logging.getLogger('__name__')
 
 logger = logging.getLogger("__name__")
 
@@ -71,7 +74,7 @@ class PH_EXE:
         if self.truncation is not None:
             index = abs(self.pauli_ph["PauliCoefficients"]) > self.truncation
             self.pauli_pdf = self.pauli_ph[index]
-            logger.debug(
+            logger.info(
                 "Additional truncation of Pauli Coeficients: {}".format(
                 len(self.pauli_pdf)))
         else:
@@ -185,8 +188,8 @@ def run_ph_execution(**configuration):
         base_fn + "_parameters.csv", sep=";", index_col=0)
     # Formating Parameters
     circuit, _ = angles_ansatz01(circuit, parameters_pdf)
-    # from qat.core.console import display
-    # display(circuit)
+    #from qat.core.console import display
+    #display(circuit)
 
     # 3. Loading Pauli Decomposition from: {}_pauli.csv
     text = "Loading PH Pauli decomposition from: {}".format(
@@ -221,6 +224,9 @@ if __name__ == "__main__":
     )
     logger = logging.getLogger('__name__')
     import argparse
+    import sys
+    sys.path.append("../")
+    from get_qpu import get_qpu
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -249,7 +255,7 @@ if __name__ == "__main__":
         dest="qpu_ph",
         type=str,
         default=None,
-        help="QPU for parent hamiltonian simulation: [qlmass, python, c]",
+        help="QPU for parent hamiltonian simulation: See function get_qpu in get_qpu module",
     )
     parser.add_argument(
         "--t_inv",
@@ -266,5 +272,7 @@ if __name__ == "__main__":
         help="For storing results",
     )
     args = parser.parse_args()
-
-    print(run_ph_execution(**vars(args)))
+    config = vars(args)
+    config.update({"qpu_ph": get_qpu(config["qpu_ph"])})
+    print(config)
+    print(run_ph_execution(**config))
