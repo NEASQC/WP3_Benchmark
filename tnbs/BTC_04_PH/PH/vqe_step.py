@@ -17,7 +17,6 @@ sys.path.append("../")
 from get_qpu import get_qpu
 logger = logging.getLogger('__name__')
 
-logger = logging.getLogger("__name__")
 
 class PH_EXE:
     """
@@ -143,10 +142,24 @@ class PH_EXE:
         self.pdf.to_csv(
             self.filename+"_phexe.csv", sep=";")
 
+#def get_info_basefn(base_fn):
+#    depth = int(re.findall(r"depth_(.*)_qpu", base_fn)[0])
+#    nqubits = int(re.findall(r"nqubits_(.*)_depth_", base_fn)[0])
+#    ansatz = re.findall(r"ansatz_(.*)_nqubits", base_fn)[0]
+#    return depth, nqubits, ansatz
 def get_info_basefn(base_fn):
-    depth = int(re.findall(r"depth_(.*)_qpu", base_fn)[0])
     nqubits = int(re.findall(r"nqubits_(.*)_depth_", base_fn)[0])
-    ansatz = re.findall(r"ansatz_(.*)_nqubits", base_fn)[0]
+    ansatz = re.findall(r"ansatz_(.*)_nqubits", base_fn)
+    if len(ansatz) == 0:
+        ansatz = "simple01"
+    else:
+        ansatz = ansatz[0]
+    depth = re.findall(r"depth_(.*)_qpu", base_fn)
+    if len(depth) == 0:
+        depth = re.findall(r"depth_(\d*)", base_fn)[0]
+    else:
+        depth = depth[0]
+    depth = int(depth)
     return depth, nqubits, ansatz
 
 def run_ph_execution(**configuration):
@@ -219,8 +232,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
-        #level=logging.INFO
-        level=logging.DEBUG
+        level=logging.INFO
+        #level=logging.DEBUG
     )
     logger = logging.getLogger('__name__')
     import argparse
@@ -273,6 +286,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     config = vars(args)
-    config.update({"qpu_ph": get_qpu(config["qpu_ph"])})
+    #config.update({"qpu_ph": get_qpu(config["qpu_ph"])})
     print(config)
     print(run_ph_execution(**config))

@@ -5,6 +5,14 @@
         "nb_shots": [null],
         "truncation": [null],
         "t_inv": [true],
-        "qpu_ph": ["linalg"]
+        "qpu_ph": ["c"]
+    },
+    {
+        "save": [true],
+        "base_fn" : ["../configuration_files/nqubits_09_depth_3"],
+        "nb_shots": [null],
+        "truncation": [null],
+        "t_inv": [true],
+        "qpu_ph": ["c"]
     }
 ]
