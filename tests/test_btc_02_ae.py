@@ -11,6 +11,7 @@ l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_02_AE")
 from BTC_02_AE.my_benchmark_execution import KERNEL_BENCHMARK as AE_CLASS
+from get_qpu import get_qpu
 
 
 
@@ -76,6 +77,7 @@ def test_ae_iqae():
         "list_of_qbits": [4],
     }
 
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
     ae_bench = AE_CLASS(**benchmark_arguments)
@@ -126,6 +128,7 @@ def test_ae_mlae():
         "list_of_qbits": [4],
     }
 
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
     ae_bench = AE_CLASS(**benchmark_arguments)
@@ -153,6 +156,7 @@ def test_ae_rqae():
     }
     name = "AE_{}".format(kernel_configuration["ae_type"])
 
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments = {
         #Pre benchmark configuration
         "pre_benchmark": True,
@@ -186,6 +190,6 @@ def test_ae_rqae():
     #assert(100* list(a['absolute_error_sum']['mean'])[0] < 1.0)
     shutil.rmtree(folder)
 
-#test_ae_iqae()
-#test_ae_mlae()
-#test_ae_rqae()
+test_ae_iqae()
+test_ae_mlae()
+test_ae_rqae()

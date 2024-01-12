@@ -11,6 +11,7 @@ l_path = l_path + "/tnbs/"#BTC_03_QPE/"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_03_QPE")
 from BTC_03_QPE.my_benchmark_execution import KERNEL_BENCHMARK
+from get_qpu import get_qpu
 
 
 def create_folder(folder_name):
@@ -51,6 +52,7 @@ def test_qpe():
         "ks_error" : None,
         "time_error": None
     }
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
 
     benchmark_arguments = {
         #Pre benchmark sttuff

@@ -11,6 +11,7 @@ l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_01_PL")
 from BTC_01_PL.my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
+from get_qpu import get_qpu
 
 def create_folder(folder_name):
     """
@@ -40,7 +41,7 @@ def create_folder(folder_name):
         folder_name = folder_name + "/"
     return folder_name
 
-def test_pl(): 
+def test_pl():
     kernel_configuration = {
         "load_method" : "multiplexor",
         "qpu" : "c", #python, qlmass, default
@@ -49,6 +50,7 @@ def test_pl():
     }
     name = "PL_{}".format(kernel_configuration["load_method"])
     print(os.getcwdb())
+    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
                                                                   
     benchmark_arguments = {
         #Pre benchmark configuration
@@ -79,4 +81,4 @@ def test_pl():
     assert(100* list(a['KS']['mean'])[0] < 1.0)
 
     shutil.rmtree(folder)
-#test_pl()
+test_pl()
