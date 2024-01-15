@@ -9,7 +9,7 @@ For executing a complete BTC you need to configure the **kernel_configuration** 
 * The number of qubits for the ansatz could be from 3 to 30 qubits.
 * The depth of the ansatz can be from 1 to 4.
 
-If different depths of number of qubits want to be executed, first the mandatory configuring files should be created (the parameter and the Pauli decomposition files). See the different notebooks of the folder **PH/notebooks/** for creating them.
+If different depths or number of qubits want to be executed, first the mandatory configuring files should be created (the parameter and the Pauli decomposition files). See the different notebooks of the folder **PH/notebooks/** for creating them.
 
 The files will be saved in the **Results** folder (you can change the folder in key argument **saving_folder** of the **benchmark_arguments** dictionary). Then you should execute the following command line:
 
