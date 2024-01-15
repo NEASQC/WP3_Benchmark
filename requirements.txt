@@ -1,6 +1,0 @@
-numpy 
-pandas 
-scipy
-matplotlib
-myqlm==1.7.3
-qlmaas

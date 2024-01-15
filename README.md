@@ -8,7 +8,10 @@ The `LICENCE` file contains the default licence statement as specified in the pr
 
 ## Building and installing
 
-The *requirements.txt* file contains the mandatory python libraries for using present libraries
+The *environment.yml* file contains the python libraries for using the **TNBS**. You can build the environment using conda (new environment called tnbs_test will be created):
+
+    conda env create -n tnbs_test -f environment.yml
+
 
 ## Repository organisation
 
@@ -27,3 +30,9 @@ This work is supported by the [NEASQC](https://cordis.europa.eu/project/id/95182
 ## Documentation
 
 The html documentation of the **TNBS**  can be access at: https://neasqc.github.io/TNBS
+
+## Test it
+
+You can test the library in binder using following link:
+
+[Binder Link for TNBS](https://mybinder.org/v2/gh/NEASQC/WP3_Benchmark/HEAD)
