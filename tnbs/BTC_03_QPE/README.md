@@ -1,6 +1,6 @@
-# Benchmark Test Case 01: Probability Loading
+# Benchmark Test Case 03: Quantum Phase Estimartion
 
-This part of the repository is associated with the Benchmark Test Case (BTC) 01: **Probability Loading**. 
+This part of the repository is associated with the Benchmark Test Case (BTC) 03: **Quantum Phase Estimation** (QPE). 
 
 For executing a complete BTC you need to configure the **kernel_configuration** dictionary in final part of the **my_benchmark_execution.py** file. The files will be saved in the **Results** folder (you can change the folder in key argument **saving_folder** of the **benchmark_arguments** dictionary). Then you should execute the following command line:
 
