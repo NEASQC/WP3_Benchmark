@@ -12,3 +12,5 @@ If you want a complete execution and create the complete **JSON** file with the 
 
 All the results files and the corresponding JSON will be stored in the **Results** folder.
 
+
+For more information about the code impelementation, please refer to the jupyter notebooks inside the folder **PL/notebooks**
