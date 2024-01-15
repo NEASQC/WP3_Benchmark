@@ -120,7 +120,16 @@ def load_probability(
                 )
         return routine
 
-    return load_probability_gate()
+    if method == "multiplexor":
+        return load_probability_gate()
+    elif method == "brute_force":
+        return load_probability_gate()
+    elif method == "KPTree":
+        return KPTree(np.sqrt(probability_array)).get_routine()
+    else:
+        error_text = "Not valid method argument."\
+            "Select between: multiplexor, brute_force or KPTree"
+        raise ValueError(error_text)
 
 def load_angles(angles: np.array, method: str = "multiplexor"):
     r"""
@@ -292,16 +301,17 @@ def get_qlm_probability(data, load_method, shots, qpu):
     """
     executing quantum stuff
     """
-    if load_method == "multiplexor":
-        p_gate = load_probability(data, method="multiplexor")
-    elif load_method == "brute_force":
-        p_gate = load_probability(data, method="brute_force")
-    elif load_method == "KPTree":
-        p_gate = KPTree(np.sqrt(data)).get_routine()
-    else:
-        error_text = "Not valid load_method argument."\
-            "Select between: multiplexor, brute_force or KPTree"
-        raise ValueError(error_text)
+    # if load_method == "multiplexor":
+    #     p_gate = load_probability(data, method="multiplexor")
+    # elif load_method == "brute_force":
+    #     p_gate = load_probability(data, method="brute_force")
+    # elif load_method == "KPTree":
+    #     p_gate = KPTree(np.sqrt(data)).get_routine()
+    # else:
+    #     error_text = "Not valid load_method argument."\
+    #         "Select between: multiplexor, brute_force or KPTree"
+    #     raise ValueError(error_text)
+    p_gate = load_probability(data, method=load_method)
     tick = time.time()
     result, circuit, _, _ = get_results(
         p_gate,
