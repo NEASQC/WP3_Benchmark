@@ -2,7 +2,7 @@
 
 This part of the repository is associated with the Benchmark Test Case (BTC) 02: **Amplitude Estimation**. 
 
-For executing a complete BTC fits thing you need to select the Amplitude Estimation algorithm that you want to use. This can be done in the variable **AE** at the end part of the **my_benchmark_execution.py** file. Once the algorithm is set you need to configure the Amplitude Estimation algorithm. This is done by editing the different **json** files fo the **jsons** folder. Valid strings for  **AE** variable are:
+For executing a complete BTC first thing you need to select the Amplitude Estimation algorithm that you want to use. This can be done in the variable **AE** at the end part of the **my_benchmark_execution.py** file. Once the algorithm is set you need to configure the Amplitude Estimation algorithm. This is done by editing the different **json** files fo the **jsons** folder. Valid strings for  **AE** variable are:
 
 * MCAE (MonteCarlo Amplitude Estimation algorithm). Configuration json is: integral_mcae_configuration.json 
 * CQPEAE (Classical Quantum Phase Estimation Amplitude Estimation algorithm). Configuration json is: integral_cqpeae_configuration.json 
@@ -22,4 +22,5 @@ If you want a complete execution and create the complete **JSON** file with the 
     bash benchmark_exe.sh
 
 All the results files and the corresponding JSON will be stored in the **Results** folder.
+For more information about the code implementation, please refer to the jupyter notebooks inside the folder **QQuantLib/notebooks**
 
