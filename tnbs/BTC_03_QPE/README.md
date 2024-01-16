@@ -11,4 +11,5 @@ If you want a complete execution and create the complete **JSON** file with the 
     bash benchmark_exe.sh
 
 All the results files and the corresponding JSON will be stored in the **Results** folder.
+For more information about the code implementation and about the kernel, please refer to the jupyter notebooks inside the folder **QPE/notebooks**
 
