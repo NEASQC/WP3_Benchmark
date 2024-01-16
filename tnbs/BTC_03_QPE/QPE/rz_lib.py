@@ -4,7 +4,7 @@ simulation for computing eigenvalues of a R_z^n operator
 
 Author: Gonzalo Ferro
 """
-
+import sys
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
@@ -12,51 +12,51 @@ import qat.lang.AQASM as qlm
 from qpe import CQPE
 
 
-def get_qpu(qpu=None):
-    """
-    Function for selecting solver.
-
-    Parameters
-    ----------
-
-    qpu : str
-    * qlmass: for trying to use QLM as a Service connection to CESGA QLM
-    * python: for using PyLinalg simulator.
-    * c: for using CLinalg simulator
-
-    Returns
-    ----------
-
-    linal_qpu : solver for quantum jobs
-    """
-
-    if qpu is None:
-        raise ValueError(
-            "qpu CAN NOT BE NONE. Please select one of the three" +
-            " following options: qlmass, python, c")
-    if qpu == "qlmass":
-        try:
-            from qlmaas.qpus import LinAlg
-            linalg_qpu = LinAlg()
-        except (ImportError, OSError) as exception:
-            raise ImportError(
-                "Problem Using QLMaaS. Please create config file" +
-                "or use mylm solver") from exception
-    elif qpu == "python":
-        from qat.qpus import PyLinalg
-        linalg_qpu = PyLinalg()
-    elif qpu == "c":
-        from qat.qpus import CLinalg
-        linalg_qpu = CLinalg()
-    elif qpu == "default":
-        from qat.qpus import get_default_qpu
-        linalg_qpu = get_default_qpu()
-    else:
-        raise ValueError(
-            "Invalid value for qpu. Please select one of the three "+
-            "following options: qlmass, python, c")
-    #print("Following qpu will be used: {}".format(linalg_qpu))
-    return linalg_qpu
+#def get_qpu(qpu=None):
+#    """
+#    Function for selecting solver.
+#
+#    Parameters
+#    ----------
+#
+#    qpu : str
+#    * qlmass: for trying to use QLM as a Service connection to CESGA QLM
+#    * python: for using PyLinalg simulator.
+#    * c: for using CLinalg simulator
+#
+#    Returns
+#    ----------
+#
+#    linal_qpu : solver for quantum jobs
+#    """
+#
+#    if qpu is None:
+#        raise ValueError(
+#            "qpu CAN NOT BE NONE. Please select one of the three" +
+#            " following options: qlmass, python, c")
+#    if qpu == "qlmass":
+#        try:
+#            from qlmaas.qpus import LinAlg
+#            linalg_qpu = LinAlg()
+#        except (ImportError, OSError) as exception:
+#            raise ImportError(
+#                "Problem Using QLMaaS. Please create config file" +
+#                "or use mylm solver") from exception
+#    elif qpu == "python":
+#        from qat.qpus import PyLinalg
+#        linalg_qpu = PyLinalg()
+#    elif qpu == "c":
+#        from qat.qpus import CLinalg
+#        linalg_qpu = CLinalg()
+#    elif qpu == "default":
+#        from qat.qpus import get_default_qpu
+#        linalg_qpu = get_default_qpu()
+#    else:
+#        raise ValueError(
+#            "Invalid value for qpu. Please select one of the three "+
+#            "following options: qlmass, python, c")
+#    #print("Following qpu will be used: {}".format(linalg_qpu))
+#    return linalg_qpu
 
 # Functions for generating theoretical eigenvalues of R_z^n
 def bitfield(n_int: int, size: int):
