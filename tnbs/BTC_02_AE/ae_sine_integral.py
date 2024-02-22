@@ -170,8 +170,8 @@ def select_ae(ae_method):
 
     folder_json = os.getcwd()
     folder_json = re.sub(
-        r"WP3_Benchmark/(?=WP3_Benchmark/)*.*","WP3_Benchmark/", folder_json)
-    folder_json = folder_json + "/tnbs/BTC_02_AE/jsons"
+        r"WP3_Benchmark/(?=WP3_Benchmark/)*.*", "WP3_Benchmark/", folder_json)
+    folder_json = folder_json + "tnbs/BTC_02_AE/jsons"
     lista_ae_ = []
     if ae_method == "MLAE":
         lista_ae_.append(folder_json+"/integral_mlae_configuration.json")
@@ -303,9 +303,11 @@ if __name__ == "__main__":
         if args.save:
             if args.folder_path is None:
                 raise ValueError("folder_name is None!")
+            if not os.path.exists(args.folder_path):
+                os.mkdir(args.folder_path)
             base_name = args.ae_type + "_n_qbits_" + str(args.n_qbits) + \
                 "_interval_" + str(args.interval) + ".csv"
-            file_name = args.folder_path + base_name
+            file_name = args.folder_path + "/" + base_name
             print(file_name)
             with open(file_name, "w") as f_pointer:
                 pdf.to_csv(
