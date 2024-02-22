@@ -166,11 +166,6 @@ dependencies:
   - mistune=3.0.2
   - mpg123=1.32.4
   - munkres=1.1.4
-  - myqlm=1.9.5
-  - myqlm-clinalg=0.1.3
-  - myqlm-contrib=1.9.2
-  - myqlm-fermion=1.1.1
-  - myqlm-simulators=1.9.3
   - mysql-common=8.0.33
   - mysql-libs=8.0.33
   - nb_conda_kernels=2.3.1
@@ -232,15 +227,7 @@ dependencies:
   - pytz=2023.3.post1
   - pyyaml=6.0.1
   - pyzmq=25.1.2
-  - qat-comm=1.4.5
-  - qat-core=1.8.3
-  - qat-devices=0.2.3
-  - qat-hardware=1.3.3
-  - qat-lang=3.0.3
-  - qat-quops=1.3.2
-  - qat-variational=1.4.3
   - qdldl-python=0.1.5.post2
-  - qlmaas=1.9.3
   - qt-main=5.15.8
   - qtconsole-base=5.5.1
   - qtpy=2.4.1
@@ -316,3 +303,16 @@ dependencies:
     - pyopenssl==23.3.0
     - thrift==0.16.0
     - wand==0.6.13
+    - qat-core==1.8.3
+    - myqlm-clinalg==0.1.3
+    - qat-lang==3.0.3
+    - qat-comm==1.4.5
+    - qat-variational==1.4.3
+    - qat-hardware==1.3.3
+    - qlmaas==1.9.3
+    - myqlm-simulators==1.9.3
+    - myqlm-contrib==1.9.2
+    - qat-quops==1.3.2
+    - myqlm-fermion==1.1.1
+    - qat-devices==0.2.3
+    - myqlm==1.9.5
