@@ -169,9 +169,9 @@ def select_ae(ae_method):
     """
 
     folder_json = os.getcwd()
-    folder_json = re.sub(
-        r"WP3_Benchmark/(?=WP3_Benchmark/)*.*", "WP3_Benchmark/", folder_json)
-    folder_json = folder_json + "tnbs/BTC_02_AE/jsons"
+    #folder_json = re.sub(
+    #    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*", "WP3_Benchmark/", folder_json)
+    folder_json = folder_json + "/jsons"
     lista_ae_ = []
     if ae_method == "MLAE":
         lista_ae_.append(folder_json+"/integral_mlae_configuration.json")
