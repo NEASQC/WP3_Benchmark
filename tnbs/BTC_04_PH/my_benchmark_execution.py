@@ -7,7 +7,6 @@ import os
 import ast
 import logging
 from datetime import datetime
-from copy import deepcopy
 import pandas as pd
 
 l_sys = sys.path
@@ -73,10 +72,11 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
     if repetitions is None:
         raise ValueError("samples CAN NOT BE None")
     #Here the code for configuring and execute the benchmark kernel
-    kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
-    del kernel_configuration["gse_error"]
-    del kernel_configuration["time_error"]
-    del kernel_configuration["depth"]
+    #kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
+    kernel_configuration = kwargs.get("kernel_configuration", None)
+    #del kernel_configuration["gse_error"]
+    #del kernel_configuration["time_error"]
+    #del kernel_configuration["depth"]
     if kernel_configuration is None:
         raise ValueError("kernel_configuration can not be None")
     # Configuring kernel
@@ -368,7 +368,7 @@ if __name__ == "__main__":
     from get_qpu import get_qpu
     #Anstaz
     depth = [1]
-    qpu_ph = "c"
+    qpu_ph = "c" #qlmass_linalg, python, c, linalg 
     nb_shots = 0
     truncation = None
 
@@ -389,7 +389,7 @@ if __name__ == "__main__":
         "time_error": None,
     }
 
-    list_of_qbits = list(range(3, 9))
+    list_of_qbits = list(range(3, 4))
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,

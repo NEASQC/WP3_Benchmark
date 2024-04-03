@@ -6,7 +6,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from copy import deepcopy
+# from copy import deepcopy
 import pandas as pd
 
 from get_qpu import get_qpu
@@ -60,7 +60,7 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         raise ValueError("repetitions CAN NOT BE None")
 
     #Here the code for configuring and execute the benchmark kernel
-    kernel_configuration = deepcopy(kwargs.get("kernel_configuration", None))
+    kernel_configuration = kwargs.get("kernel_configuration", None)
     if kernel_configuration is None:
         raise ValueError("kernel_configuration can not be None")
 
@@ -297,7 +297,7 @@ if __name__ == "__main__":
 
     kernel_configuration = {
         "load_method" : "multiplexor",
-        "qpu" : "linalg", #"c", python, qlmass, default
+        "qpu" : "c", #"c", python, qlmass, default
         "relative_error": None,
         "absolute_error": None
     }
@@ -319,7 +319,7 @@ if __name__ == "__main__":
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6, 8, 10],
+        "list_of_qbits": [4],
     }
 
     # Selecting the QPU

@@ -4,7 +4,6 @@ This module execute a complete BTC of the QPE kernel
 
 import sys
 from datetime import datetime
-from copy import deepcopy
 import numpy as np
 import pandas as pd
 
@@ -65,7 +64,8 @@ def run_code(iterator_step, repetitions, stage_bench, **kwargs):
         raise ValueError("samples CAN NOT BE None")
 
     #Here the code for configuring and execute the benchmark kernel
-    kernel_configuration_ = deepcopy(kwargs.get("kernel_configuration", None))
+    #kernel_configuration_ = deepcopy(kwargs.get("kernel_configuration", None))
+    kernel_configuration_ = kwargs.get("kernel_configuration", None)
     if kernel_configuration_ is None:
         raise ValueError("kernel_configuration can not be None")
     # Here we built the dictionary for the QPE_RZ class
