@@ -379,7 +379,7 @@ if __name__ == "__main__":
         "t_inv": True,
         # Ground State Energy
         "qpu_ph" : qpu_ph,
-        "nb_shots" : nb_shots,
+        "nb_shots" : None,
         "truncation": truncation,
         # Saving
         "save": True,
