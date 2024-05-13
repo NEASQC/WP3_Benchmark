@@ -38,9 +38,6 @@ def sine_integral(n_qbits, interval, ae_dictionary):
         DataFrame with the complete information of the benchmark
     """
 
-    #Local copy for AE configuration dictionary
-    ae_dictionary_ = deepcopy(ae_dictionary)
-
     start_time = time.time()
 
     #Section 2.1: Function for integration
@@ -81,7 +78,7 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     }
     #Now added the AE configuration.
     #The ae_dictionary_ has a local copy of the AE configuration.
-    q_solve_configuration.update(ae_dictionary_)
+    q_solve_configuration.update(ae_dictionary)
 
     #The q_solve_integral needs a QPU object.
     #q_solve_configuration["qpu"] = get_qpu(q_solve_configuration["qpu"])
@@ -107,7 +104,7 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     #properly the KERNEL_BENCHMARK class
 
     #Adding the complete AE configuration
-    pdf = pd.DataFrame([ae_dictionary_])
+    pdf = pd.DataFrame([ae_dictionary])
 
     #Adding information about the computed integral
     pdf["interval"] = interval
@@ -149,6 +146,70 @@ def sine_integral(n_qbits, interval, ae_dictionary):
     #[absolute_error_sum, oracle_calls,
     #elapsed_time, run_time, quantum_time]
     return pdf
+
+def save(save, save_name, input_pdf, save_mode):
+    """
+    For saving panda DataFrames to csvs
+
+    Parameters
+    ----------
+
+    save: bool
+        For saving or not
+    save_nam: str
+        name for file
+    input_pdf: pandas DataFrame
+    save_mode: str
+        saving mode: overwrite (w) or append (a)
+    """
+    if save:
+        with open(save_name, save_mode) as f_pointer:
+            input_pdf.to_csv(
+                f_pointer,
+                mode=save_mode,
+                header=f_pointer.tell() == 0,
+                sep=';'
+            )
+
+def run_id(
+    n_qbits=None,
+    interval=0,
+    repetitions=None,
+    ae_config=None,
+    qpu=None,
+    save_=False,
+    folder_path=None,
+    ):
+
+    ae_config.update({"qpu":get_qpu(qpu)})
+
+    if save_:
+        if folder_path is None:
+            raise ValueError("folder_name is None!")
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+
+    ae_type = ae_config["ae_type"]
+    base_name = ae_type + "_n_qbits_" + str(n_qbits) + \
+        "_interval_" + str(interval) + ".csv"
+    file_name = folder_path + "/" + base_name
+
+    list_of_pdfs = []
+    for i in range(repetitions):
+        step_pdf = sine_integral(
+            n_qbits,
+            interval,
+            ae_config
+        )
+        list_of_pdfs.append(step_pdf)
+    pdf = pd.concat(list_of_pdfs)
+    pdf.reset_index(drop=True, inplace=True)
+    save(save_, file_name, pdf, "w")
+    return pdf
+
+
+
+
 
 def select_ae(ae_method):
     """
@@ -234,12 +295,18 @@ if __name__ == "__main__":
     )
     #AE algorithm configuration arguments
     parser.add_argument(
-        "-ae_type",
-        dest="ae_type",
+        "-json_ae",
+        dest="json_ae",
         type=str,
         default=None,
-        help="AE algorithm for integral kernel: "+
-        "[MLAE, IQAE, RQAE, MCAE, CQPEAE, IQPEAE]",
+        help="JSON AE algorithm configuration",
+    )
+    parser.add_argument(
+        "--count",
+        dest="count",
+        default=False,
+        action="store_true",
+        help="For counting elements on the list",
     )
     #For information about the configuation
     parser.add_argument(
@@ -249,12 +316,19 @@ if __name__ == "__main__":
         action="store_true",
         help="For printing the AE algorihtm configuration."
     )
+    parser.add_argument(
+        "-id",
+        dest="id",
+        type=int,
+        help="For executing only one element of the list",
+        default=None,
+    )
     #QPU argument
     parser.add_argument(
         "-qpu",
         dest="qpu",
         type=str,
-        default="python",
+        default="c",
         help="QPU for simulation: See function get_qpu in get_qpu module",
     )
     #Saving results arguments
@@ -282,36 +356,55 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    ae_configuration = select_ae(args.ae_type)
-    ae_configuration.update({"qpu":get_qpu(args.qpu)})
+    with open(args.json_ae) as json_file:
+        ae_cfg = json.load(json_file)
+    # Creates the complete configuration for AE solvers
+    final_list = combination_for_list(ae_cfg)
 
+    if args.count:
+        print(len(final_list))
     if args.print:
-        print(ae_configuration)
+        if args.id is not None:
+            print(final_list[args.id])
+        else:
+            print(final_list)
 
     if args.execution:
-        list_of_pdfs = []
-        for i in range(args.repetitions):
-            step_pdf = sine_integral(
-                args.n_qbits,
-                args.interval,
-                ae_configuration
+        if args.id is not None:
+            run_id(
+                n_qbits=args.n_qbits,
+                interval=args.interval,
+                repetitions=args.repetitions,
+                ae_config=final_list[args.id],
+                qpu=args.qpu,
+                folder_path=args.folder_path,
+                #qpu=args.qpu,
+                save_=args.save,
             )
-            list_of_pdfs.append(step_pdf)
-        pdf = pd.concat(list_of_pdfs)
-        pdf.reset_index(drop=True, inplace=True)
-        print(pdf)
-        if args.save:
-            if args.folder_path is None:
-                raise ValueError("folder_name is None!")
-            if not os.path.exists(args.folder_path):
-                os.mkdir(args.folder_path)
-            base_name = args.ae_type + "_n_qbits_" + str(args.n_qbits) + \
-                "_interval_" + str(args.interval) + ".csv"
-            file_name = args.folder_path + "/" + base_name
-            print(file_name)
-            with open(file_name, "w") as f_pointer:
-                pdf.to_csv(
-                    f_pointer,
-                    mode="w",
-                    sep=';'
-                )
+    # if args.execution:
+    #     list_of_pdfs = []
+    #     for i in range(args.repetitions):
+    #         step_pdf = sine_integral(
+    #             args.n_qbits,
+    #             args.interval,
+    #             ae_configuration
+    #         )
+    #         list_of_pdfs.append(step_pdf)
+    #     pdf = pd.concat(list_of_pdfs)
+    #     pdf.reset_index(drop=True, inplace=True)
+    #     print(pdf)
+    #     if args.save:
+    #         if args.folder_path is None:
+    #             raise ValueError("folder_name is None!")
+    #         if not os.path.exists(args.folder_path):
+    #             os.mkdir(args.folder_path)
+    #         base_name = args.ae_type + "_n_qbits_" + str(args.n_qbits) + \
+    #             "_interval_" + str(args.interval) + ".csv"
+    #         file_name = args.folder_path + "/" + base_name
+    #         print(file_name)
+    #         with open(file_name, "w") as f_pointer:
+    #             pdf.to_csv(
+    #                 f_pointer,
+    #                 mode="w",
+    #                 sep=';'
+    #             )

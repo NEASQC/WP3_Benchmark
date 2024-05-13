@@ -14,15 +14,12 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
 """
 
-import sys
-import os
-import re
 import time
+#from copy import deepcopy
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 from qat.core import Result
-from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.utils.data_extracting import (
     create_qprogram,
     create_qjob,
@@ -83,9 +80,9 @@ class IQPE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
+        # Provide QPU
         if self.linalg_qpu is None:
-            print("Not QPU was provide. PyLinalg will be used")
-            self.linalg_qpu = get_qpu("python")
+            raise ValueError("Not QPU was provide. Please provide it!")
 
         self.shots = kwargs.get("shots", 10)
         # self.zalo = kwargs.get('zalo', False)

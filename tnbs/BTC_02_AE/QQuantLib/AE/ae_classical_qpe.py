@@ -16,14 +16,10 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
 """
 
-import sys
-import os
-import re
 import time
+#from copy import deepcopy
 import numpy as np
 import qat.lang.AQASM as qlm
-
-from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.PE.classical_qpe import CQPE
 from QQuantLib.AA.amplitude_amplification import grover
 from QQuantLib.utils.utils import check_list_type
@@ -71,9 +67,9 @@ class CQPEAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
+        # Provide QPU
         if self.linalg_qpu is None:
-            print("Not QPU was provide. PyLinalg will be used")
-            self.linalg_qpu = get_qpu("python")
+            raise ValueError("Not QPU was provide. Please provide it!")
         self.auxiliar_qbits_number = kwargs.get("auxiliar_qbits_number", 8)
         self.shots = int(kwargs.get("shots", 100))
 
@@ -239,4 +235,5 @@ class CQPEAE:
         self.max_oracle_depth = 2 ** (int(self.auxiliar_qbits_number)-1) + 1
         self.quantum_times = self.cqpe.quantum_times
         self.quantum_time = sum(self.cqpe.quantum_times)
+
         return self.ae

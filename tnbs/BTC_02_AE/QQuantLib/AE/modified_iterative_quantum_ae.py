@@ -19,11 +19,9 @@ import qat.lang.AQASM as qlm
 from QQuantLib.AA.amplitude_amplification import grover
 from QQuantLib.utils.data_extracting import get_results
 from QQuantLib.utils.utils import check_list_type, measure_state_probability
-import logging
-logger = logging.getLogger('__name__')
 
 
-class IQAE:
+class mIQAE:
     """
     Class for Iterative Quantum Amplitude Estimation (IQAE)
     algorithm
@@ -152,11 +150,9 @@ class IQAE:
     #####################################################################
 
     @staticmethod
-    def find_next_k(
-        k: int, theta_lower: float, theta_upper: float, flag: bool, ratio: float = 2
-    ):
+    def find_next_k( k: int, theta_lower: float, theta_upper: float):
         """
-        This is an implementation of Algorithm 2 from the IQAE paper.
+        This is an implementation of Algorithm 2 from the mIQAE paper.
         This function computes the next suitable k.
 
         Parameters
@@ -167,90 +163,29 @@ class IQAE:
             lower bound for the estimation of the angle
         theta_upper : float
             upper bound for the estimation of the angle
-        flag : bool
-            flag to keep track of weather we are in the
-            upper or lower half pane
-        ratio : float
-            ratio of amplifications between consecutive iterations
 
         Returns
         ----------
         k : int
             number of times to apply the grover operator to the quantum circuit
-        flag : bool
-            flag to keep track of weather we are in the
-            upper or lower half pane
-
         """
         # This is K_i in the paper
-        bigk_i = 4 * k + 2
-        theta_min = bigk_i * theta_lower
-        theta_max = bigk_i * theta_upper
-        # This K_max in the paper
-        bigk_max = np.floor(np.pi / (theta_upper - theta_lower))
-        # This is K in the paper
-        big_k = bigk_max - np.mod(bigk_max - 2, 4)
-        while big_k > ratio * bigk_i:
-            q_ = big_k / bigk_i
-            if (np.mod(q_ * theta_max, 2 * np.pi) <= np.pi) and (
-                np.mod(q_ * theta_min, 2 * np.pi) <= np.pi
-            ):
-                # This K_next in the paper
-                bigk_next = big_k
-                flag = True
-                k_next = (bigk_next - 2) / 4
-                return [int(k_next), flag]
-            if (np.mod(q_ * theta_max, 2 * np.pi) >= np.pi) and (
-                np.mod(q_ * theta_min, 2 * np.pi) >= np.pi
-            ):
-                # This K_next in the paper
-                bigk_next = big_k
-                flag = False
-                k_next = (bigk_next - 2) / 4
-                return [int(k_next), flag]
+        bigk_i = 2 * k + 1
+        # This is K in Algorithm 2
+        big_k = np.floor(0.5 * np.pi / (theta_upper - theta_lower))
 
-            big_k = big_k - 4
-        return [int(k), flag]
+        if big_k % 2 == 0:
+            #if K is even
+            big_k = big_k -1
 
-    @staticmethod
-    def invert_sector(a_min: float, a_max: float, flag: bool = True):
-        r"""
-        This function inverts the expression:
-
-        .. math::
-            a = \dfrac{1-\cos(\theta)}{2}
-
-        for a pair of bounds (a_min,a_max). The result
-        belongs to the domain (0,2\pi)
-
-        Parameters
-        ----------
-        a_min : float
-            lower bound
-        a_max : float
-            upper bound
-        flag : bool
-            flag to keep track of weather we are in the
-            upper or lower half pane
-
-        Returns
-        ----------
-        theta_min : float
-           lower bound for the associated angle
-        theta_max : float
-           upper bound for the associated angle
-
-        """
-        theta_1 = np.minimum(np.arccos(1 - 2 * a_min), np.arccos(1 - 2 * a_max))
-        theta_2 = np.maximum(np.arccos(1 - 2 * a_min), np.arccos(1 - 2 * a_max))
-        if flag:
-            theta_min = theta_1
-            theta_max = theta_2
-        else:
-            theta_min = 2 * np.pi - theta_2
-            theta_max = 2 * np.pi - theta_1
-
-        return [theta_min, theta_max]
+        while big_k >= 3.0 * bigk_i:
+            amplified_lower = np.floor(big_k * theta_lower / (0.5 * np.pi))
+            amplified_upper = np.ceil(big_k * theta_upper / (0.5 * np.pi))
+            if amplified_lower == (amplified_upper -1):
+                k_i = (big_k - 1) / 2.0
+                return int(k_i)
+            big_k = big_k -2
+        return int(k)
 
     @staticmethod
     def compute_info(
@@ -274,24 +209,30 @@ class IQAE:
             python dictionary with the computed information
 
         """
-        # Maximum number of rounds: T in paper
-        big_t = np.ceil(np.log2(np.pi / (8 * epsilon)))
-        # Total number of Grover operator calls
-        n_grover = int(
-            50 * np.log(2 / alpha * np.log2(np.pi / (4 * epsilon))) / epsilon
-        )
-        # Maximum number of shots at each round
-        n_max = int(32 * np.log(2 / alpha * np.log2(np.pi / (4 * epsilon))) \
-            / (1 - 2 * np.sin(np.pi / 14)) ** 2)
-        # This is the number of calls to the oracle operator (A)
-        n_oracle = 2 * n_grover + n_max * (big_t + 1)
-        # This is L in the papper
-        big_l = (np.arcsin(2 / shots * np.log(2 * big_t / epsilon))) ** 0.25
-        k_max = big_l / epsilon / 2
+
+
+        # Upper bound for amplification: Kmax in paper
+        bigk_max = int(np.pi / (4.0 * epsilon))
+        # Maximum number of rounds: log3(pi/ (4 * epsilon)) in paper
+        big_t = int(np.ceil(np.log2(np.pi / (4 * epsilon)) / np.log2(3)))
+        # constant C in the paper
+        big_c = 1.0 / ((np.sin(np.pi / 21.0) * np.sin(8.0 * np.pi /21.0)) ** 2)
+        # Total number of Grover operator calls: 3/2 * C * K_max * ln(sqrt(27)/alpa)
+        n_grover = int(1.5 * bigk_max * big_c * np.log(np.sqrt(27) / alpha))
+        # Total number of oracle operator calls: 2 * n_grover + N0_max
+        # We need to compute maximum number of shots for k=0
+        big_k_0 = 1
+        alpha_0 = 2 * alpha * big_k_0 / (3 * bigk_max)
+        big_n_0 = 2.0 * big_c * np.log(2.0 / alpha_0)
+        # c1 = np.log(3 * bigk_max / alpha)
+        # c2 = 0.5 * (big_t + 1) * big_t * np.log(3)
+        # c3 = big_t * np.log(alpha)
+        n_oracle = 2.0 * n_grover + big_n_0
+
 
         info = {
-            "big_t": big_t, "n_grover": n_grover, "n_max": n_max,
-            "n_oracle": n_oracle, "big_l": big_l, "k_max": k_max
+            "bigk_max": bigk_max, "big_t": big_t, "n_grover": n_grover,
+            "n_oracle": n_oracle, "big_n_0": big_n_0
         }
 
         return info
@@ -321,12 +262,11 @@ class IQAE:
         print("N: ", shots)
         print("-------------------------------------------------------------")
 
-        info_dict = IQAE.compute_info(epsilon, shots, alpha)
+        info_dict = mIQAE.compute_info(epsilon, shots, alpha)
 
         print("-------------------------------------------------------------")
+        print("Maximum amplification (Kmax)", info_dict["bigk_max"])
         print("Maximum number of rounds: ", info_dict["big_t"])
-        print("Maximum number of shots per round needed: ", info_dict["n_max"])
-        print("Maximum number of amplifications: ", info_dict["k_max"])
         print("Maximum number of Grover operator calls: ", info_dict["n_grover"])
         print("Maximum number of Oracle operator calls: ", info_dict["n_oracle"])
         print("-------------------------------------------------------------")
@@ -354,7 +294,31 @@ class IQAE:
         """
         return np.sqrt(1 / (2 * n_samples) * np.log(2 / gamma))
 
-    def iqae(self, epsilon: float = 0.01, shots: int = 100, alpha: float = 0.05):
+    @staticmethod
+    def confidence_intervals(a_min: float, a_max: float, ri: int):
+        r"""
+        Computes the confidence intervals
+
+        Parameters
+        ----------
+        a_min : float
+            minimum amplitude measured in the round
+        a_max : float
+            maximum amplitude measured in the round
+        ri : int
+            number of quadrants passed to get the current angle
+
+        """
+        if ri % 2 == 0:
+            gamma_min = np.arcsin(np.sqrt(a_min))
+            gamma_max = np.arcsin(np.sqrt(a_max))
+        else:
+            gamma_min = -np.arcsin(np.sqrt(a_max)) + 0.5 * np.pi
+            gamma_max = -np.arcsin(np.sqrt(a_min)) + 0.5 * np.pi
+        return [gamma_min, gamma_max]
+
+
+    def miqae(self, epsilon: float = 0.01, shots: int = 100, alpha: float = 0.05):
         """
         This function implements Algorithm 1 from the IQAE paper. The result
         is an estimation of the desired probability with precision at least
@@ -382,127 +346,59 @@ class IQAE:
         #####################################################
         i = 0
         k = int(0)
-        flag = True
         [theta_l, theta_u] = [0.0, np.pi / 2]
-        # This is T the number of rounds in the paper
-        big_t = int(np.ceil(np.log2(np.pi / (8 * epsilon))) + 1)
-        #####################################################
-        h_k = 0
-        n_effective = 0
-        # time_list = []
-        j = 0 # pure counter
-        # For avoiding infinite loop
-        failure_test = True
-        while (theta_u - theta_l > 2 * epsilon) and (failure_test == True):
-            #start = time.time()
+
+        # Kmax in paper
+        bigk_max = np.pi / (4.0 * epsilon)
+
+        while theta_u - theta_l > 2 * epsilon:
+            n_ = 0
             i = i + 1
-            k_old = k
-            [k, flag] = self.find_next_k(k_old, theta_l, theta_u, flag)
-            big_k = 4 * k + 2
+            k_i = k
+            # Ki in paper
+            big_k_i = 2 * k_i + 1
+            # alpha_i in paper
+            alpha_i = 2.0 * alpha * big_k_i / (3.0 * bigk_max)
+            cte_ = (np.sin(np.pi / 21.0) * np.sin(8.0 * np.pi /21.0)) ** 2
+            n_i_max = int(np.floor(2.0 * np.log(2.0 / alpha_i) / cte_))
+            #number of quadrants passed
+            ri = np.floor(big_k_i * theta_l / (0.5 * np.pi))
 
-            # The IQAE algorithm has a failure that can lead to infinite
-            # loops. In order to avoid it we are going to establish
-            # the following condition for executing it. The number of
-            # revolution of the 2 angles when apply k MUST BE the same
-
-            # Number of revolutions that the 2 angles will execute
-            rounds_theta_l = np.floor(big_k * theta_l / (2 * np.pi))
-            rounds_theta_u = np.floor(big_k * theta_u / (2 * np.pi))
-
-            if int(rounds_theta_l) == int(rounds_theta_u):
-                # If they are the same then we can execute the algorithm
+            #print("alpha_i: ", alpha_i, "n_i_max: ", n_i_max)
+            while k_i == k:
                 #####################################################
-                # Quantum Routine and Measurement
-                routine = self.quantum_step(k)
+                shots_ = min(shots, n_i_max - n_)
+                routine = self.quantum_step(k_i)
                 start = time.time()
                 results, circuit, _, _ = get_results(
-                    routine, linalg_qpu=self.linalg_qpu, shots=shots, qubits=self.index
+                    routine,
+                    linalg_qpu=self.linalg_qpu,
+                    shots=shots_,
+                    qubits=self.index
                 )
                 end = time.time()
+                #print("k: ", k_i, "shots: ", shots_)
                 self.quantum_times.append(end-start)
-                # time_pdf["m_k"] = k
-                a_ = measure_state_probability(results, self.target)
-                #####################################################
-                if j == 0:
-                    # In the first step we need to store the circuit statistics
-                    step_circuit_stats = circuit.statistics()
-                    step_circuit_stats.update({"n_shots": shots})
-                    self.circuit_statistics.update({k: step_circuit_stats})
-                    self.schedule.update({k:shots})
 
-                # Aggregate results from different iterations
-                if k == k_old:
-                    h_k = h_k + int(a_ * shots)
-                    n_effective = n_effective + shots
-                    a_ = h_k / n_effective
-                    i = i - 1
-                    # Only update shots for the k application
-                    step_circuit_stats = self.circuit_statistics[k]
-                    step_circuit_stats.update({"n_shots": n_effective})
-                    self.schedule.update({k:n_effective})
-
+                if k_i not in self.schedule:
+                    self.schedule.update({k_i:shots_})
                 else:
-                    h_k = int(a_ * shots)
-                    n_effective = shots
-                    # Store the circuit statistics for new k
-                    step_circuit_stats = circuit.statistics()
-                    step_circuit_stats.update({"n_shots": shots})
-                    self.schedule.update({k:shots})
-                self.circuit_statistics.update({k: step_circuit_stats})
+                    self.schedule.update({k_i:self.schedule[k_i] + shots_})
 
-                # Compute the rest
-                epsilon_a = IQAE.chebysev_bound(n_effective, alpha / big_t)
+                n_ = n_ + shots_
+                a_ = measure_state_probability(results, self.target)
+                epsilon_a = mIQAE.chebysev_bound(n_, alpha_i)
+                #print("n_: ", n_, "alpha_i: ", alpha_i, "epsilon_a: ", epsilon_a)
                 a_max = np.minimum(a_ + epsilon_a, 1.0)
                 a_min = np.maximum(a_ - epsilon_a, 0.0)
 
-                [theta_min, theta_max] = self.invert_sector(a_min, a_max, flag)
+                gamma_min, gamma_max = mIQAE.confidence_intervals(a_min, a_max, ri)
 
-                #msg_txt = """Step j= {}. theta_l_before= {}. theta_u_before=
-                #    k= {}, n_effective={}""".format(
-                #        j, theta_l, theta_u, k, n_effective
-                #    )
-                #logger.warning(msg_txt)
+                theta_l = (0.5 * np.pi * ri + gamma_min) / big_k_i
+                theta_u = (0.5 * np.pi * ri + gamma_max) / big_k_i
 
-                theta_l_ = (
-                    2 * np.pi * np.floor(big_k * theta_l / (2 * np.pi)) + theta_min
-                ) / big_k
+                k = mIQAE.find_next_k(k_i, theta_l, theta_u)
 
-                theta_u_ = (
-                    2 * np.pi * np.floor(big_k * theta_u / (2 * np.pi)) + theta_max
-                ) / big_k
-
-                #msg_txt = """Step j= {}. theta_l_new= {}.
-                #    theta_u_new= {}""".format(
-                #        j, theta_l_, theta_u_
-                #    )
-                #logger.warning(msg_txt)
-
-                # If bounded limits are worse than step before limits use these ones
-                #theta_l = np.maximum(theta_l, theta_l_)
-                #theta_u = np.minimum(theta_u, theta_u_)
-
-                #if (theta_l_ < theta_l) or (theta_u_ > theta_u):
-                #    logger.warning("PROBLEM")
-                #    msg_txt = """|_K * theta_l_|= {}.
-                #        |_K * theta_u_|= {}""".format(
-                #            np.floor(big_k * theta_l_ / (2 * np.pi)),
-                #            np.floor(big_k * theta_u_ / (2 * np.pi))
-                #        )
-                #    logger.warning(msg_txt)
-                theta_l = theta_l_
-                theta_u = theta_u_
-                j = j + 1
-            else:
-                # In this case algorithm will begin an infintie loop
-                # logger.warning("PROBLEM-2")
-                # msg_txt = """k= {} K= {}. Revolutions for theta_l: {}.
-                #     Revolutions for theta_u: {}""".format(
-                #         k, big_k, rounds_theta_l, rounds_theta_u)
-                # logger.warning(msg_txt)
-                # msg_txt = "Epsilon: {}".format(theta_u - theta_l)
-                # logger.warning(msg_txt)
-                # logger.warning("\n")
-                failure_test = False
         [a_l, a_u] = [np.sin(theta_l) ** 2, np.sin(theta_u) ** 2]
         return [a_l, a_u]
 
@@ -540,7 +436,7 @@ class IQAE:
 
         """
         start = time.time()
-        [self.ae_l, self.ae_u] = self.iqae(
+        [self.ae_l, self.ae_u] = self.miqae(
             epsilon=self.epsilon, shots=self.shots, alpha=self.alpha
         )
         self.theta_l = np.arcsin(np.sqrt(self.ae_l))

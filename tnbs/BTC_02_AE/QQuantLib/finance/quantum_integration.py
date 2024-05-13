@@ -11,14 +11,10 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 
 """
 
-import sys
-import os
-import re
 import warnings
 from copy import deepcopy
 import numpy as np
 import pandas as pd
-
 from QQuantLib.DL.encoding_protocols import Encoding
 from QQuantLib.AE.ae_class import AE
 from QQuantLib.utils.utils import text_is_none
@@ -49,7 +45,7 @@ def q_solve_integral(**kwargs):
 
     Note
     ----
-
+    
     Other kwargs input dictionary keys will be related with the encoding \\
     of the integral into the quantum circuit \\
     (see QQuantLib.DL.encoding_protocols) and for the configuration \\
@@ -67,9 +63,9 @@ def q_solve_integral(**kwargs):
 
     encoding = kwargs.get("encoding", None)
     ae_type = kwargs.get("ae_type", None)
-    if (encoding == 0) and (ae_type == "RQAE"):
+    if (encoding == 0) and (ae_type in ["RQAE", "eRQAE", "sRQAE", "mRQAE"]):
         string_error = (
-            "RQAE method CAN NOT BE USED with encoding protocol: "+str(encoding)
+            "RQAEs methods CAN NOT BE USED with encoding protocol: "+str(encoding)
         )
 
         warnings.warn(string_error)
@@ -107,42 +103,57 @@ def q_solve_integral(**kwargs):
         linalg_qpu = kwargs.get("qpu", None)
         if linalg_qpu is None:
             raise ValueError("qpu is None. Please provide a valid qpu")
-        del kwargs['qpu']
+        #del kwargs['qpu']
 
-        ae_dict = deepcopy(kwargs)
-        ae_dict.update({"qpu": linalg_qpu})
+        # ae_dict = deepcopy(kwargs)
+        #ae_dict.update({"qpu": linalg_qpu})
         #Delete keys from encoding
-        for step in ["array_function", "array_probability", "encoding", "multiplexor"]:
-            ae_dict.pop(step, None)
-        ae_dict.pop("ae_type", None)
+        # for step in ["array_function", "array_probability", "encoding", "multiplexor"]:
+        #     ae_dict.pop(step, None)
+        # ae_dict.pop("ae_type", None)
         #Instantiate AE solver
         solver_ae = AE(
             oracle=encode_class.oracle,
             target=encode_class.target,
             index=encode_class.index,
-            ae_type=ae_type,
-            **ae_dict)
+            #ae_type=ae_type,
+            **kwargs)
 
         # run the amplitude estimation algorithm
         solver_ae.run()
 
         # Recover amplitude estimation from ae_solver
         if encoding == 0:
+            # In the square encoding the np.sqrt(p_x * f_norm_x) is
+            # loaded in the amplitude of the state |x>^n|0>.
+            # The probability of measuring a |0> in the additional qubit
+            # is just sum_x(|p_x * f_norm_x|)
             ae_pdf = solver_ae.ae_pdf
         elif encoding == 1:
-            if ae_type == "RQAE":
+            if ae_type in ["RQAE", "eRQAE", "mRQAE", "sRQAE"]:
                 #Amplitude is provided directly by this algorithm
                 ae_pdf = solver_ae.ae_pdf
             else:
                 #Other algorithms return probability
                 ae_pdf = np.sqrt(solver_ae.ae_pdf)
+                if ae_type != "MLAE":
+                    # We need to provided the mean of the square root bounds
+                    # as the measured ae. Not valid for IQAE
+                    ae_pdf["ae"] = (ae_pdf["ae_l"] + ae_pdf["ae_u"]) / 2.0
         elif encoding == 2:
-            if ae_type == "RQAE":
-                #RQAE provides amplitude directly.
+            # In the direct encoding we load the sum_x(p_x * f_norm_x)
+            # into the amplitude of the |0>^{n+1} state
+            if ae_type in ["RQAE", "eRQAE", "mRQAE", "sRQAE"]:
+                # RQAE provides amplitude directly.
                 ae_pdf = solver_ae.ae_pdf
             else:
-                #Other algorithms return probability
+                # AE algorithms provide an estimation of the probability
+                # so they provide: sum_x(p_x * f_norm_x) ** 2
+                # we need to compute sqrt(sum_x(p_x * f_norm_x) ** 2)
                 ae_pdf = np.sqrt(solver_ae.ae_pdf)
+                # We need to provided the mean of the square root bounds
+                # as the measured ae.
+                ae_pdf["ae"] = (ae_pdf["ae_l"] + ae_pdf["ae_u"]) / 2.0
         else:
             raise ValueError("Not valid encoding key was provided!!!")
         #Now we need to deal with encoding normalisation

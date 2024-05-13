@@ -8,20 +8,13 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
 """
 
-import sys
-import os
-import re
 import time
+#from copy import deepcopy
 import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
-
-
-
-from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.utils.data_extracting import get_results
-from QQuantLib.utils.utils import check_list_type, \
-    measure_state_probability
+from QQuantLib.utils.utils import check_list_type, measure_state_probability
 
 
 class MCAE:
@@ -64,9 +57,9 @@ class MCAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
+        # Provide QPU
         if self.linalg_qpu is None:
-            print("Not QPU was provide. PyLinalg will be used")
-            self.linalg_qpu = get_qpu("python")
+            raise ValueError("Not QPU was provide. Please provide it!")
 
         self.shots = int(kwargs.get("shots", 100))
         self.mcz_qlm = kwargs.get("mcz_qlm", True)
@@ -155,6 +148,8 @@ class MCAE:
         end = time.time()
         self.quantum_times.append(end-start)
         self.ae = measure_state_probability(results, self.target)
+        self.ae_l = max(0.0, self.ae - 2.0 / np.sqrt(float(self.shots)))
+        self.ae_u = min(1.0, self.ae + 2.0 / np.sqrt(float(self.shots)))
         self.run_time = end - start
         self.schedule_pdf = pd.DataFrame(
             [[0, self.shots]],

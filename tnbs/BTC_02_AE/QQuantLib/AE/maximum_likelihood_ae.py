@@ -11,26 +11,17 @@ Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
 """
 
-import sys
-import os
 import time
-import re
+#from copy import deepcopy
 from functools import partial
 import numpy as np
 import pandas as pd
 import scipy.optimize as so
 import qat.lang.AQASM as qlm
-
-
-
-
-from QQuantLib.utils.qlm_solver import get_qpu
 from QQuantLib.AA.amplitude_amplification import grover
 from QQuantLib.utils.data_extracting import get_results
-from QQuantLib.utils.utils import measure_state_probability, \
-    check_list_type, load_qn_gate
-from QQuantLib.AE.mlae_utils import likelihood, log_likelihood, \
-    cost_function
+from QQuantLib.utils.utils import measure_state_probability, check_list_type, load_qn_gate
+from QQuantLib.AE.mlae_utils import likelihood, log_likelihood, cost_function
 
 class MLAE:
     """
@@ -80,9 +71,9 @@ class MLAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
+        # Provide QPU
         if self.linalg_qpu is None:
-            print("Not QPU was provide. PyLinalg will be used")
-            self.linalg_qpu = get_qpu("python")
+            raise ValueError("Not QPU was provide. Please provide it!")
         ##delta for avoid problems in 0 and pi/2 theta limits
         self.delta = kwargs.get("delta", 1.0e-6)
         # ns for the brute force optimizer
@@ -485,6 +476,10 @@ class MLAE:
         )
         self.theta = self.theta[0]
         self.ae = np.sin(self.theta) ** 2
+        # MLAE does not provide upper and lower bounds. We fix to the
+        # estimated value
+        self.ae_l = self.ae
+        self.ae_u = self.ae
         result = self.ae
         end = time.time()
         self.run_time = end - start
