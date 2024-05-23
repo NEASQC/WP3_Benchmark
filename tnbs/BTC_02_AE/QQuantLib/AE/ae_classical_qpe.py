@@ -1,16 +1,18 @@
 """
-This module contains a wrapper class of the PE_QFT class from
-QQuantLib/PE/phase_estimation_wqft module for adapting classical
-phase estimation algorithm to solve amplitude estimation problems.
-Following references were used:
+This module contains the CQPEAE class. Given a quantum oracle operator,
+this class estimates the amplitude of a given target state using the
+classical QPE algorithm (with QFT). This module uses the
+QQuantLib.PE.classical_qpe one.
 
-    Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
+The following references were used:
+
+    *Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
     Quantum amplitude amplification and estimation.
     AMS Contemporary Mathematics Series, 305.
-    https://arxiv.org/abs/quant-ph/0005055v1
+    https://arxiv.org/abs/quant-ph/0005055v1*
 
-    NEASQC deliverable: D5.1: Review of state-of-the-art for Pricing
-    and Computation of VaR
+    *NEASQC deliverable: D5.1: Review of state-of-the-art for Pricing
+    and Computation of VaR*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -20,6 +22,7 @@ import time
 #from copy import deepcopy
 import numpy as np
 import qat.lang.AQASM as qlm
+from QQuantLib.qpu.get_qpu import get_qpu
 from QQuantLib.PE.classical_qpe import CQPE
 from QQuantLib.AA.amplitude_amplification import grover
 from QQuantLib.utils.utils import check_list_type
@@ -67,9 +70,9 @@ class CQPEAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
-            raise ValueError("Not QPU was provide. Please provide it!")
+            print("Not QPU was provide. PyLinalg will be used")
+            self.linalg_qpu = get_qpu("python")
         self.auxiliar_qbits_number = kwargs.get("auxiliar_qbits_number", 8)
         self.shots = int(kwargs.get("shots", 100))
 
@@ -228,9 +231,9 @@ class CQPEAE:
         end = time.time()
         self.run_time = end - start
         #Total number of oracle calls
-        self.oracle_calls = self.shots * np.sum(
-            [2 * (2 ** i) + 1 for i in range(self.auxiliar_qbits_number)]
-        )
+        self.oracle_calls = self.shots * (np.sum(
+            [2 * (2 ** i) for i in range(self.auxiliar_qbits_number)]
+        ) + 1)
         #Maximum number of oracle applications
         self.max_oracle_depth = 2 ** (int(self.auxiliar_qbits_number)-1) + 1
         self.quantum_times = self.cqpe.quantum_times
