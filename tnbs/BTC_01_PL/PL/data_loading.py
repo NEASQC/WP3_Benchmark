@@ -293,9 +293,10 @@ def get_theoric_probability(n_qbits: int) -> (np.ndarray, np.ndarray, float, flo
     data = norma.pdf(x_)
     data = data/np.sum(data)
     mindata = np.min(data)
-    shots = min(1000000, max(10000, round(100/mindata)))
+    #shots = min(1000000, max(10000, round(100/mindata)))
+    shots = min(1e7, round(100/mindata))
     #data = np.sqrt(data)
-    return x_, data, mean, sigma, float(step), shots, norma
+    return x_, data, mean, sigma, float(step), int(shots), norma
 
 def get_qlm_probability(data, load_method, shots, qpu):
     """

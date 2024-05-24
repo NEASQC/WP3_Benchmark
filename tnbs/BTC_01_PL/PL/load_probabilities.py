@@ -4,9 +4,10 @@ of PL kernel
 """
 
 import time
+import itertools
 import numpy as np
 import pandas as pd
-from scipy.stats import entropy, chisquare, chi2
+from scipy.stats import entropy, kstest
 from data_loading import get_theoric_probability, get_qlm_probability
 
 class LoadProbabilityDensity:
@@ -54,12 +55,12 @@ class LoadProbabilityDensity:
         #Metric stuff
         self.ks = None
         self.kl = None
-        self.chi2 = None
         self.fidelity = None
-        self.pvalue = None
         self.pdf = None
-        self.observed_frecuency = None
-        self.expected_frecuency = None
+        self.kl_pdf = None
+        self.samples = None
+        self.ks_scipy = None
+        self.ks_pvalue = None
 
     def get_quantum_pdf(self):
         """
@@ -67,6 +68,8 @@ class LoadProbabilityDensity:
         """
         self.result, self.circuit, self.quantum_time = get_qlm_probability(
             self.data, self.load_method, self.shots, self.qpu)
+        # For ordering the index using the Int_lsb
+        self.result.reset_index(inplace=True)
 
     def get_theoric_pdf(self):
         """
@@ -80,37 +83,42 @@ class LoadProbabilityDensity:
         Computing Metrics
         """
         #Kolmogorov-Smirnov
+        # Transform from state to x value
+        self.result["x"] = self.x_[self.result["Int_lsb"]]
+        # Compute cumulative distribution function of the quantum data
+        self.result["CDF_quantum"] = self.result["Probability"].cumsum()
+        # Obtain the cumulative distribution function of the
+        # theoretical Gaussian distribution
+        self.result["CDF_theorical"] = self.dist.cdf(self.result["x"])
         self.ks = np.abs(
-            self.result["Probability"].cumsum() - self.data.cumsum()
-        ).max()
+            self.result["CDF_quantum"] - self.result["CDF_theorical"]).max()
+
         #Kullback-Leibler divergence
         epsilon = self.data.min() * 1.0e-5
+        # Create pandas DF for KL computations
+        self.kl_pdf = pd.merge(
+            pd.DataFrame(
+                [self.x_, self.data], index=["x", "p_th"]
+            ).T,
+            self.result[["x", "Probability"]],
+            on=["x"], how="outer"
+        ).fillna(epsilon)
         self.kl = entropy(
-            self.data,
-            np.maximum(epsilon, self.result["Probability"])
+            self.kl_pdf["p_th"], self.kl_pdf["Probability"]
         )
-        #Fidelity
-        self.fidelity = self.result["Probability"] @ self.data / \
-            (np.linalg.norm(self.result["Probability"]) * \
-            np.linalg.norm(self.data))
 
-        #Chi square
-        self.observed_frecuency = np.round(
-            self.result["Probability"] * self.shots, decimals=0)
-        self.expected_frecuency = np.round(
-            self.data * self.shots, decimals=0)
-        try:
-            self.chi2, self.pvalue = chisquare(
-                f_obs=self.observed_frecuency,
-                f_exp=self.expected_frecuency
+        # For testing purpouses
+        self.samples = list(itertools.chain(
+            *self.result.apply(
+                lambda x: [x["x"]] * int(round(
+                    x["Probability"] * self.shots
+                )),
+                axis=1
             )
-        except ValueError:
-            self.chi2 = np.sum(
-                (self.observed_frecuency - self.expected_frecuency) **2 / \
-                    self.expected_frecuency
-            )
-            count = len(self.observed_frecuency)
-            self.pvalue = chi2.sf(self.chi2, count -1)
+        ))
+        ks_scipy = kstest(self.samples, self.dist.cdf)
+        self.ks_scipy = ks_scipy.statistic
+        self.ks_pvalue = ks_scipy.pvalue
 
     def exe(self):
         """
@@ -140,18 +148,15 @@ class LoadProbabilityDensity:
         self.pdf["shots"] = [self.shots]
         self.pdf["KS"] = [self.ks]
         self.pdf["KL"] = [self.kl]
-        self.pdf["fidelity"] = [self.fidelity]
-        self.pdf["chi2"] = [self.chi2]
-        self.pdf["p_value"] = [self.pvalue]
         self.pdf["elapsed_time"] = [self.elapsed_time]
         self.pdf["quantum_time"] = [self.quantum_time]
 
 
 if __name__ == "__main__":
     import argparse
-    import sys
-    sys.path.append("../")
-    from get_qpu import get_qpu
+    import json
+    from qpu.benchmark_utils import combination_for_list
+    from qpu.select_qpu import select_qpu
 
 
     parser = argparse.ArgumentParser()
@@ -178,16 +183,66 @@ if __name__ == "__main__":
         default="python",
         help="QPU for simulation: See function get_qpu in get_qpu module",
     )
+    parser.add_argument(
+        "--count",
+        dest="count",
+        default=False,
+        action="store_true",
+        help="For counting elements on the list",
+    )
+    parser.add_argument(
+        "--print",
+        dest="print",
+        default=False,
+        action="store_true",
+        help="For printing "
+    )
+    parser.add_argument(
+        "-id",
+        dest="id",
+        type=int,
+        help="For executing only one element of the list",
+        default=None,
+    )
+    parser.add_argument(
+        "-json_qpu",
+        dest="json_qpu",
+        type=str,
+        default="qpu/qpu.json",
+        help="JSON with the qpu configuration",
+    )
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
+    )
     args = parser.parse_args()
-    print(args)
+    with open(args.json_qpu) as json_file:
+        noisy_cfg = json.load(json_file)
+    final_list = combination_for_list(noisy_cfg)
 
 
-    configuration = {
-        "load_method" : args.method,
-        "number_of_qbits": args.n_qbits,
-        "qpu": get_qpu(args.qpu)
-    }
-    prob_dens = LoadProbabilityDensity(**configuration)
-    prob_dens.exe()
-    print(prob_dens.pdf)
-
+    if args.count:
+        print(len(final_list))
+    if args.print:
+        if args.id is not None:
+            configuration = {
+                "load_method" : args.method,
+                "number_of_qbits": args.n_qbits,
+                "qpu": final_list[args.id]
+            }
+            print(configuration)
+        else:
+            print(final_list)
+    if args.execution:
+        if args.id is not None:
+            configuration = {
+                "load_method" : args.method,
+                "number_of_qbits": args.n_qbits,
+                "qpu": select_qpu(final_list[args.id])
+            }
+            prob_dens = LoadProbabilityDensity(**configuration)
+            prob_dens.exe()
+            print(prob_dens.pdf)

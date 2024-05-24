@@ -11,7 +11,7 @@ l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_01_PL")
 from BTC_01_PL.my_benchmark_execution import KERNEL_BENCHMARK as PL_CLASS
-from get_qpu import get_qpu
+from PL.qpu.select_qpu import select_qpu
 
 def create_folder(folder_name):
     """
@@ -44,14 +44,35 @@ def create_folder(folder_name):
 def test_pl():
     kernel_configuration = {
         "load_method" : "multiplexor",
-        "qpu" : "c", #python, qlmass, default
         "relative_error": None,
         "absolute_error": None
     }
     name = "PL_{}".format(kernel_configuration["load_method"])
     print(os.getcwdb())
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
-                                                                  
+    # Naive qpu configuration
+    qpu_conf = {
+        "qpu_type": "c",
+        "t_gate_1qb" : None,
+        "t_gate_2qbs" : None,
+        "t_readout": None,
+        "depol_channel" : {
+            "active": False,
+            "error_gate_1qb" : None,
+            "error_gate_2qbs" : None
+        },
+        "idle" : {
+            "amplitude_damping": False,
+            "dephasing_channel": False,
+            "t1" : None,
+            "t2" : None
+        },
+        "meas": {
+            "active":False,
+            "readout_error": None
+        }
+    }
+
+    kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
     benchmark_arguments = {
         #Pre benchmark configuration
         "pre_benchmark": True,
@@ -68,7 +89,7 @@ def test_pl():
         "min_meas": 10,
         "max_meas": 15,
         #List number of qubits tested
-        "list_of_qbits": [4],
+        "list_of_qbits": [6],
     }
 
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
@@ -77,8 +98,8 @@ def test_pl():
     ae_bench.exe()
     filename = folder + benchmark_arguments["summary_results"]
     a = pd.read_csv(filename, header=[0, 1], index_col=[0, 1])
-    print(100* list(a['KS']['mean'])[0])
-    assert(100* list(a['KS']['mean'])[0] < 1.0)
+    assert(list(a['KS']['mean'])[0] < 0.1)
+    assert(list(a['KL']['mean'])[0] < 0.01)
 
     shutil.rmtree(folder)
 test_pl()

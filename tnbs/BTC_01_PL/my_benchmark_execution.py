@@ -9,7 +9,6 @@ from datetime import datetime
 # from copy import deepcopy
 import pandas as pd
 
-from get_qpu import get_qpu
 l_sys = sys.path
 l_path = l_sys[['BTC_01' in i for i in l_sys].index(True)]
 sys.path.append(l_path+'/PL')
@@ -163,7 +162,7 @@ def summarize_results(**kwargs):
 
     pdf = pd.read_csv(csv_results, index_col=0, sep=";")
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
-    columns = ["n_qbits", "load_method", "KS", "KL", "chi2", "p_value", \
+    columns = ["n_qbits", "load_method", "KS", "KL", \
         "elapsed_time", "quantum_time", "classic_time"]
     pdf = pdf[columns]
     results = pdf.groupby(["load_method", "n_qbits"]).agg(
@@ -294,15 +293,32 @@ class KERNEL_BENCHMARK:
 
 
 if __name__ == "__main__":
+    import json
+    from PL.qpu.select_qpu import select_qpu
+    from PL.qpu.benchmark_utils import combination_for_list
 
+    ############## CONFIGURE THE BTC  ###################
     kernel_configuration = {
         "load_method" : "multiplexor",
-        "qpu" : "c", #"c", python, qlmass, default
         "relative_error": None,
         "absolute_error": None
     }
+    # Base name for files
     name = "PL_{}".format(kernel_configuration["load_method"])
+    # List of qubits to benchmark
+    list_of_qbits = [6]
+    # Configuring the QPU
+    json_qpu_file = "./PL/qpu/qpu_ideal.json"
+    with open(json_qpu_file) as json_file:
+        qpu_cfg = json.load(json_file)
+    # The desired qpu should be provided
+    qpu_conf = combination_for_list(qpu_cfg)[0]
+    kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
+    ############## CONFIGURE THE BTC  ###################
 
+
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
+    # For TNBS guidelines following configuration SHOULD NOT BE CHANGED
     benchmark_arguments = {
         #Pre benchmark configuration
         "pre_benchmark": True,
@@ -319,17 +335,22 @@ if __name__ == "__main__":
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4],
+        "list_of_qbits": list_of_qbits,
     }
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
 
-    # Selecting the QPU
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
 
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     # Create Folder for storing results
     if not os.path.exists(benchmark_arguments["saving_folder"]):
         os.mkdir(benchmark_arguments["saving_folder"])
+    # Store the QPU configuration
+    qpu_file = benchmark_arguments["saving_folder"] + \
+        "qpu_configuration.json"
+    with open(qpu_file, "w") as outfile:
+        json.dump(qpu_conf, outfile)
+    # BENCHMARK EXECUTION
     ae_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     ae_bench.exe()
 

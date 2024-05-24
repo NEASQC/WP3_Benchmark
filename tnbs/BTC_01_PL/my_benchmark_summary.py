@@ -26,7 +26,6 @@ def summarize_results(**kwargs):
     load_methods = list(set(pdf["load_method"]))
     list_of_metrics = [
         "KS", "KL",
-        "chi2", "p_value"
     ]
 
 
