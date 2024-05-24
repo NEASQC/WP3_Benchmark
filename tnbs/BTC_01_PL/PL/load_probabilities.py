@@ -10,6 +10,31 @@ import pandas as pd
 from scipy.stats import entropy, kstest
 from data_loading import get_theoric_probability, get_qlm_probability
 
+def save(pl_object, folder, name=None):
+    """
+    Function for saving staff
+    """
+
+    pdf_filename = folder + "pl_result_nqbits_"\
+        + str(pl_object.n_qbits) + name + ".csv"
+    # Save the result data frame
+    pl_object.pdf.to_csv(pdf_filename, sep=";")
+    # Save the probability distribution
+    pdf_filename = folder + "pl_probability_nqbits_"\
+        + str(pl_object.n_qbits) + name + ".csv"
+    pl_object.kl_pdf.to_csv(pdf_filename, sep=";")
+    try:
+        from qat.interop.qiskit import qlm_to_qiskit
+        # Transform to qiskit circuit
+        qlm_circuit = pl_object.circuit
+        circuit_qiskit = qlm_to_qiskit(qlm_circuit)
+        qasm_filename = folder + "pl_circuit_nqbits_"\
+            + str(pl_object.n_qbits) + name + ".qasm"
+        circuit_qiskit.qasm(filename = qasm_filename)
+    except ImportError:
+        print("Circuit WILL NOT BE STORED. ImportError problem")
+    
+
 class LoadProbabilityDensity:
     """
     Probability Loading
@@ -37,7 +62,7 @@ class LoadProbabilityDensity:
         if self.qpu is None:
             error_text = "Please provide a QPU."
             raise ValueError(error_text)
-
+        
         self.data = None
         self.p_gate = None
         self.result = None
@@ -155,6 +180,7 @@ class LoadProbabilityDensity:
 if __name__ == "__main__":
     import argparse
     import json
+    import os
     from qpu.benchmark_utils import combination_for_list
     from qpu.select_qpu import select_qpu
 
@@ -175,13 +201,40 @@ if __name__ == "__main__":
         help="For selecting the load method: multiplexor, brute_force, KPTree",
         default=None,
     )
-    #QPU argument
     parser.add_argument(
-        "-qpu",
-        dest="qpu",
+        "-json_qpu",
+        dest="json_qpu",
         type=str,
-        default="python",
-        help="QPU for simulation: See function get_qpu in get_qpu module",
+        default="qpu/qpu.json",
+        help="JSON with the qpu configuration",
+    )
+    parser.add_argument(
+        "-id",
+        dest="id",
+        type=int,
+        help="For executing only one element of the list",
+        default=None,
+    )
+    parser.add_argument(
+        "-name",
+        dest="base_name",
+        type=str,
+        help="Additional name for the generated files. Only with --save",
+        default="",
+    )
+    parser.add_argument(
+        "-folder",
+        dest="folder",
+        type=str,
+        help="Path for storing folder. Only with --save",
+        default="./",
+    )
+    parser.add_argument(
+        "--save",
+        dest="save",
+        default=False,
+        action="store_true",
+        help="For saving staff"
     )
     parser.add_argument(
         "--count",
@@ -196,20 +249,6 @@ if __name__ == "__main__":
         default=False,
         action="store_true",
         help="For printing "
-    )
-    parser.add_argument(
-        "-id",
-        dest="id",
-        type=int,
-        help="For executing only one element of the list",
-        default=None,
-    )
-    parser.add_argument(
-        "-json_qpu",
-        dest="json_qpu",
-        type=str,
-        default="qpu/qpu.json",
-        help="JSON with the qpu configuration",
     )
     parser.add_argument(
         "--exe",
@@ -246,3 +285,7 @@ if __name__ == "__main__":
             prob_dens = LoadProbabilityDensity(**configuration)
             prob_dens.exe()
             print(prob_dens.pdf)
+            if args.save:
+                if not os.path.exists(args.folder):
+                    os.mkdir(args.folder)
+                save(prob_dens, args.folder, args.base_name)
