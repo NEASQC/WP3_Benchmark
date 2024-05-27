@@ -196,12 +196,13 @@ if __name__ == "__main__":
 
     ################## Configuration ##########################
 
-    AE = "RQAE"
-    folder = "RQAE_Results/"
+    AE = "MLAE"
+    folder = "MLAE_Results/"
     kwargs = {
         "times_filename" : folder + "{}_times_benchmark.csv".format(AE),
         "benchmark_file" : folder + "{}_SummaryResults.csv".format(AE),
-        "ae_config": folder + "benchmark_ae_conf.json"
+        "ae_config": folder + "benchmark_ae_conf.json",
+        "qpu" : folder + "qpu_configuration.json"
     }
 
     benchmark_conf = {

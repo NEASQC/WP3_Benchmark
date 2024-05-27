@@ -11,8 +11,30 @@ l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_02_AE")
 from BTC_02_AE.my_benchmark_execution import KERNEL_BENCHMARK as AE_CLASS
-from get_qpu import get_qpu
+from BTC_02_AE.QQuantLib.qpu.select_qpu import select_qpu
 
+# Naive qpu configuration
+qpu_conf = {
+    "qpu_type": "c",
+    "t_gate_1qb" : None,
+    "t_gate_2qbs" : None,
+    "t_readout": None,
+    "depol_channel" : {
+        "active": False,
+        "error_gate_1qb" : None,
+        "error_gate_2qbs" : None
+    },
+    "idle" : {
+        "amplitude_damping": False,
+        "dephasing_channel": False,
+        "t1" : None,
+        "t2" : None
+    },
+    "meas": {
+        "active":False,
+        "readout_error": None
+    }
+}
 
 
 def create_folder(folder_name):
@@ -51,9 +73,10 @@ def test_ae_iqae():
         "alpha": 0.05, # This the alpha for the AE algorithm
         "multiplexor":  True,
         "shots": 1000,
-        "qpu": "c",
         "integrals": [0]
     }
+    kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
+    
     name = "AE_{}".format(kernel_configuration["ae_type"])
 
     benchmark_arguments = {
@@ -77,7 +100,6 @@ def test_ae_iqae():
         "list_of_qbits": [4],
     }
 
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
     ae_bench = AE_CLASS(**benchmark_arguments)
@@ -105,6 +127,7 @@ def test_ae_mlae():
         "qpu": "c",
         "integrals": [0]
     }
+    kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
     name = "AE_{}".format(kernel_configuration["ae_type"])
 
     benchmark_arguments = {
@@ -128,7 +151,6 @@ def test_ae_mlae():
         "list_of_qbits": [4],
     }
 
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     folder = create_folder(benchmark_arguments["saving_folder"])
     ae_bench = AE_CLASS(**benchmark_arguments)
@@ -154,9 +176,9 @@ def test_ae_rqae():
         "qpu": "c",
         "integrals": [0, 1]
     }
+    kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
     name = "AE_{}".format(kernel_configuration["ae_type"])
 
-    kernel_configuration.update({"qpu": get_qpu(kernel_configuration['qpu'])})
     benchmark_arguments = {
         #Pre benchmark configuration
         "pre_benchmark": True,

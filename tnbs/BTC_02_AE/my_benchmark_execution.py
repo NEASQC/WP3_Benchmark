@@ -1,12 +1,11 @@
 """
-This module execute a complete BTC of the AE kernel 
+This module execute a complete BTC of the AE kernel
 """
 
 import json
 from datetime import datetime
 import pandas as pd
-
-from ae_sine_integral import sine_integral
+from QQuantLib.ae_sine_integral import sine_integral
 
 def build_iterator(**kwargs):
     """
@@ -294,17 +293,45 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
     import os
-    from get_qpu import get_qpu
-    from ae_sine_integral import select_ae
+    from QQuantLib.qpu.select_qpu import select_qpu
+    from QQuantLib.utils.benchmark_utils import combination_for_list
+    from QQuantLib.utils.benchmark_utils import create_ae_pe_solution
 
-    AE = "RQAE"
+    ############## CONFIGURE THE BTC  ###################
+
     #Setting the AE algorithm configuration
-    ae_problem = select_ae(AE)
+    ae_json_file = "jsons/integral_mlae_configuration.json"
+    with open(ae_json_file) as json_file:
+        ae_cfg = json.load(json_file)
 
+    # Creates the complete configuration for AE solvers.
+    # BE AWARE only one AE configuration MUST BE provided
+    ae_problem = combination_for_list(ae_cfg)[0]
+
+    #Setting the QPU configuration
+    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    with open(qpu_json_file) as json_file:
+        noisy_cfg = json.load(json_file)
+    # BE AWARE only one QPU configuration MUST BE provided
+    qpu_conf = combination_for_list(noisy_cfg)[0]
+    ae_problem.update(qpu_conf)
+
+    # Setting the integral interval
     ae_problem.update({
-        "qpu": "c",
-        "integrals": [0, 1]
+        "integrals": [0]
     })
+    # Setting the list of qubits for domain discretization
+    list_of_qbits = [6]
+    ############## CONFIGURE THE BTC  ###################
+
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
+
+    AE = ae_problem["ae_type"]
+    # Configure the save Folder and the name of the files
+    saving_folder = "./{}_Results/".format(AE)
+    benchmark_times = "{}_times_benchmark.csv".format(AE)
+    csv_results = "{}_benchmark.csv".format(AE)
+    summary_results = "{}_SummaryResults.csv".format(AE)
 
     benchmark_arguments = {
         #Pre benchmark sttuff
@@ -313,10 +340,10 @@ if __name__ == "__main__":
         "pre_save": True,
         #Saving stuff
         "save_append" : True,
-        "saving_folder": "./{}_Results/".format(AE),
-        "benchmark_times": "{}_times_benchmark.csv".format(AE),
-        "csv_results": "{}_benchmark.csv".format(AE),
-        "summary_results": "{}_SummaryResults.csv".format(AE),
+        "saving_folder": saving_folder,
+        "benchmark_times": benchmark_times,
+        "csv_results": csv_results,
+        "summary_results": summary_results,
         #Computing Repetitions stuff
         "alpha": None,
         "relative_error": None,
@@ -324,8 +351,9 @@ if __name__ == "__main__":
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4],
+        "list_of_qbits": list_of_qbits,
     }
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
 
 
     json_object = json.dumps(ae_problem)
@@ -336,8 +364,13 @@ if __name__ == "__main__":
         "benchmark_ae_conf.json"
     with open(conf_file, "w") as outfile:
         outfile.write(json_object)
+    # Store the QPU configuration
+    qpu_file = benchmark_arguments["saving_folder"] + \
+        "qpu_configuration.json"
+    with open(qpu_file, "w") as outfile:
+        json.dump(qpu_conf, outfile)
     #Added ae configuration
-    ae_problem.update({"qpu":get_qpu(ae_problem["qpu"])})
+    ae_problem.update({"qpu":select_qpu(ae_problem)})
     benchmark_arguments.update({
         "kernel_configuration": ae_problem,
     })

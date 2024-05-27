@@ -9,9 +9,15 @@ import time
 import numpy as np
 import pandas as pd
 from copy import deepcopy
-from get_qpu import get_qpu
 
+import sys
+
+sys.path.append("../")
+
+
+from QQuantLib.qpu.select_qpu import select_qpu
 from QQuantLib.utils.benchmark_utils import combination_for_list
+from QQuantLib.utils.benchmark_utils import create_ae_pe_solution
 from QQuantLib.finance.quantum_integration import q_solve_integral
 
 def sine_integral(n_qbits, interval, ae_dictionary):
@@ -181,7 +187,7 @@ def run_id(
     folder_path=None,
     ):
 
-    ae_config.update({"qpu":get_qpu(qpu)})
+    ae_config.update({"qpu":select_qpu(ae_config)})
 
     if save_:
         if folder_path is None:
@@ -211,63 +217,10 @@ def run_id(
 
 
 
-def select_ae(ae_method):
-    """
-    Function for selecting the AE algorithm used in the benchmark
-
-    Parameters
-    ----------
-
-    ae_method : string
-       Amplitude Estimation method used in the benchmark
-
-    Returns
-    _______
-
-    ae_configuration : dict
-        Dictionary with the complete configuration of the Amplitude
-
-    """
-
-    folder_json = os.getcwd()
-    #folder_json = re.sub(
-    #    r"WP3_Benchmark/(?=WP3_Benchmark/)*.*", "WP3_Benchmark/", folder_json)
-    folder_json = folder_json + "/jsons"
-    lista_ae_ = []
-    if ae_method == "MLAE":
-        lista_ae_.append(folder_json+"/integral_mlae_configuration.json")
-    elif ae_method == "IQAE":
-        lista_ae_.append(folder_json+"/integral_iqae_configuration.json")
-    elif ae_method == "RQAE":
-        lista_ae_.append(folder_json+"/integral_rqae_configuration.json")
-    elif ae_method == "CQPEAE":
-        lista_ae_.append(folder_json+"/integral_cqpeae_configuration.json")
-    elif ae_method == "IQPEAE":
-        lista_ae_.append(folder_json+"/integral_iqpeae_configuration.json")
-    elif ae_method == "MCAE":
-        lista_ae_.append(folder_json+"/integral_mcae_configuration.json")
-    else:
-        raise ValueError(
-            "ae_method MUST BE: MLAE, IQAE, RQAE, CQPEAE or IQPEAE")
-
-    ae_list_ = []
-    for ae_json_ in lista_ae_:
-        with open(ae_json_) as json_file_:
-            ae_list_ = ae_list_ + json.load(json_file_)
-    #Creates the complete configuration for AE solvers
-    final_list_ = combination_for_list(ae_list_)
-    if len(final_list_) > 1:
-        text = "There are more than 1 AE algorithm configuration. "\
-            "FOR BENCHMARK only 1 configuration should be given. "\
-            "Please change the correspondent json!!"
-        raise ValueError(text)
-    ae_configuration = final_list_[0]
-    return ae_configuration
-
-
 
 if __name__ == "__main__":
     import argparse
+    from qpu.select_qpu import select_qpu
 
     parser = argparse.ArgumentParser()
     #Arguments for execution
@@ -293,6 +246,13 @@ if __name__ == "__main__":
         "Default: 1",
         default=1,
     )
+    parser.add_argument(
+        "-id",
+        dest="id",
+        type=int,
+        help="For executing only one element of the list",
+        default=None,
+    )
     #AE algorithm configuration arguments
     parser.add_argument(
         "-json_ae",
@@ -300,6 +260,14 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="JSON AE algorithm configuration",
+    )
+    #QPU configuration
+    parser.add_argument(
+        "-json_qpu",
+        dest="json_qpu",
+        type=str,
+        default="qpu/qpu.json",
+        help="JSON with the qpu configuration",
     )
     parser.add_argument(
         "--count",
@@ -315,21 +283,6 @@ if __name__ == "__main__":
         default=False,
         action="store_true",
         help="For printing the AE algorihtm configuration."
-    )
-    parser.add_argument(
-        "-id",
-        dest="id",
-        type=int,
-        help="For executing only one element of the list",
-        default=None,
-    )
-    #QPU argument
-    parser.add_argument(
-        "-qpu",
-        dest="qpu",
-        type=str,
-        default="c",
-        help="QPU for simulation: See function get_qpu in get_qpu module",
     )
     #Saving results arguments
     parser.add_argument(
@@ -359,7 +312,12 @@ if __name__ == "__main__":
     with open(args.json_ae) as json_file:
         ae_cfg = json.load(json_file)
     # Creates the complete configuration for AE solvers
-    final_list = combination_for_list(ae_cfg)
+    ae_list = combination_for_list(ae_cfg)
+
+    with open(args.json_qpu) as json_file:
+        noisy_cfg = json.load(json_file)
+    qpu_list = combination_for_list(noisy_cfg)
+    final_list = create_ae_pe_solution(ae_list, qpu_list)
 
     if args.count:
         print(len(final_list))
@@ -376,7 +334,6 @@ if __name__ == "__main__":
                 interval=args.interval,
                 repetitions=args.repetitions,
                 ae_config=final_list[args.id],
-                qpu=args.qpu,
                 folder_path=args.folder_path,
                 #qpu=args.qpu,
                 save_=args.save,
