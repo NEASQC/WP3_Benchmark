@@ -201,6 +201,7 @@ if __name__ == "__main__":
     kwargs = {
         "times_filename" : folder + "PL_multiplexor_times_benchmark.csv",
         "benchmark_file" : folder + "PL_multiplexor_SummaryResults.csv",
+        "qpu" : folder + "qpu_configuration.json"
     }
 
     benchmark_conf = {

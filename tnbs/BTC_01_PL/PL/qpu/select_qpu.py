@@ -63,7 +63,7 @@ def select_qpu(hw_cfg):
     """
 
     if hw_cfg["qpu_type"] in ["noisy", "ideal"]:
-        from model_noise import create_qpu
+        from qpu.model_noise import create_qpu
         qpu = create_qpu(hw_cfg)
     else:
         from qpu.get_qpu import get_qpu
