@@ -270,6 +270,13 @@ if __name__ == "__main__":
         help="JSON with the qpu configuration",
     )
     parser.add_argument(
+        "-folder",
+        dest="folder_path",
+        type=str,
+        help="Path for storing folder",
+        default="./",
+    )
+    parser.add_argument(
         "--count",
         dest="count",
         default=False,
@@ -291,13 +298,6 @@ if __name__ == "__main__":
         default=False,
         action="store_true",
         help="For saving results",
-    )
-    parser.add_argument(
-        "--folder",
-        dest="folder_path",
-        type=str,
-        help="Path for storing folder",
-        default="./",
     )
     #Execution argument
     parser.add_argument(
@@ -329,7 +329,7 @@ if __name__ == "__main__":
 
     if args.execution:
         if args.id is not None:
-            run_id(
+            print(run_id(
                 n_qbits=args.n_qbits,
                 interval=args.interval,
                 repetitions=args.repetitions,
@@ -337,7 +337,7 @@ if __name__ == "__main__":
                 folder_path=args.folder_path,
                 #qpu=args.qpu,
                 save_=args.save,
-            )
+            ))
     # if args.execution:
     #     list_of_pdfs = []
     #     for i in range(args.repetitions):

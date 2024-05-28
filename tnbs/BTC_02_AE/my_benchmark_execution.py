@@ -299,32 +299,42 @@ if __name__ == "__main__":
 
     ############## CONFIGURE THE BTC  ###################
 
-    #Setting the AE algorithm configuration
+    # Path for AE JSON file configuration
     ae_json_file = "jsons/integral_mlae_configuration.json"
+    # For setting the AE configuration
+    id_ae = 0
+
+    # Path for QPU JSON file configuration
+    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    # For setting the qpu configuration
+    id_qpu = 2
+
+    # Setting the integral interval
+    list_of_integral_intervals = [0, 1]
+    # Setting the list of qubits for domain discretization
+    list_of_qbits = [6]
+
+    ############## CONFIGURE THE BTC  ###################
+
+    ############# LOAD the JSON FILES ###################
+    # Setting the AE algorithm configuration
     with open(ae_json_file) as json_file:
         ae_cfg = json.load(json_file)
-
-    # Creates the complete configuration for AE solvers.
     # BE AWARE only one AE configuration MUST BE provided
-    ae_problem = combination_for_list(ae_cfg)[0]
+    ae_problem = combination_for_list(ae_cfg)[id_ae]
 
-    #Setting the QPU configuration
-    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    # Setting the QPU configuration
     with open(qpu_json_file) as json_file:
         noisy_cfg = json.load(json_file)
     # BE AWARE only one QPU configuration MUST BE provided
-    qpu_conf = combination_for_list(noisy_cfg)[0]
+    qpu_conf = combination_for_list(noisy_cfg)[id_qpu]
     ae_problem.update(qpu_conf)
 
-    # Setting the integral interval
-    ae_problem.update({
-        "integrals": [0]
-    })
-    # Setting the list of qubits for domain discretization
-    list_of_qbits = [6]
-    ############## CONFIGURE THE BTC  ###################
 
     ############## CONFIGURE THE BENCHMARK EXECUTION  #################
+    ae_problem.update({
+        "integrals": list_of_integral_intervals
+    })
 
     AE = ae_problem["ae_type"]
     # Configure the save Folder and the name of the files
