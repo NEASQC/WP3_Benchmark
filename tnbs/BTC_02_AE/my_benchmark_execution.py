@@ -301,16 +301,19 @@ if __name__ == "__main__":
 
     # Path for AE JSON file configuration
     ae_json_file = "jsons/integral_mlae_configuration.json"
+    ae_json_file = "jsons/integral_iqae_configuration.json"
     # For setting the AE configuration
-    id_ae = 0
+    id_ae = 1
 
     # Path for QPU JSON file configuration
-    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    # qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    qpu_json_file = "qpu_noisy.json"
     # For setting the qpu configuration
     id_qpu = 2
 
     # Setting the integral interval
-    list_of_integral_intervals = [0, 1]
+    #list_of_integral_intervals = [0, 1]
+    list_of_integral_intervals = [0]
     # Setting the list of qubits for domain discretization
     list_of_qbits = [6]
 
