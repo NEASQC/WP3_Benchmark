@@ -11,8 +11,30 @@ l_path = l_path + "/tnbs/"#BTC_03_QPE/"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_04_PH")
 from BTC_04_PH.my_benchmark_execution import KERNEL_BENCHMARK
-from get_qpu import get_qpu
+from BTC_04_PH.PH.qpu.select_qpu import select_qpu
 
+# Naive qpu configuration
+qpu_conf = {
+    "qpu_type": "c",
+    "t_gate_1qb" : None,
+    "t_gate_2qbs" : None,
+    "t_readout": None,
+    "depol_channel" : {
+        "active": False,
+        "error_gate_1qb" : None,
+        "error_gate_2qbs" : None
+    },
+    "idle" : {
+        "amplitude_damping": False,
+        "dephasing_channel": False,
+        "t1" : None,
+        "t2" : None
+    },
+    "meas": {
+        "active":False,
+        "readout_error": None
+    }
+}
 
 def create_folder(folder_name):
     """
@@ -55,7 +77,6 @@ def test_ph():
         "depth": depth,
         "t_inv": True,
         # Ground State Energy
-        "qpu_ph" : qpu_ph,
         "nb_shots" : nb_shots,
         "truncation": truncation,
         # Saving
@@ -65,7 +86,7 @@ def test_ph():
         "gse_error" : None,
         "time_error": None,
     }
-    kernel_configuration.update({"qpu_ph": get_qpu(kernel_configuration["qpu_ph"])})
+    kernel_configuration.update({"qpu_ph": select_qpu(qpu_conf)})
 
     list_of_qbits = [3]
     benchmark_arguments = {

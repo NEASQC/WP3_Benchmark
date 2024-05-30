@@ -2,13 +2,15 @@
 Parent Hamiltonian ansatz using MPS
 """
 
+import sys
 import numpy as np
 import pandas as pd
 import logging
-import gates_mps as gt
-from utils_ph import create_folder
-from mps import apply_local_gate, apply_2qubit_gates, compose_mps, \
+sys.path.append("../../")
+from PH.utils.utils_ph import create_folder
+from PH.mps.mps import apply_local_gate, apply_2qubit_gates, compose_mps, \
     contract_indices_one_tensor
+import PH.mps.gates_mps as gt
 logger = logging.getLogger('__name__')
 
 def get_angles(depth):

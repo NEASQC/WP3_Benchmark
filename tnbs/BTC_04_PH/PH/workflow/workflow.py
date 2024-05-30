@@ -3,21 +3,35 @@ Complete WorkFlow of a PH VQE
 Author: Gonzalo Ferro
 """
 
+import sys
 import logging
 import pandas as pd
-from ansatzes import run_ansatz
-from parent_hamiltonian import PH
-from vqe_step import PH_EXE
-import sys
-sys.path.append("../")
-from get_qpu import get_qpu
+sys.path.append("../../")
+from PH.ansatzes.ansatzes import run_ansatz
+from PH.parent_hamiltonian.parent_hamiltonian import PH
+from PH.ph_step_exe.vqe_step import PH_EXE
 
 logger = logging.getLogger('__name__')
 
 def workflow(**configuration):
+    """
+    Executes complete Workflow:
+    1. Create ansatz circuit and solve it.
+    2. Computes Parent Hamiltonian
+    3. Solve the ansatz under the Parent Hamiltonian
+    """
 
     logger.info("Solving ansatz circuit")
-    ansatz_dict = run_ansatz(**configuration)
+    ansatz_conf = {
+        "nqubits" : configuration["nqubits"],
+        "depth": configuration["depth"],
+        "ansatz" : configuration["ansatz"],
+        "qpu" : configuration["ansatz_qpu"],
+        "save": configuration["save"],
+        "folder": configuration["folder"],
+    }
+    print(ansatz_conf)
+    ansatz_dict = run_ansatz(**ansatz_conf)
     state = ansatz_dict["state"]
     circuit = ansatz_dict["circuit"]
     solve_ansatz_time = ansatz_dict["solve_ansatz_time"]
@@ -36,7 +50,7 @@ def workflow(**configuration):
     logger.info("Executing VQE step")
     vqe_conf = {
         "t_inv" : t_inv,
-        "qpu" : get_qpu(configuration["qpu_ph"]),
+        "qpu" : configuration["ph_qpu"],
         "nb_shots": configuration["nb_shots"],
         "truncation": configuration["truncation"],
         "filename": filename,
@@ -57,6 +71,9 @@ def workflow(**configuration):
 if __name__ == "__main__":
     # For sending ansatzes to QLM
     import argparse
+    import json
+    from PH.qpu.select_qpu import select_qpu
+    from PH.utils.utils_ph import combination_for_list
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -94,7 +111,8 @@ if __name__ == "__main__":
         dest="qpu_ansatz",
         type=str,
         default=None,
-        help="QPU for ansatz simulation: [qlmass, python, c, mps]",
+        help="QPU for parent hamiltonian simulation: " +
+            "c, python, linalg, mps, qlmass_linalg, qlmass_mps",
     )
 
     # Parent Hamiltonian
@@ -125,8 +143,15 @@ if __name__ == "__main__":
         "-qpu_ph",
         dest="qpu_ph",
         type=str,
+        default="../qpu/qpu_ideal.json",
+        help="JSON with the qpu configuration for ground state computation",
+    )
+    parser.add_argument(
+        "-qpu_id",
+        dest="qpu_id",
+        type=int,
         default=None,
-        help="QPU for parent hamiltonian simulation: [qlmass, python, c]",
+        help="Select a QPU for ground state computation from a JSON file",
     )
     parser.add_argument(
         "-folder",
@@ -142,5 +167,41 @@ if __name__ == "__main__":
         action="store_true",
         help="For storing results",
     )
+    parser.add_argument(
+        "--print",
+        dest="print",
+        default=False,
+        action="store_true",
+        help="For printing the selected QPU configuration."
+    )
+    #Execution argument
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
+    )
     args = parser.parse_args()
-    workflow(**vars(args))
+    config = vars(args)
+    # First set the qpu for the ansatz. No noisy simulation allowed
+    qpu_config = {"qpu_type": args.qpu_ansatz}
+    config.update({"ansatz_qpu": select_qpu(qpu_config)})
+    # Second set the qpu for solving the ground state energy
+    with open(args.qpu_ph) as json_file:
+        qpu_cfg = json.load(json_file)
+    qpu_list = combination_for_list(qpu_cfg)
+    if args.print:
+        if args.qpu_id is not None:
+            print(qpu_list[args.qpu_id])
+        else:
+            print("All possible QPUS will be printed: ")
+            print(qpu_list)
+    if args.execution:
+        if args.qpu_id is not None:
+            config.update({"ph_qpu": select_qpu(qpu_list[args.qpu_id])})
+            print(workflow(**config))
+        else:
+            raise ValueError(
+                "BE AWARE. For execution the -qpu_id is Mandatory"
+            )

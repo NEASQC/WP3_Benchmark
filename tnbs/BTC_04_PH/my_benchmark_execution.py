@@ -13,14 +13,14 @@ l_sys = sys.path
 l_path = l_sys[['BTC_04_PH' in i for i in l_sys].index(True)]
 sys.path.append(l_path+'/PH')
 
-from PH.ansatzes import ansatz_selector, angles_ansatz01
-from PH.vqe_step import PH_EXE
+from PH.ansatzes.ansatzes import ansatz_selector, angles_ansatz01
+from PH.ph_step_exe.vqe_step import PH_EXE
 
 
 logging.basicConfig(
     format='%(asctime)s-%(levelname)s: %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
-    level=logging.INFO
+    #level=logging.INFO
     #level=logging.DEBUG
 )
 logger = logging.getLogger('__name__')
@@ -365,12 +365,34 @@ class KERNEL_BENCHMARK:
 if __name__ == "__main__":
 
 
-    from get_qpu import get_qpu
+    import json
+    from PH.utils.utils_ph import combination_for_list
+    from PH.qpu.select_qpu import select_qpu
+
+    ############## CONFIGURE THE BTC  ###################
     #Anstaz
-    depth = [1]
-    qpu_ph = "c" #qlmass_linalg, python, c, linalg 
-    nb_shots = 0
+    depth = [1, 3]
+    list_of_qbits = [6, 8]
+
+    # Path for QPU JSON file configuration
+    qpu_json_file = "PH/qpu/qpu_ideal.json"
+    #qpu_json_file = "qpu_noisy.json"
+
+    # For setting the qpu configuration
+    id_qpu = 4
+
+    # Number of shots
+    nb_shots = None
+    # For prunning Pauli coefficients
     truncation = None
+
+    ############# LOAD the JSON FILES ###################
+
+    # Setting the QPU configuration
+    with open(qpu_json_file) as json_file:
+        qpu_cfg = json.load(json_file)
+    # BE AWARE only one QPU configuration MUST BE provided
+    qpu_conf = combination_for_list(qpu_cfg)[id_qpu]
 
     kernel_configuration = {
         #Ansatz
@@ -378,8 +400,8 @@ if __name__ == "__main__":
         "depth": depth,
         "t_inv": True,
         # Ground State Energy
-        "qpu_ph" : qpu_ph,
-        "nb_shots" : None,
+        "qpu_ph" : select_qpu(qpu_conf),
+        "nb_shots" : nb_shots,
         "truncation": truncation,
         # Saving
         "save": True,
@@ -388,8 +410,15 @@ if __name__ == "__main__":
         "gse_error" : None,
         "time_error": None,
     }
+    ############## CONFIGURE THE BTC  ###################
 
-    list_of_qbits = list(range(3, 4))
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
+    # Configure the save Folder and the name of the files
+    saving_folder = "./Results/"
+    benchmark_times = "times_benchmark.csv"
+    csv_results = "kernel_benchmark.csv"
+    summary_results = "kernel_SummaryResults.csv"
+
     benchmark_arguments = {
         #Pre benchmark sttuff
         "pre_benchmark": True,
@@ -397,10 +426,10 @@ if __name__ == "__main__":
         "pre_save": True,
         #Saving stuff
         "save_append" : True,
-        "saving_folder": "./Results/",
-        "benchmark_times": "kernel_times_benchmark.csv",
-        "csv_results": "kernel_benchmark.csv",
-        "summary_results": "kernel_SummaryResults.csv",
+        "saving_folder": saving_folder,
+        "benchmark_times": benchmark_times,
+        "csv_results": csv_results,
+        "summary_results": summary_results,
         #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
@@ -408,8 +437,9 @@ if __name__ == "__main__":
         #List number of qubits tested
         "list_of_qbits": list_of_qbits,
     }
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
 
-    kernel_configuration.update({"qpu_ph": get_qpu(kernel_configuration["qpu_ph"])})
+    # kernel_configuration.update({"qpu_ph": get_qpu(kernel_configuration["qpu_ph"])})
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     if not os.path.exists(benchmark_arguments["saving_folder"]):

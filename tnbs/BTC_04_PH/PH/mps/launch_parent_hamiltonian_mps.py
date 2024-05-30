@@ -3,17 +3,14 @@ For launching a VQE quantum step execution
 Author: Gonzalo Ferro
 """
 
+import sys
 import json
-from utils_ph import combination_for_list
-from ansatzes import getting_job
-
+sys.path.append("../../")
+from PH.utils.utils_ph import combination_for_list
+from PH.mps.parent_hamiltonian_mps import run_parent_hamiltonian
 
 def run_id(**configuration):
-    filename = configuration["filename"] + "/" + configuration["job_id"]
-    configuration.update({"filename": filename})
-    print(configuration)
-    state = getting_job(**configuration)
-    print(state)
+    run_parent_hamiltonian(**configuration)
 
 
 if __name__ == "__main__":
@@ -21,20 +18,13 @@ if __name__ == "__main__":
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
-        level=logging.INFO
-        #level=logging.DEBUG
+        #level=logging.INFO
+        level=logging.DEBUG
     )
     logger = logging.getLogger('__name__')
     import argparse
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument(
-        "-filelist",
-        dest="filelist",
-        type=str,
-        default="./",
-        help="Filename with folder to use",
-    )
     group.add_argument(
         "--all",
         dest="all",
@@ -75,7 +65,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load json file
-    json_file = "get_jobs.json"
+    json_file = "parent_hamiltonian_mps.json"
     f_ = open(json_file)
     conf = json.load(f_)
     # Creating Combination list

@@ -1,15 +1,22 @@
 """
-For masive execution of VQE step using vqe_step_fromfile.py script
+For launching a VQE quantum step execution
 Author: Gonzalo Ferro
 """
 
+import sys
 import json
-from utils_ph import combination_for_list
-from vqe_step_fromfile import run_ph_execution
+sys.path.append("../../")
+from PH.utils.utils_ph import combination_for_list
+from PH.ansatzes.ansatzes import getting_job
 
 
 def run_id(**configuration):
-    pdf = run_ph_execution(**configuration)
+    filename = configuration["filename"] + "/" + configuration["job_id"]
+    configuration.update({"filename": filename})
+    print(configuration)
+    state = getting_job(**configuration)
+    print(state)
+
 
 if __name__ == "__main__":
     import logging
@@ -22,28 +29,26 @@ if __name__ == "__main__":
     logger = logging.getLogger('__name__')
     import argparse
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-
     parser.add_argument(
-        "--count",
-        dest="count",
-        default=False,
-        action="store_true",
-        help="Getting the number of elements",
+        "-filelist",
+        dest="filelist",
+        type=str,
+        default="./",
+        help="Filename with folder to use",
     )
     group.add_argument(
         "--all",
         dest="all",
         default=False,
         action="store_true",
-        help="For executing complete list",
+        help="Select all the jobs from ansatzes.json",
     )
     group.add_argument(
         "-id",
         dest="id",
         type=int,
-        help="For executing only one element of the list",
+        help="Select one element from ansatzes.json",
         default=None,
     )
     parser.add_argument(
@@ -61,9 +66,18 @@ if __name__ == "__main__":
         action="store_true",
         help="For executing program",
     )
+    #Execution argument
+    parser.add_argument(
+        "--count",
+        dest="count",
+        default=False,
+        action="store_true",
+        help="Getting the number of elements",
+    )
     args = parser.parse_args()
+
     # Load json file
-    json_file = "vqe_step_frominput.json"
+    json_file = "get_jobs.json"
     f_ = open(json_file)
     conf = json.load(f_)
     # Creating Combination list

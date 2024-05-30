@@ -12,9 +12,8 @@ import re
 import ast
 import pandas as pd
 from qat.core import Observable, Term
-from ansatzes import ansatz_selector, angles_ansatz01
-sys.path.append("../")
-from get_qpu import get_qpu
+sys.path.append("../../")
+from PH.ansatzes.ansatzes import ansatz_selector, angles_ansatz01
 logger = logging.getLogger('__name__')
 
 
@@ -217,7 +216,7 @@ def run_ph_execution(**configuration):
     # 4. Executes VQE step.
     logger.info("Executing VQE step")
     vqe_conf = {
-        "qpu" : get_qpu(configuration["qpu_ph"]),
+        "qpu" : configuration["qpu"],
         "nb_shots": configuration["nb_shots"],
         "truncation": configuration["truncation"],
         "t_inv": configuration["t_inv"],
@@ -237,9 +236,9 @@ if __name__ == "__main__":
     )
     logger = logging.getLogger('__name__')
     import argparse
-    import sys
-    sys.path.append("../")
-    from get_qpu import get_qpu
+    import json
+    from PH.qpu.select_qpu import select_qpu
+    from PH.utils.utils_ph import combination_for_list
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -264,11 +263,18 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
-        "-qpu_ph",
-        dest="qpu_ph",
+        "-json_qpu",
+        dest="json_qpu",
         type=str,
+        default="../qpu/qpu_ideal.json",
+        help="JSON with the qpu configuration",
+    )
+    parser.add_argument(
+        "-qpu_id",
+        dest="qpu_id",
+        type=int,
         default=None,
-        help="QPU for parent hamiltonian simulation: See function get_qpu in get_qpu module",
+        help="Select a QPU from a JSON file",
     )
     parser.add_argument(
         "--t_inv",
@@ -278,6 +284,21 @@ if __name__ == "__main__":
         help="Setting translational invariant of the ansatz",
     )
     parser.add_argument(
+        "--print",
+        dest="print",
+        default=False,
+        action="store_true",
+        help="For printing the selected QPU configuration."
+    )
+    #Execution argument
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
+    )
+    parser.add_argument(
         "--save",
         dest="save",
         default=False,
@@ -285,7 +306,22 @@ if __name__ == "__main__":
         help="For storing results",
     )
     args = parser.parse_args()
-    config = vars(args)
-    #config.update({"qpu_ph": get_qpu(config["qpu_ph"])})
-    print(config)
-    print(run_ph_execution(**config))
+    with open(args.json_qpu) as json_file:
+        qpu_cfg = json.load(json_file)
+    final_list = combination_for_list(qpu_cfg)
+    if args.print:
+        if args.qpu_id is not None:
+            print(final_list[args.qpu_id])
+        else:
+            print("All possible QPUS will be printed: ")
+            print(final_list)
+    if args.execution:
+        if args.qpu_id is not None:
+            qpu_config = final_list[args.qpu_id]
+            config = vars(args)
+            config.update({"qpu": select_qpu(qpu_config)})
+            print(run_ph_execution(**config))
+        else:
+            raise ValueError(
+                "BE AWARE. For execution the -qpu_id is Mandatory"
+            )

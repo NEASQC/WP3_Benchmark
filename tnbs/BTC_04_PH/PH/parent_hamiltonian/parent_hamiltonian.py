@@ -8,13 +8,15 @@ Complete implementation of the Parent Hamiltonian following:
 
 Author: Gonzalo Ferro
 """
+import sys
 import logging
 import time
 import numpy as np
 import pandas as pd
 from scipy import linalg
-from pauli import pauli_decomposition
-from contractions import reduced_matrix
+sys.path.append("../../")
+from PH.parent_hamiltonian.pauli import pauli_decomposition
+from PH.parent_hamiltonian.contractions import reduced_matrix
 import logging
 logger = logging.getLogger('__name__')
 
@@ -304,12 +306,10 @@ def run_parent_hamiltonian(**configuration):
 
     logger.info("Loading State")
     state = pd.read_csv(state_file, sep=";", index_col=0)
-    print(state)
 
     # Create PH
     logger.info("Computing Local Parent Hamiltonian")
     amplitudes = state[["Amplitude"]].astype(complex)
-    print(amplitudes)
     # Compute Local PH
     ph_conf = {
         "filename": base_fn,
@@ -317,6 +317,7 @@ def run_parent_hamiltonian(**configuration):
     }
     ph_object = PH(amplitudes, t_inv, **ph_conf)
     ph_object.local_ph()
+    return ph_object.pauli_pdf
 
 if __name__ == "__main__":
     logging.basicConfig(

@@ -8,17 +8,19 @@ Complete implementation of the Parent Hamiltonian following:
 
 Author: Gonzalo Ferro
 """
+import sys
 import logging
 import time
 import numpy as np
 import pandas as pd
 from scipy import linalg
 
-from contractions import contract_indices
-from pauli import pauli_decomposition
-from ansatz_mps import ansatz_mps, get_angles
-from utils_ph import create_folder
-from mps import contraction_physical_legs, mpo_contraction
+sys.path.append("../../")
+from PH.parent_hamiltonian.contractions import contract_indices
+from PH.parent_hamiltonian.pauli import pauli_decomposition
+from PH.mps.ansatz_mps import ansatz_mps, get_angles
+from PH.mps.mps import contraction_physical_legs, mpo_contraction
+from PH.utils.utils_ph import create_folder
 logger = logging.getLogger('__name__')
 
 def reduced_rho_mps(mps, free_indices, contraction_indices):

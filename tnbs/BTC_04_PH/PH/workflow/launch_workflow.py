@@ -3,12 +3,21 @@ For launching a complete workflow PH execution
 Author: Gonzalo Ferro
 """
 
+import sys
 import json
-from utils_ph import combination_for_list
-from workflow import workflow
+sys.path.append("../../")
+from PH.utils.utils_ph import combination_for_list
+from PH.utils.utils_ph import cartesian_product
+from PH.workflow.workflow import workflow
+from PH.qpu.select_qpu import select_qpu
 
 def run_id(**configuration):
+    qpu_config = {"qpu_type": configuration["qpu_ansatz"]}
+    configuration.update({"ansatz_qpu": select_qpu(qpu_config)})
+    configuration.update({"ph_qpu": select_qpu(configuration)})
+    #print(configuration["ph_qpu"])
     pdf = workflow(**configuration)
+    return pdf
 
 
 
@@ -40,6 +49,13 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
+        "-qpu_ph",
+        dest="qpu_ph",
+        type=str,
+        default="../qpu/qpu_ideal.json",
+        help="JSON with the qpu configuration for ground state computation",
+    )
+    parser.add_argument(
         "--print",
         dest="print",
         default=False,
@@ -64,26 +80,33 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # Creating Combination list
     # Load json file
     json_file = "workflow.json"
     f_ = open(json_file)
     conf = json.load(f_)
-    # Creating Combination list
     combination_list = combination_for_list(conf)
+
+    # Creating Combination list for QPUs
+    with open(args.qpu_ph) as json_file:
+        qpu_cfg = json.load(json_file)
+    qpu_list = combination_for_list(qpu_cfg)
+    # Cartesian product of combination_list and qpu_list
+    final_list = cartesian_product(combination_list, qpu_list)
 
     if args.print:
         if args.id is not None:
-            print(combination_list[args.id])
+            print(final_list[args.id])
         elif args.all:
-            print(combination_list)
+            print(final_list)
         else:
             print("Provide -id or --all")
     if args.count:
-        print("Number of elements: {}".format(len(combination_list)))
+        print("Number of elements: {}".format(len(final_list)))
     if args.execution:
         if args.id is not None:
-            configuration = combination_list[args.id]
-            run_id(**configuration)
+            configuration = final_list[args.id]
+            print(run_id(**configuration))
         if args.all:
-            for configuration in combination_list:
-                run_id(**configuration)
+            for configuration in final_list:
+                print(run_id(**configuration))

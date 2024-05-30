@@ -15,17 +15,15 @@ Authors: Gonzalo Ferro
 import sys
 import logging
 import time
-import uuid
+from datetime import datetime
 import pandas as pd
 import numpy as  np
 import qat.lang.AQASM as qlm
-from datetime import datetime
 from qat.qlmaas import QLMaaSConnection
 from qat.core import Result
 from qat.fermion.circuits import make_ldca_circ, make_general_hwe_circ
-from utils_ph import create_folder
-sys.path.append("../")
-from get_qpu import get_qpu
+sys.path.append("../../")
+from PH.utils.utils_ph import create_folder
 logger = logging.getLogger('__name__')
 
 def angles_ansatz01(circuit, pdf_parameters=None):
@@ -425,7 +423,7 @@ def run_ansatz(**configuration):
     nqubits = configuration.get("nqubits", None)
     depth = configuration.get("depth", None)
     ansatz = configuration.get("ansatz", None)
-    qpu_ansatz_name = configuration.get("qpu_ansatz", None)
+    #qpu_ansatz_name = configuration.get("qpu_ansatz", None)
     save = configuration.get("save", False)
     folder = configuration.get("folder", None)
 
@@ -465,14 +463,14 @@ def run_ansatz(**configuration):
     if save:
         folder = create_folder(folder)
         filename = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}".format(
-            ansatz, nqubits, depth, qpu_ansatz_name)
+            ansatz, nqubits, depth, configuration.get("qpu", None))
         filename = folder + filename
     else:
         filename = ""
 
     # Solving Ansatz
     solve_conf = {
-        "qpu" : get_qpu(qpu_ansatz_name),
+        "qpu" : configuration.get("qpu", None),
         "nqubits" :nqubits,
         "parameters" : pdf_parameters,
         "filename": filename,
@@ -527,6 +525,7 @@ def getting_job(**configuration):
 if __name__ == "__main__":
     # For sending ansatzes to QLM
     import argparse
+    from PH.qpu.select_qpu import select_qpu
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
@@ -564,7 +563,8 @@ if __name__ == "__main__":
         dest="qpu_ansatz",
         type=str,
         default=None,
-        help="QPU for ansatz simulation: [qlmass, python, c, mps]",
+        help="QPU for ansatz simulation: " +
+            "c, python, linalg, mps, qlmass_linalg, qlmass_mps",
     )
     parser.add_argument(
         "-folder",
@@ -617,9 +617,12 @@ if __name__ == "__main__":
         help="jobid of the QLM job",
     )
     args = parser.parse_args()
+    configuration = vars(args)
+    qpu_config = {"qpu_type": args.qpu_ansatz}
+    configuration.update({"qpu": select_qpu(qpu_config)})
     if args.get_job:
-        state = getting_job(**vars(args))
+        state = getting_job(**configuration)
     else:
-        output = run_ansatz(**vars(args))
+        output = run_ansatz(**configuration)
         if output is not None:
             print(output["state"])

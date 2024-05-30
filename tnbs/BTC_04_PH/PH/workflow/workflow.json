@@ -7,7 +7,6 @@
         "truncation": [null],
         "nb_shots": [0],
         "qpu_ansatz": ["c"],
-        "qpu_ph": ["c"],
         "save": [true],
         "folder":  ["Test"]
     }

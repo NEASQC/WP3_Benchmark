@@ -1,10 +1,12 @@
 """
 Functions for working with MPS
 """
+import sys
 import logging
 import numpy as np
 from scipy.linalg import svd
-from contractions import contract_indices
+sys.path.append("../../")
+from PH.parent_hamiltonian.contractions import contract_indices
 logger = logging.getLogger('__name__')
 
 def my_svd(array, truncate=False, t_v=None):

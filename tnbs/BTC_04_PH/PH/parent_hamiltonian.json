@@ -1,8 +1,0 @@
-[
-    {
-        "save": [true],
-        "t_inv": [true],
-        "state": ["Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_linalg_state.csv"],
-        "base_fn" : ["Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_linalg"]
-    }
-]

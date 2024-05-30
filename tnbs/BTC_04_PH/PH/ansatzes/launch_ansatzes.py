@@ -3,11 +3,16 @@ For launching a VQE quantum step execution
 Author: Gonzalo Ferro
 """
 
+import sys
 import json
-from utils_ph import combination_for_list
-from ansatzes import run_ansatz
+sys.path.append("../../")
+from PH.qpu.select_qpu import select_qpu
+from PH.utils.utils_ph import combination_for_list
+from PH.ansatzes.ansatzes import run_ansatz
 
 def run_id(**configuration):
+    qpu_config = {"qpu_type": configuration["qpu_ansatz"]}
+    configuration.update({"qpu": select_qpu(qpu_config)})
     _ = run_ansatz(**configuration)
 
 
@@ -28,13 +33,13 @@ if __name__ == "__main__":
         dest="all",
         default=False,
         action="store_true",
-        help="For executing complete list",
+        help="For executing or submitting all anstazes from ansatzes.json",
     )
     group.add_argument(
         "-id",
         dest="id",
         type=int,
-        help="For executing only one element of the list",
+        help="Select one element of all the anstazes from ansatzes.json",
         default=None,
     )
     parser.add_argument(
@@ -42,7 +47,7 @@ if __name__ == "__main__":
         dest="print",
         default=False,
         action="store_true",
-        help="For printing the AE algorihtm configuration."
+        help="For printing the ansatz configuration."
     )
     #Execution argument
     parser.add_argument(
@@ -58,7 +63,7 @@ if __name__ == "__main__":
         dest="count",
         default=False,
         action="store_true",
-        help="Getting the number of elements",
+        help="Getting the number of ansatzes from ansatzes.json",
     )
     args = parser.parse_args()
 

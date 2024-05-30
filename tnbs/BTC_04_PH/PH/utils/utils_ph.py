@@ -5,6 +5,7 @@ Author: Gonzalo Ferro
 import os
 import re
 import itertools as it
+from collections import ChainMap
 
 def combination_for_dictionary(input_dict):
     """
@@ -49,6 +50,35 @@ def combination_for_list(input_list):
     for step_dict in input_list:
         combo_list = combo_list + combination_for_dictionary(step_dict)
     return combo_list
+
+def cartesian_product(input_list_1, input_list_2):
+    """
+    Given 2 input list of python dictionary this function computes the
+    cartesian product of all the elements of the input_list_1 with all
+    the elements of the input_list_2
+
+    Parameters
+    ----------
+    input_list_1 : list
+        List where each element is a Python dictionary
+    input_list_2 : list
+        List where each element is a Python dictionary
+
+    Returns
+    ----------
+    solve_ae_pe_list : list
+        List where each element is a ae_pricep dictionary
+        The list will have the combination of each posible amplitude
+        estimation solver with all posible price problem list
+    """
+    cartesian_product_list = []
+
+    for ae in input_list_1:
+        step_list = [
+            dict(ChainMap(*list(x))) for x in it.product(input_list_2, [ae])
+        ]
+        cartesian_product_list = cartesian_product_list + step_list
+    return cartesian_product_list
 
 def create_folder(folder_name):
     """

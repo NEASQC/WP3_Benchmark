@@ -3,13 +3,20 @@ For launching a VQE quantum step execution
 Author: Gonzalo Ferro
 """
 
+import sys
 import json
-from utils_ph import combination_for_list
-from parent_hamiltonian import run_parent_hamiltonian
+sys.path.append("../../")
+from PH.utils.utils_ph import combination_for_list
+from PH.utils.utils_ph import cartesian_product
+from PH.ph_step_exe.vqe_step import run_ph_execution
+from PH.qpu.select_qpu import select_qpu
 
 
 def run_id(**configuration):
-    run_parent_hamiltonian(**configuration)
+    qpu = select_qpu(configuration)
+    configuration.update({"qpu":qpu})
+    pdf = run_ph_execution(**configuration)
+    print(pdf)
 
 if __name__ == "__main__":
     import logging
@@ -30,20 +37,20 @@ if __name__ == "__main__":
         dest="count",
         default=False,
         action="store_true",
-        help="Getting the number of elements",
+        help="Getting the number of elements from vqe_step.json",
     )
     group.add_argument(
         "--all",
         dest="all",
         default=False,
         action="store_true",
-        help="For executing complete list",
+        help="Select all the elements from vqe_step.json",
     )
     group.add_argument(
         "-id",
         dest="id",
         type=int,
-        help="For executing only one element of the list",
+        help="Select one element from vqe_step.json",
         default=None,
     )
     parser.add_argument(
@@ -51,7 +58,14 @@ if __name__ == "__main__":
         dest="print",
         default=False,
         action="store_true",
-        help="For printing the AE algorihtm configuration."
+        help="For printing the configuration."
+    )
+    parser.add_argument(
+        "-json_qpu",
+        dest="json_qpu",
+        type=str,
+        default="../qpu/qpu_ideal.json",
+        help="JSON with the qpu configuration",
     )
     #Execution argument
     parser.add_argument(
@@ -62,25 +76,34 @@ if __name__ == "__main__":
         help="For executing program",
     )
     args = parser.parse_args()
+
+    # Creating Combination list for the VQE steps
     # Load json file
-    json_file = "parent_hamiltonian.json"
+    json_file = "vqe_step.json"
     f_ = open(json_file)
     conf = json.load(f_)
     combination_list = combination_for_list(conf)
 
+    # Creating Combination list for QPUs
+    with open(args.json_qpu) as json_file:
+        qpu_cfg = json.load(json_file)
+    qpu_list = combination_for_list(qpu_cfg)
+    # Cartesian product of combination_list and qpu_list
+    final_list = cartesian_product(combination_list, qpu_list)
+
     if args.print:
         if args.id is not None:
-            print(combination_list[args.id])
+            print(final_list[args.id])
         elif args.all:
-            print(combination_list)
+            print(final_list)
         else:
             print("Provide -id or --all")
     if args.count:
-        print("Number of elements: {}".format(len(combination_list)))
+        print("Number of elements: {}".format(len(final_list)))
     if args.execution:
         if args.id is not None:
-            configuration = combination_list[args.id]
+            configuration = final_list[args.id]
             run_id(**configuration)
         if args.all:
-            for configuration in combination_list:
+            for configuration in final_list:
                 run_id(**configuration)
