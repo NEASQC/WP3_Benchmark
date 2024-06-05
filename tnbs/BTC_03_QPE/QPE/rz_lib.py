@@ -9,7 +9,9 @@ import numpy as np
 import pandas as pd
 import qat.lang.AQASM as qlm
 
-from qpe import CQPE
+sys.path.append("../")
+
+from QPE.qpe import CQPE
 
 
 #def get_qpu(qpu=None):

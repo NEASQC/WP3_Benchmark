@@ -21,7 +21,7 @@ def summarize_results(**kwargs):
 
     import pandas as pd
     benchmark_file = kwargs.get("benchmark_file", None)
-    index_columns = [0, 1, 2, 3, 4, 5]
+    index_columns = [0, 1, 2, 3, 4]
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
     pdf.reset_index(inplace=True)
     n_qbits = list(set(pdf["n_qbits"]))
@@ -58,7 +58,7 @@ def summarize_results(**kwargs):
                 result['AuxiliarNumberOfQubits'] = aux_
                 result['MethodForSettingAngles'] = angle_
                 result['QPEAnglePrecision'] = float(step_pdf['delta_theta'].iloc[0])
-                result['Shots'] = int(step_pdf['shots'].iloc[0])
+                #result['Shots'] = int(step_pdf['shots'].iloc[0])
                 metrics = []
                 #For each fixed number of qbits several metrics can be reported
                 for metric_name in list_of_metrics:

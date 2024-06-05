@@ -5,12 +5,15 @@ Class for executing QPE on a R_z^n operator
 Author: Gonzalo Ferro
 """
 
+import sys
 import time
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, entropy, chisquare, chi2
+sys.path.append("../")
 
-import rz_lib
+from QPE import rz_lib
+
 
 class QPE_RZ:
     """
@@ -196,9 +199,9 @@ class QPE_RZ:
 
 if __name__ == "__main__":
     import argparse
-    import sys
-    sys.path.append("../")
-    from get_qpu import get_qpu
+    import json
+    from qpu.benchmark_utils import combination_for_list
+    from qpu.select_qpu import select_qpu
 
     parser = argparse.ArgumentParser()
 
@@ -216,14 +219,6 @@ if __name__ == "__main__":
         help="Number of auxiliary qubits for QPE",
         default=None,
     )
-    #QPU argument
-    parser.add_argument(
-        "-qpu",
-        dest="qpu",
-        type=str,
-        default="python",
-        help="QPU for simulation: See function get_qpu in get_qpu module",
-    )
     parser.add_argument(
         "-shots",
         dest="shots",
@@ -238,8 +233,47 @@ if __name__ == "__main__":
         help="Select the angle load method: 0->exact. 1->random",
         default=None,
     )
+    #QPU argument
+    parser.add_argument(
+        "-json_qpu",
+        dest="json_qpu",
+        type=str,
+        default="qpu/qpu.json",
+        help="JSON with the qpu configuration",
+    )
+    parser.add_argument(
+        "-id",
+        dest="id",
+        type=int,
+        help="For executing only one element of the list (select the QPU)",
+        default=None,
+    )
+    parser.add_argument(
+        "--count",
+        dest="count",
+        default=False,
+        action="store_true",
+        help="For counting elements on the list",
+    )
+    parser.add_argument(
+        "--print",
+        dest="print",
+        default=False,
+        action="store_true",
+        help="For printing "
+    )
+    parser.add_argument(
+        "--exe",
+        dest="execution",
+        default=False,
+        action="store_true",
+        help="For executing program",
+    )
 
     args = parser.parse_args()
+    with open(args.json_qpu) as json_file:
+        noisy_cfg = json.load(json_file)
+    final_list = combination_for_list(noisy_cfg)
 
     if args.angles == 0:
         angles = 'exact'
@@ -251,12 +285,25 @@ if __name__ == "__main__":
     configuration = {
         "number_of_qbits" : args.n_qbits,
         "auxiliar_qbits_number" : args.aux_qbits,
-        "qpu" : get_qpu(args.qpu),
         "shots" : args.shots,
         "angles" : angles
     }
-    qpe_rz_b = QPE_RZ(**configuration)
-    qpe_rz_b.exe()
-    print(qpe_rz_b.pdf)
-    print('KS: {}'.format(list(qpe_rz_b.pdf['KS'])[0]))
-    print('fidelity: {}'.format(list(qpe_rz_b.pdf['fidelity'])[0]))
+    if args.count:
+        print(len(final_list))
+    if args.print:
+        if args.id is not None:
+            print("##### QPE configuration #####")
+            print(configuration)
+            print("##### QPU configuration #####")
+            print(final_list[args.id])
+        else:
+            print("##### Posible list of QPUs configuration #####")
+            print(final_list)
+    if args.execution:
+        if args.id is not None:
+            configuration.update({"qpu": select_qpu(final_list[args.id])})
+            qpe_rz_b = QPE_RZ(**configuration)
+            qpe_rz_b.exe()
+            print(qpe_rz_b.pdf)
+            print('KS: {}'.format(list(qpe_rz_b.pdf['KS'])[0]))
+            print('fidelity: {}'.format(list(qpe_rz_b.pdf['fidelity'])[0]))

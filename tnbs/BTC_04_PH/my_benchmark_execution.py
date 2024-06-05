@@ -444,6 +444,9 @@ if __name__ == "__main__":
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     if not os.path.exists(benchmark_arguments["saving_folder"]):
         os.mkdir(benchmark_arguments["saving_folder"])
+    # Store the QPU configuration
+    qpu_file = benchmark_arguments["saving_folder"] + \
+        "qpu_configuration.json"
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()
 

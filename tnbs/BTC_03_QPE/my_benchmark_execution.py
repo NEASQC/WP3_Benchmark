@@ -1,7 +1,8 @@
 """
-This module execute a complete BTC of the QPE kernel 
+This module execute a complete BTC of the QPE kernel
 """
 
+import os
 import sys
 from datetime import datetime
 import numpy as np
@@ -198,7 +199,7 @@ def summarize_results(**kwargs):
     pdf["classic_time"] = pdf["elapsed_time"] - pdf["quantum_time"]
     # The angles are randomly selected. Not interesting for aggregation
     pdf.drop(columns=['angles'], inplace=True)
-    columns_ = ["n_qbits", "aux_qbits", "angle_method", "shots",
+    columns_ = ["n_qbits", "aux_qbits", "angle_method",
         "delta_theta", "qpu"]
     results = pdf.groupby(columns_).agg(
         ["mean", "std", "count"] + \
@@ -331,18 +332,43 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
 
-    import os
-    import shutil
-    from get_qpu import get_qpu
+    import json
+    from QPE.qpu.select_qpu import select_qpu
+    from QPE.qpu.benchmark_utils import  combination_for_list
+
+    ############## CONFIGURE THE BTC  ###################
+    auxiliar_qbits_number = [4, 8]
+    list_of_qbits = [6, 8]
+
+    # Path for QPU JSON file configuration
+    qpu_json_file = "QPE/qpu/qpu_ideal.json"
+    # For setting the qpu configuration
+    id_qpu = 0
+
+    ############# LOAD the JSON FILES ###################
+
+    # Setting the QPU configuration
+    with open(qpu_json_file) as json_file:
+        qpu_cfg = json.load(json_file)
+    # BE AWARE only one QPU configuration MUST BE provided
+    qpu_conf = combination_for_list(qpu_cfg)[id_qpu]
 
     kernel_configuration = {
+        "auxiliar_qbits_number" : auxiliar_qbits_number,
         "angles" : ["random", 'exact'],
-        "auxiliar_qbits_number" : [6, 8],
-        "qpu" : "c", #"c", python, qlmass, default, linalg
+        "qpu" : select_qpu(qpu_conf),
         "fidelity_error" : None,
         "ks_error" : None,
         "time_error": None
     }
+    ############## CONFIGURE THE BTC  ###################
+
+    ############## CONFIGURE THE BENCHMARK EXECUTION  #################
+    # Configure the save Folder and the name of the files
+    saving_folder = "./Results/"
+    benchmark_times = "kernel_times_benchmark.csv"
+    csv_results = "kernel_benchmark.csv"
+    summary_results = "kernel_SummaryResults.csv"
 
     benchmark_arguments = {
         #Pre benchmark sttuff
@@ -351,22 +377,26 @@ if __name__ == "__main__":
         "pre_save": True,
         #Saving stuff
         "save_append" : True,
-        "saving_folder": "./Results/",
-        "benchmark_times": "kernel_times_benchmark.csv",
-        "csv_results": "kernel_benchmark.csv",
-        "summary_results": "kernel_SummaryResults.csv",
+        "saving_folder": saving_folder,
+        "benchmark_times": benchmark_times,
+        "csv_results": csv_results,
+        "summary_results": summary_results,
         #Computing Repetitions stuff
         "alpha": None,
         "min_meas": None,
         "max_meas": None,
         #List number of qubits tested
-        "list_of_qbits": [4, 6],
+        "list_of_qbits": list_of_qbits,
     }
-    kernel_configuration.update({'qpu': get_qpu(kernel_configuration['qpu'])})
 
     #Configuration for the benchmark kernel
     benchmark_arguments.update({"kernel_configuration": kernel_configuration})
     if not os.path.exists(benchmark_arguments["saving_folder"]):
         os.mkdir(benchmark_arguments["saving_folder"])
+    # Store the QPU configuration
+    qpu_file = benchmark_arguments["saving_folder"] + \
+        "qpu_configuration.json"
+    with open(qpu_file, "w") as outfile:
+        json.dump(qpu_conf, outfile)
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()
