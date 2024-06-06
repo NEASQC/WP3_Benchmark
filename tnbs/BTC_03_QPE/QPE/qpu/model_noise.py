@@ -165,4 +165,5 @@ def create_qpu(hw_cfg):
         )
     else:
         my_qpu = LinAlg()
+    my_qpu = toffoli_plugin | toffoli_plugin | my_qpu
     return my_qpu

@@ -325,9 +325,8 @@ class CQPE:
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
         if self.linalg_qpu is None:
-            print("Not QPU was provide. PyLinalg will be used")
-            from qat.qpus import get_default_qpu
-            self.linalg_qpu = get_default_qpu()
+            error_text = "Please provide a QPU."
+            raise ValueError(error_text)
 
         self.shots = kwargs.get("shots", 10)
         self.complete = kwargs.get("complete", False)
