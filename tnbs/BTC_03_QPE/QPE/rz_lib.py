@@ -296,7 +296,7 @@ def rz_angles(thetas):
     r_z_n = rz_routine()
     return r_z_n
 
-def computing_shots(pdf):
+def computing_shots(pdf, minimum_shots=1000):
     """
     Compute the number of shots. The main idea is that the samples for
     the lowest degeneracy eigenvalues will be enough. In this case
@@ -319,5 +319,5 @@ def computing_shots(pdf):
     """
     # prob of less frequent eigenvalue
     lfe = min(pdf.value_counts('Eigenvalues')) / len(pdf)
-    shots = int((1000 / (lfe * 0.81))) + 1
+    shots = int((minimum_shots / (lfe * 0.81))) + 1
     return shots
