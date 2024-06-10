@@ -15,6 +15,32 @@ sys.path.append("../")
 from QPE import rz_lib
 
 
+def save(save, save_name, input_pdf, save_mode):
+    """
+    For saving panda DataFrames to csvs
+
+    Parameters
+    ----------
+
+    save: bool
+        For saving or not
+    save_nam: str
+        name for file
+    input_pdf: pandas DataFrame
+    save_mode: str
+        saving mode: overwrite (w) or append (a)
+    """
+    if save:
+        with open(save_name, save_mode) as f_pointer:
+            input_pdf.to_csv(
+                f_pointer,
+                mode=save_mode,
+                header=f_pointer.tell() == 0,
+                sep=';'
+            )
+
+    
+
 class QPE_RZ:
     """
     Probability Loading
@@ -249,6 +275,28 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
+        "-repetitions",
+        dest="repetitions",
+        type=int,
+        help="Number of repetitions the integral will be computed."+
+        "Default: 1",
+        default=1,
+    )
+    parser.add_argument(
+        "-folder",
+        dest="folder_path",
+        type=str,
+        help="Path for storing folder",
+        default="./",
+    )
+    parser.add_argument(
+        "-name",
+        dest="base_name",
+        type=str,
+        help="Additional name for the generated files",
+        default="./",
+    )
+    parser.add_argument(
         "--count",
         dest="count",
         default=False,
@@ -261,6 +309,13 @@ if __name__ == "__main__":
         default=False,
         action="store_true",
         help="For printing "
+    )
+    parser.add_argument(
+        "--save",
+        dest="save",
+        default=False,
+        action="store_true",
+        help="For saving results",
     )
     parser.add_argument(
         "--exe",
@@ -301,9 +356,22 @@ if __name__ == "__main__":
             print(final_list)
     if args.execution:
         if args.id is not None:
-            configuration.update({"qpu": select_qpu(final_list[args.id])})
-            qpe_rz_b = QPE_RZ(**configuration)
-            qpe_rz_b.exe()
-            print(qpe_rz_b.pdf)
-            print('KS: {}'.format(list(qpe_rz_b.pdf['KS'])[0]))
-            print('fidelity: {}'.format(list(qpe_rz_b.pdf['fidelity'])[0]))
+
+            for i in range(args.repetitions):
+                configuration = {
+                    "number_of_qbits" : args.n_qbits,
+                    "auxiliar_qbits_number" : args.aux_qbits,
+                    "shots" : args.shots,
+                    "angles" : angles
+                }
+
+                configuration.update({"qpu": select_qpu(final_list[args.id])})
+                qpe_rz_b = QPE_RZ(**configuration)
+                qpe_rz_b.exe()
+                print(qpe_rz_b.pdf)
+                print('KS: {}'.format(list(qpe_rz_b.pdf['KS'])[0]))
+                print('fidelity: {}'.format(list(qpe_rz_b.pdf['fidelity'])[0]))
+                save_folder = args.folder_path
+                base_name = args.base_name
+                save_name = save_folder + str(args.id) + "_"  + str(base_name) +  ".csv"
+                save(args.save, save_name, qpe_rz_b.pdf, "a")

@@ -300,16 +300,16 @@ if __name__ == "__main__":
     ############## CONFIGURE THE BTC  ###################
 
     # Path for AE JSON file configuration
-    ae_json_file = "jsons/integral_mlae_configuration.json"
+    #ae_json_file = "jsons/integral_mlae_configuration.json"
     ae_json_file = "jsons/integral_iqae_configuration.json"
     # For setting the AE configuration
-    id_ae = 1
+    id_ae = 0
 
     # Path for QPU JSON file configuration
-    # qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
-    qpu_json_file = "qpu_noisy.json"
+    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    # qpu_json_file = "qpu_noisy.json"
     # For setting the qpu configuration
-    id_qpu = 2
+    id_qpu = 0
 
     # Setting the integral interval
     #list_of_integral_intervals = [0, 1]

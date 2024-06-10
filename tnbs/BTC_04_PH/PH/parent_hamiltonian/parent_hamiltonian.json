@@ -1,0 +1,50 @@
+[
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_12_depth_1_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_12_depth_1_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_12_depth_2_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_12_depth_2_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_12_depth_3_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_12_depth_4_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_12_depth_4_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_14_depth_1_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_14_depth_2_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_14_depth_2_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_14_depth_3_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_14_depth_3_qpu_ansatz_CLinalg"]
+    },
+    {
+        "save": [true],
+        "t_inv": [true],
+        "state": ["../Test/ansatz_simple01_nqubits_14_depth_4_qpu_ansatz_CLinalg_state.csv"],
+        "base_fn" : ["../Test/ansatz_simple01_nqubits_14_depth_4_qpu_ansatz_CLinalg"]
+    }
+]

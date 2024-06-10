@@ -379,10 +379,10 @@ if __name__ == "__main__":
     #qpu_json_file = "qpu_noisy.json"
 
     # For setting the qpu configuration
-    id_qpu = 4
+    id_qpu = 0
 
     # Number of shots
-    nb_shots = None
+    nb_shots = 0
     # For prunning Pauli coefficients
     truncation = None
 
