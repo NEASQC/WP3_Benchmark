@@ -5,6 +5,7 @@ of PL kernel
 
 import time
 import itertools
+import random
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy, kstest
@@ -59,6 +60,15 @@ class LoadProbabilityDensity:
             raise ValueError(error_text)
         # Set the QPU to use
         self.qpu = kwargs.get("qpu", None)
+        # Set the mean
+        self.mean = kwargs.get("mean", None)
+        if self.mean is None:
+            self.mean = random.uniform(-2., 2.)
+        # Set the std
+        self.sigma = kwargs.get("sigma", None)
+        if self.sigma is None:
+            self.sigma = random.uniform(0.1, 2.)
+            
         if self.qpu is None:
             error_text = "Please provide a QPU."
             raise ValueError(error_text)
@@ -72,8 +82,6 @@ class LoadProbabilityDensity:
         #Distribution related attributes
         self.x_ = None
         self.data = None
-        self.mean = None
-        self.sigma = None
         self.step = None
         self.shots = None
         self.dist = None
@@ -100,8 +108,11 @@ class LoadProbabilityDensity:
         """
         Computing theoretical probability densitiy function
         """
-        self.x_, self.data, self.mean, self.sigma, \
-            self.step, self.shots, self.dist = get_theoric_probability(self.n_qbits)
+        self.x_, self.data, self.step, self.shots, self.dist = get_theoric_probability(
+            n_qbits = self.n_qbits, 
+            mean = self.mean, 
+            sigma = self.sigma
+        )
 
     def get_metrics(self):
         """
@@ -109,7 +120,7 @@ class LoadProbabilityDensity:
         """
         #Kolmogorov-Smirnov
         # Transform from state to x value
-        self.result["x"] = self.x_[self.result["Int_lsb"]]
+        self.result["x"] = self.x_[self.result.index]
         # Compute cumulative distribution function of the quantum data
         self.result["CDF_quantum"] = self.result["Probability"].cumsum()
         # Obtain the cumulative distribution function of the
@@ -195,6 +206,20 @@ if __name__ == "__main__":
         default=None,
     )
     parser.add_argument(
+        "-mean",
+        dest="mean",
+        type=float,
+        help="Mean for the Gaussian Distribution",
+        default=None,
+    )
+    parser.add_argument(
+        "-sigma",
+        dest="sigma",
+        type=float,
+        help="Standar Deviation for the Gaussian Distribution",
+        default=None,
+    )
+    parser.add_argument(
         "-method",
         dest="method",
         type=str,
@@ -270,6 +295,8 @@ if __name__ == "__main__":
             configuration = {
                 "load_method" : args.method,
                 "number_of_qbits": args.n_qbits,
+                "mean": args.mean,
+                "sigma":args.sigma,
                 "qpu": final_list[args.id]
             }
             print(configuration)
@@ -280,6 +307,8 @@ if __name__ == "__main__":
             configuration = {
                 "load_method" : args.method,
                 "number_of_qbits": args.n_qbits,
+                # "mean": args.mean,
+                # "sigma":args.sigma,
                 "qpu": select_qpu(final_list[args.id])
             }
             prob_dens = LoadProbabilityDensity(**configuration)

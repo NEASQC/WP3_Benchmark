@@ -309,10 +309,11 @@ if __name__ == "__main__":
     list_of_qbits = [6]
     # Configuring the QPU
     json_qpu_file = "./PL/qpu/qpu_ideal.json"
+    qpu_id = 0
     with open(json_qpu_file) as json_file:
         qpu_cfg = json.load(json_file)
     # The desired qpu should be provided
-    qpu_conf = combination_for_list(qpu_cfg)[0]
+    qpu_conf = combination_for_list(qpu_cfg)[qpu_id]
     kernel_configuration.update({"qpu": select_qpu(qpu_conf)})
     ############## CONFIGURE THE BTC  ###################
 

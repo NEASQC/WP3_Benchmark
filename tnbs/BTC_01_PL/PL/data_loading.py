@@ -19,7 +19,6 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 """
 
 import time
-import random
 import numpy as np
 import qat.lang.AQASM as qlm
 from qat.lang.models import KPTree
@@ -41,7 +40,7 @@ def mask(number_qubits, index):
     index : int
 
     Returns
-    ----------
+    -------
     mask : Qlm abstract gate
         the gate that we have to apply in order to transform
         state :math:`|index\rangle`. Note that it affects all states.
@@ -153,6 +152,10 @@ def load_angles(angles: np.array, method: str = "multiplexor"):
         int(np.log2(len(angle)))+1.
     method : string
         Method used in the loading. Default method.
+    Returns
+    -------
+    routine : qlm QRoutine
+        Routine with the quantum circuit that loads the input angles in a quantum state.
     """
     number_qubits = int(np.log2(angles.size)) + 1
     if np.max(angles) > 2 * np.pi:
@@ -188,6 +191,10 @@ def load_angles_brute_force(angles: np.array):
     angles : numpy array
         Angles to load in the circuit. The arity of the gate is:
         int(np.log2(len(angle)))+1.
+    Returns
+    -------
+    routine : qlm QRoutine
+        Routine with the quantum circuit that loads the input angles in a quantum state.
     """
     number_qubits = int(np.log2(angles.size)) + 1
     routine = qlm.QRoutine()
@@ -217,6 +224,10 @@ def multiplexor_ry(angles: np.array, ordering: str = "sequency"):
     angles : numpy array
         Angles to load in the circuit. The arity of the gate is:
             int(np.log2(len(angle)))+1.
+    Returns
+    -------
+    routine : qlm QRoutine
+        Routine with the quantum circuit that loads the input angles in a quantum state.
     """
     number_qubits = int(np.log2(angles.size))
     angles = fwht(angles, ordering=ordering)
@@ -259,6 +270,10 @@ def load_angle(number_qubits: int, index: int, angle: float):
     index : int
         Index of the state that we control.
     angle : float
+    Returns
+    -------
+    routine : qlm QRoutine
+        Routine with the quantum circuit that loads the input angle in a quantum state.
         Angle that we load.
     """
 
@@ -275,12 +290,32 @@ def load_angle(number_qubits: int, index: int, angle: float):
 
     return routine
 
-def get_theoric_probability(n_qbits: int) -> (np.ndarray, np.ndarray, float, float, float, int):
+def get_theoric_probability(n_qbits: int, mean: float, sigma: float):
     """
-    Get the discretization of the PDF for N qubits
+    Create discrete Gaussian probability distribution function (PDF) 
+    Parameters
+    ----------
+    n_qbits : int
+        Number of qubits for interval discretization
+    mean : float
+        Mean of the desired Gaussian distribution
+    sigma : float
+        Standard Deviation of the desired Gaussian distribution.
+    Returns
+    -------
+    x_ : numpy array 
+        Discretized domain (in 2^n_qbits) for the Gaussian PDF 
+    data : numpy array
+        Discretized (in 2^n_qbits) Gaussian PDF
+    step : float
+        discretizaction step of the domain
+    shots : int
+        Number of shots the quantum circuit should be measured
+    norma : scipy function
+        scipy.stats.norm function configured for the desired mean and sigma
     """
-    mean = random.uniform(-2., 2.)
-    sigma = random.uniform(0.1, 2.)
+    # mean = random.uniform(-2., 2.)
+    # sigma = random.uniform(0.1, 2.)
 
     intervals = 2 ** n_qbits
 
@@ -296,11 +331,33 @@ def get_theoric_probability(n_qbits: int) -> (np.ndarray, np.ndarray, float, flo
     #shots = min(1000000, max(10000, round(100/mindata)))
     shots = min(1e7, round(100/mindata))
     #data = np.sqrt(data)
-    return x_, data, mean, sigma, float(step), int(shots), norma
+    return x_, data, float(step), int(shots), norma
 
 def get_qlm_probability(data, load_method, shots, qpu):
     """
-    executing quantum stuff
+    Loads an input probability array in a Quantum Circuit, execute it a fixed number of shots
+    and returns the obtained result
+
+    Parameters
+    ----------
+    data : np array
+        Array with the discretized probability to load into a quantum state
+    load_method :  string
+        Load method used for creating the Quantum Circuit
+    shots : int
+        Number of shots the created Quantum Circuit should be measured.
+    qpu : QPU
+        QPU for simulating or executing the Quantum Circuit
+
+    Returns
+    -------
+    result : pandas DataFrame
+        Pandas DataFrame with the results of the simulation or execution of the Quantum Circuit
+    circuit : QLM circuit
+        QLM Quantum Circuit generated 
+    quantum_time : float
+        Time used for simulating or executing the Quantum Circuit.
+    
     """
     # if load_method == "multiplexor":
     #     p_gate = load_probability(data, method="multiplexor")
@@ -327,48 +384,3 @@ def get_qlm_probability(data, load_method, shots, qpu):
         result.sort_values(by="Int", inplace=True)
     return result, circuit, quantum_time
 
-# def get_qpu(qpu=None):
-#     """
-#     Function for selecting solver.
-# 
-#     Parameters
-#     ----------
-# 
-#     qpu : str
-#         * qlmass: for trying to use QLM as a Service connection to CESGA QLM
-#         * python: for using PyLinalg simulator.
-#         * c: for using CLinalg simulator
-# 
-#     Returns
-#     ----------
-# 
-#     linal_qpu : solver for quantum jobs
-#     """
-# 
-#     if qpu is None:
-#         raise ValueError(
-#             "qpu CAN NOT BE NONE. Please select one of the three" +
-#             " following options: qlmass, python, c")
-#     if qpu == "qlmass":
-#         try:
-#             from qlmaas.qpus import LinAlg
-#             linalg_qpu = LinAlg()
-#         except (ImportError, OSError) as exception:
-#             raise ImportError(
-#                 "Problem Using QLMaaS. Please create config file" +
-#                 "or use mylm solver") from exception
-#     elif qpu == "python":
-#         from qat.qpus import PyLinalg
-#         linalg_qpu = PyLinalg()
-#     elif qpu == "c":
-#         from qat.qpus import CLinalg
-#         linalg_qpu = CLinalg()
-#     elif qpu == "default":
-#         from qat.qpus import get_default_qpu
-#         linalg_qpu = get_default_qpu()
-#     else:
-#         raise ValueError(
-#             "Invalid value for qpu. Please select one of the three "+
-#             "following options: qlmass, python, c")
-#     #print("Following qpu will be used: {}".format(linalg_qpu))
-#     return linalg_qpu
