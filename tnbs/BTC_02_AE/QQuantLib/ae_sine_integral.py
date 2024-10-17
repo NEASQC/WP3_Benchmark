@@ -13,12 +13,13 @@ from copy import deepcopy
 import sys
 
 sys.path.append("../")
-
-
-from QQuantLib.qpu.select_qpu import select_qpu
 from QQuantLib.utils.benchmark_utils import combination_for_list
 from QQuantLib.utils.benchmark_utils import create_ae_pe_solution
 from QQuantLib.finance.quantum_integration import q_solve_integral
+
+
+sys.path.append("../../")
+from qpu.select_qpu import select_qpu
 
 def sine_integral(n_qbits, interval, ae_dictionary):
     """
@@ -220,7 +221,6 @@ def run_id(
 
 if __name__ == "__main__":
     import argparse
-    from qpu.select_qpu import select_qpu
 
     parser = argparse.ArgumentParser()
     #Arguments for execution

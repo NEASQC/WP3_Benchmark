@@ -63,10 +63,10 @@ def select_qpu(hw_cfg):
     """
 
     if hw_cfg["qpu_type"] in ["noisy", "ideal"]:
-        from QQuantLib.qpu.model_noise import create_qpu
+        from .model_noise import create_qpu
         qpu = create_qpu(hw_cfg)
     else:
-        from QQuantLib.qpu.get_qpu import get_qpu
+        from .get_qpu import get_qpu
         qpu = get_qpu(hw_cfg["qpu_type"])
     return qpu
 
@@ -74,8 +74,7 @@ if __name__ == "__main__":
     import json
     import argparse
     import sys
-    sys.path.append("../../")
-    from QQuantLib.utils.benchmark_utils import combination_for_list
+    from benchmark_utils import combination_for_list
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
