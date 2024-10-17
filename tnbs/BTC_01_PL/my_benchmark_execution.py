@@ -294,9 +294,8 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
     import json
-    sys.path.append("../")
-    from qpu.select_qpu import select_qpu
-    from qpu.benchmark_utils import combination_for_list
+    from PL.qpu.select_qpu import select_qpu
+    from PL.qpu.benchmark_utils import combination_for_list
 
     ############## CONFIGURE THE BTC  ###################
     kernel_configuration = {
@@ -309,7 +308,7 @@ if __name__ == "__main__":
     # List of qubits to benchmark
     list_of_qbits = [6]
     # Configuring the QPU
-    json_qpu_file = "../qpu/qpu_ideal.json"
+    json_qpu_file = "./PL/qpu/qpu_ideal.json"
     qpu_id = 0
     with open(json_qpu_file) as json_file:
         qpu_cfg = json.load(json_file)
