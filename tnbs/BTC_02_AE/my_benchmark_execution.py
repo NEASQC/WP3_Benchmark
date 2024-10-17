@@ -293,9 +293,11 @@ class KERNEL_BENCHMARK:
 
 if __name__ == "__main__":
     import os
-    from QQuantLib.qpu.select_qpu import select_qpu
-    from QQuantLib.utils.benchmark_utils import combination_for_list
-    from QQuantLib.utils.benchmark_utils import create_ae_pe_solution
+    import sys
+    sys.path.append("../")
+    from qpu.select_qpu import select_qpu
+    from qpu.benchmark_utils import combination_for_list
+    from qpu.benchmark_utils import create_ae_pe_solution
 
     ############## CONFIGURE THE BTC  ###################
 
@@ -306,7 +308,7 @@ if __name__ == "__main__":
     id_ae = 0
 
     # Path for QPU JSON file configuration
-    qpu_json_file = "QQuantLib/qpu/qpu_ideal.json"
+    qpu_json_file = "../qpu/qpu_ideal.json"
     # qpu_json_file = "qpu_noisy.json"
     # For setting the qpu configuration
     id_qpu = 0
