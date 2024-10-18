@@ -237,8 +237,9 @@ if __name__ == "__main__":
     logger = logging.getLogger('__name__')
     import argparse
     import json
-    from PH.qpu.select_qpu import select_qpu
-    from PH.utils.utils_ph import combination_for_list
+    sys.path.append("../../../")
+    from qpu.select_qpu import select_qpu
+    from qpu.benchmark_utils import combination_for_list
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

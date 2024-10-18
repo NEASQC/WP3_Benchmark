@@ -6,9 +6,10 @@ Author: Gonzalo Ferro
 import sys
 import json
 sys.path.append("../../")
-from PH.qpu.select_qpu import select_qpu
-from PH.utils.utils_ph import combination_for_list
 from PH.ansatzes.ansatzes import run_ansatz
+sys.path.append("../../../")
+from qpu.select_qpu import select_qpu
+from qpu.benchmark_utils import combination_for_list
 
 def run_id(**configuration):
     qpu_config = {"qpu_type": configuration["qpu_ansatz"]}

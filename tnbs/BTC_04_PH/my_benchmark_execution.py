@@ -366,8 +366,9 @@ if __name__ == "__main__":
 
 
     import json
-    from PH.utils.utils_ph import combination_for_list
-    from PH.qpu.select_qpu import select_qpu
+    sys.path.append("../")
+    from qpu.select_qpu import select_qpu
+    from qpu.benchmark_utils import  combination_for_list
 
     ############## CONFIGURE THE BTC  ###################
     #Anstaz
@@ -375,7 +376,7 @@ if __name__ == "__main__":
     list_of_qbits = [6, 8]
 
     # Path for QPU JSON file configuration
-    qpu_json_file = "PH/qpu/qpu_ideal.json"
+    qpu_json_file = "../qpu/qpu_ideal.json"
     #qpu_json_file = "qpu_noisy.json"
 
     # For setting the qpu configuration
@@ -447,6 +448,8 @@ if __name__ == "__main__":
     # Store the QPU configuration
     qpu_file = benchmark_arguments["saving_folder"] + \
         "qpu_configuration.json"
+    with open(qpu_file, "w") as outfile:
+        json.dump(qpu_conf, outfile)
     kernel_bench = KERNEL_BENCHMARK(**benchmark_arguments)
     kernel_bench.exe()
 

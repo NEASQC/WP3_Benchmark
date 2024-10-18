@@ -525,7 +525,8 @@ def getting_job(**configuration):
 if __name__ == "__main__":
     # For sending ansatzes to QLM
     import argparse
-    from PH.qpu.select_qpu import select_qpu
+    sys.path.append("../../../")
+    from qpu.select_qpu import select_qpu
     logging.basicConfig(
         format='%(asctime)s-%(levelname)s: %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',

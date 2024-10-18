@@ -9,8 +9,8 @@ from collections import OrderedDict
 
 import sys
 l_sys = sys.path
-l_path = l_sys[['BTC_01' in i for i in l_sys].index(True)]
-sys.path.append(l_path+'/PL')
+l_path = l_sys[['BTC_04' in i for i in l_sys].index(True)]
+sys.path.append(l_path+'/PH')
 
 def my_ideal_qpu(**kwargs):
     """

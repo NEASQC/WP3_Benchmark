@@ -9,7 +9,8 @@ sys.path.append("../../")
 from PH.utils.utils_ph import combination_for_list
 from PH.utils.utils_ph import cartesian_product
 from PH.ph_step_exe.vqe_step import run_ph_execution
-from PH.qpu.select_qpu import select_qpu
+sys.path.append("../../../")
+from qpu.select_qpu import select_qpu
 
 
 def run_id(**configuration):
