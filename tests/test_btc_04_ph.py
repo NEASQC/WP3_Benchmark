@@ -11,7 +11,7 @@ l_path = l_path + "/tnbs/"#BTC_03_QPE/"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_04_PH")
 from BTC_04_PH.my_benchmark_execution import KERNEL_BENCHMARK
-from BTC_04_PH.PH.qpu.select_qpu import select_qpu
+from qpu.select_qpu import select_qpu
 
 # Naive qpu configuration
 qpu_conf = {

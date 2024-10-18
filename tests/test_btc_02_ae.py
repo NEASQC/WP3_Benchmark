@@ -11,7 +11,7 @@ l_path = l_path + "tnbs/"#BTC_01_PL"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_02_AE")
 from BTC_02_AE.my_benchmark_execution import KERNEL_BENCHMARK as AE_CLASS
-from BTC_02_AE.QQuantLib.qpu.select_qpu import select_qpu
+from qpu.select_qpu import select_qpu
 
 # Naive qpu configuration
 qpu_conf = {

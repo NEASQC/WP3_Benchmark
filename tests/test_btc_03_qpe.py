@@ -11,7 +11,7 @@ l_path = l_path + "/tnbs/"#BTC_03_QPE/"
 sys.path.append(l_path)
 sys.path.append(l_path+"BTC_03_QPE")
 from BTC_03_QPE.my_benchmark_execution import KERNEL_BENCHMARK
-from get_qpu import get_qpu
+from qpu.get_qpu import get_qpu
 
 
 def create_folder(folder_name):
