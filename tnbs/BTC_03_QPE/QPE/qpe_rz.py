@@ -226,6 +226,7 @@ class QPE_RZ:
 if __name__ == "__main__":
     import argparse
     import json
+    sys.path.append("../../")
     from qpu.benchmark_utils import combination_for_list
     from qpu.select_qpu import select_qpu
 

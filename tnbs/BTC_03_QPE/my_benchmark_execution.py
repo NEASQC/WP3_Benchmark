@@ -333,15 +333,16 @@ class KERNEL_BENCHMARK:
 if __name__ == "__main__":
 
     import json
-    from QPE.qpu.select_qpu import select_qpu
-    from QPE.qpu.benchmark_utils import  combination_for_list
+    sys.path.append("../")
+    from qpu.select_qpu import select_qpu
+    from qpu.benchmark_utils import  combination_for_list
 
     ############## CONFIGURE THE BTC  ###################
     auxiliar_qbits_number = [4, 8]
     list_of_qbits = [6, 8]
 
     # Path for QPU JSON file configuration
-    qpu_json_file = "QPE/qpu/qpu_ideal.json"
+    qpu_json_file = "../qpu/qpu_ideal.json"
     # For setting the qpu configuration
     id_qpu = 0
 
