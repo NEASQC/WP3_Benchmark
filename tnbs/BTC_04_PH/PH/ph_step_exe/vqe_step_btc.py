@@ -19,8 +19,8 @@ import sys
 import logging
 import ast
 import pandas as pd
-sys.path.append("../../")
-from PH.qpu.select_qpu import select_qpu
+sys.path.append("../../../")
+from qpu.select_qpu import select_qpu
 from PH.ansatzes.ansatzes import ansatz_selector, angles_ansatz01
 from PH.ph_step_exe.vqe_step import PH_EXE
 
