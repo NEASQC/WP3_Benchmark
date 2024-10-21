@@ -373,7 +373,7 @@ class SolveCircuit:
 
         if status == 3:
             #Work done
-            nqubits = job_info.resources.nbqbits
+            nqubits = job_info.resources[0].nbqbits
             print(nqubits)
             end = datetime.strptime(
                 job_info.ending_date.rsplit(".")[0],
@@ -463,7 +463,7 @@ def run_ansatz(**configuration):
     if save:
         folder = create_folder(folder)
         filename = "ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}".format(
-            ansatz, nqubits, depth, configuration.get("qpu", None))
+            ansatz, nqubits, depth, configuration.get("qpu_ansatz", None))
         filename = folder + filename
     else:
         filename = ""

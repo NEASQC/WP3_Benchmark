@@ -48,8 +48,8 @@ if __name__ == "__main__":
         help="Select all the elements from vqe_step.json",
     )
     group.add_argument(
-        "-id",
-        dest="id",
+        "-vqe_id",
+        dest="vqe_id",
         type=int,
         help="Select one element from vqe_step.json",
         default=None,
@@ -67,6 +67,13 @@ if __name__ == "__main__":
         type=str,
         default="../qpu/qpu_ideal.json",
         help="JSON with the qpu configuration",
+    )
+    parser.add_argument(
+        "-qpu_id",
+        dest="qpu_id",
+        type=int,
+        help="Select which qpu to use from all possibilities",
+        default=None,
     )
     #Execution argument
     parser.add_argument(
@@ -89,12 +96,13 @@ if __name__ == "__main__":
     with open(args.json_qpu) as json_file:
         qpu_cfg = json.load(json_file)
     qpu_list = combination_for_list(qpu_cfg)
+    qpu_info = qpu_list[args.qpu_id]
     # Cartesian product of combination_list and qpu_list
-    final_list = cartesian_product(combination_list, qpu_list)
+    final_list = cartesian_product(combination_list, [qpu_info])
 
     if args.print:
-        if args.id is not None:
-            print(final_list[args.id])
+        if args.vqe_id is not None:
+            print(final_list[args.vqe_id])
         elif args.all:
             print(final_list)
         else:
@@ -102,8 +110,8 @@ if __name__ == "__main__":
     if args.count:
         print("Number of elements: {}".format(len(final_list)))
     if args.execution:
-        if args.id is not None:
-            configuration = final_list[args.id]
+        if args.vqe_id is not None:
+            configuration = final_list[args.vqe_id]
             run_id(**configuration)
         if args.all:
             for configuration in final_list:

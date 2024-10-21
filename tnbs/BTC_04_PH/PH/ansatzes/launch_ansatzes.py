@@ -13,6 +13,8 @@ from qpu.benchmark_utils import combination_for_list
 
 def run_id(**configuration):
     qpu_config = {"qpu_type": configuration["qpu_ansatz"]}
+    print(qpu_config)
+    print(select_qpu(qpu_config))
     configuration.update({"qpu": select_qpu(qpu_config)})
     _ = run_ansatz(**configuration)
 
