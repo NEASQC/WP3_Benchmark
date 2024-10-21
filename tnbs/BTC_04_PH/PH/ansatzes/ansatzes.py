@@ -621,6 +621,7 @@ if __name__ == "__main__":
     configuration = vars(args)
     qpu_config = {"qpu_type": args.qpu_ansatz}
     configuration.update({"qpu": select_qpu(qpu_config)})
+    configuration.update({"qpu_ansatz": args.qpu_ansatz})
     if args.get_job:
         state = getting_job(**configuration)
     else:

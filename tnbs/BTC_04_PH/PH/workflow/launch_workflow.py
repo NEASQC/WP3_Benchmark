@@ -57,6 +57,13 @@ if __name__ == "__main__":
         help="JSON with the qpu configuration for ground state computation",
     )
     parser.add_argument(
+        "-qpu_id",
+        dest="qpu_id",
+        type=int,
+        help="Select which qpu to use from all possibilities",
+        default=None,
+    )
+    parser.add_argument(
         "--print",
         dest="print",
         default=False,
@@ -92,8 +99,9 @@ if __name__ == "__main__":
     with open(args.qpu_ph) as json_file:
         qpu_cfg = json.load(json_file)
     qpu_list = combination_for_list(qpu_cfg)
+    qpu_info = qpu_list[args.qpu_id]
     # Cartesian product of combination_list and qpu_list
-    final_list = cartesian_product(combination_list, qpu_list)
+    final_list = cartesian_product(combination_list, [qpu_info])
 
     if args.print:
         if args.id is not None:

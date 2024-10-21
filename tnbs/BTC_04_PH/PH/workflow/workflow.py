@@ -27,6 +27,7 @@ def workflow(**configuration):
         "depth": configuration["depth"],
         "ansatz" : configuration["ansatz"],
         "qpu" : configuration["ansatz_qpu"],
+        "qpu_ansatz" : configuration["qpu_ansatz"],
         "save": configuration["save"],
         "folder": configuration["folder"],
     }
@@ -188,6 +189,7 @@ if __name__ == "__main__":
     # First set the qpu for the ansatz. No noisy simulation allowed
     qpu_config = {"qpu_type": args.qpu_ansatz}
     config.update({"ansatz_qpu": select_qpu(qpu_config)})
+    config.update({"qpu_ansatz": args.qpu_ansatz})
     # Second set the qpu for solving the ground state energy
     with open(args.qpu_ph) as json_file:
         qpu_cfg = json.load(json_file)

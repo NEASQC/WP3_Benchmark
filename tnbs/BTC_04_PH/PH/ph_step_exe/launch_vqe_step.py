@@ -48,8 +48,8 @@ if __name__ == "__main__":
         help="Select all the elements from vqe_step.json",
     )
     group.add_argument(
-        "-vqe_id",
-        dest="vqe_id",
+        "-id",
+        dest="id",
         type=int,
         help="Select one element from vqe_step.json",
         default=None,
@@ -101,8 +101,8 @@ if __name__ == "__main__":
     final_list = cartesian_product(combination_list, [qpu_info])
 
     if args.print:
-        if args.vqe_id is not None:
-            print(final_list[args.vqe_id])
+        if args.id is not None:
+            print(final_list[args.id])
         elif args.all:
             print(final_list)
         else:
@@ -110,8 +110,8 @@ if __name__ == "__main__":
     if args.count:
         print("Number of elements: {}".format(len(final_list)))
     if args.execution:
-        if args.vqe_id is not None:
-            configuration = final_list[args.vqe_id]
+        if args.id is not None:
+            configuration = final_list[args.id]
             run_id(**configuration)
         if args.all:
             for configuration in final_list:
