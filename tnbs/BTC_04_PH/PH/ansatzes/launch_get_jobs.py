@@ -11,7 +11,7 @@ from PH.ansatzes.ansatzes import getting_job
 
 
 def run_id(**configuration):
-    filename = configuration["filename"] + "/" + configuration["job_id"]
+    filename = configuration["filename"] + "_" + configuration["job_id"]
     configuration.update({"filename": filename})
     print(configuration)
     state = getting_job(**configuration)

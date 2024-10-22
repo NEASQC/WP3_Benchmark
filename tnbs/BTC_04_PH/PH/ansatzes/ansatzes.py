@@ -494,6 +494,7 @@ def run_ansatz(**configuration):
         #print(output_dict["state"])
         return output_dict
     if submit:
+        print(solve_conf["filename"])
         logger.info("Ansatz will be submited to QLM")
         solv_ansatz.submit()
         solve_ansatz_time = solv_ansatz.solve_ansatz_time
