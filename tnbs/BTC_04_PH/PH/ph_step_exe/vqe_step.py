@@ -50,13 +50,23 @@ class PH_EXE:
         self._save = kwargs.get("save", False)
         self.filename = kwargs.get("filename", None)
         self.qpu = kwargs.get("qpu", None)
+
         self.nb_shots = kwargs.get("nb_shots", None)
         if self.nb_shots is None:
             self.nb_shots = 0
+        # For CLinalg and PyLinalg if shots are desired then the
+        # ObservableSplitter Plugin should be used
+        if len(re.findall(r"(CLinalg|PyLinalg)", str(self.qpu))) != 0:
+            if self.nb_shots != 0:
+                from qat.plugins import ObservableSplitter
+                self.qpu = ObservableSplitter() | self.qpu
+
         self.truncation = kwargs.get("truncation", None)
         if self.truncation is not None:
             self.truncation = 10 ** (-self.truncation)
         self.t_inv = kwargs.get("t_inv", None)
+
+
 
         self.pauli_pdf = None
         self.observable_time = None
