@@ -54,18 +54,12 @@ neasqc\_benchmark
    :undoc-members:
    :show-inheritance:
 
-ae\_sine\_integral
-------------------
-
-.. automodule:: tnbs.BTC_02_AE.ae_sine_integral
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Subpackage QQuantLib
 --------------------
 
 .. toctree::
    :maxdepth: 4
+   :hidden:
 
    tnbs.BTC_02_AE.QQuantLib

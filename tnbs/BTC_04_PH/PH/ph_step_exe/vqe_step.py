@@ -1,7 +1,5 @@
 """
-For executing a VQE quantum step of a ansatz and a given
-Parent Hamiltonian.
-
+For executing a VQE quantum step of a ansatz and a given Parent Hamiltonian.
 Author: Gonzalo Ferro
 """
 
@@ -176,19 +174,30 @@ def run_ph_execution(**configuration):
     Given an ansatz circuit, the parameters and the Pauli decomposition
     of the corresponding local PH executes a VQE step for computing
     the energy of the ansatz under the Hamiltonian that MUST BE near 0
+
+    Note
+    ----
+
     Given an input base_fn that MUST have following pattern:
-        * base_fn = ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
+
+    *   base_fn = ansatz_{}_nqubits_{}_depth_{}_qpu_ansatz_{}
+
     Additionally folowing files MUST exist:
-        * {base_fn}_parameters.csv
-        * {base_fn}_pauli.csv
+
+    *   {base_fn}_parameters.csv
+    *   {base_fn}_pauli.csv
+
     The functions gets the information about: ansatz, nqubits and depth
     and executes the following Workflow:
-        1. Create QLM circuit using the ansatz type readed from the folder
-        2 Loading parameters for the circuit from: {}_parameters.csv
-        3. Loading Pauli Decomposition from: {}_pauli.csv
-        4. Executes VQE step.
+
+    1.  Create QLM circuit using the ansatz type readed from the folder
+    2.  Loading parameters for the circuit from: {}_parameters.csv
+    3.  Loading Pauli Decomposition from: {}_pauli.csv
+    4.  Executes VQE step.
+
     If save is True the result of the execution is stored as:
-        * {base_fn}_phexe.csv
+
+    *   {base_fn}_phexe.csv
     """
 
     # 1. Create QLM circuit using the ansatz type readed from the folder

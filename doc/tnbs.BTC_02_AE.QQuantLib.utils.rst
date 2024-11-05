@@ -17,13 +17,6 @@ QQuantLib.utils.data\_extracting
    :undoc-members:
    :show-inheritance:
 
-QQuantLib.utils.qlm\_solver
----------------------------
-
-.. automodule:: tnbs.BTC_02_AE.QQuantLib.utils.qlm_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 QQuantLib.utils.utils
 ---------------------

@@ -1,5 +1,13 @@
-BTC\_02\_AE.QQuantLib
-=====================
+
+ae\_sine\_integral
+------------------
+
+.. automodule:: tnbs.BTC_02_AE.QQuantLib.ae_sine_integral
+   :members:
+   :undoc-members:
+
+Sub-packages
+------------
 
 .. toctree::
    :maxdepth: 4

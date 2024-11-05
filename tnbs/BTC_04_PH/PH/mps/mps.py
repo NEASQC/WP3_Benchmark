@@ -57,18 +57,25 @@ def apply_local_gate(mps, gates):
     """
     Apply  local gates on several rank 3-tensors. For not apply a
     gate over a tensor a None should be provided.
-    The rank-3 tensor MUST HAVE following indexing:
 
-                        0-o-2
-                          |
-                          1
+    Notes
+    -----
+                                                    
+    The rank-3 tensor MUST HAVE following indexing: 
+                                                                 
+        0-o-2
+          |   
+          1  
 
     Where 1 is the physical leg.
+
     The computation done is:
-                    -o- -o- ... -o-
-                     |   |       |
-                     o   o       o
-                     |   |       |
+
+        -o- -o- ... -o-
+         |   |       |
+         o   o       o
+         |   |       |
+
     Parameters
     ----------
 
@@ -95,11 +102,14 @@ def apply_local_gate(mps, gates):
 def apply_2qubit_gate(tensor1, tensor2, gate=None, truncate=False, t_v=None):
     """
     Executes a 2-qubit gate between 2 rank-3 tensors
+
+    Notes
+    -----
     The rank-3 tensors MUST HAVE following indexing:
 
-                        0-o-2
-                          |
-                          1
+        0-o-2
+          |
+          1
 
     Where 1 is the physical leg.
     Following Computation is done:
@@ -305,10 +315,13 @@ def mpo_contraction(tensor_1, tensor_2):
     adjust of dimension for computing density matrices.
     The input tensors MUST be rank 4 or 2 tensors.
 
-    Rank-4 tensor:    |  Rank-2 tensor:
-         |            |
-       - o -          |     - o -
-         |            |
+    Notes
+    -----
+
+        Rank-4 tensor:    |  Rank-2 tensor:
+             |            |
+           - o -          |     - o -
+             |            |
 
     Parameters
     ----------

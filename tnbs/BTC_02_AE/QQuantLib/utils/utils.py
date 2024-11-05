@@ -1,5 +1,4 @@
 """
-
 This module contains several auxiliary functions needed by other scripts
 of the library
 
@@ -7,7 +6,8 @@ Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro Costas
 
 Fast Walsh-Hadamard Transform is based on mex function written
 by Chengbo Li@Rice Uni for his TVAL3 algorithm:
-    https://github.com/dingluo/fwht/blob/master/FWHT.py
+https://github.com/dingluo/fwht/blob/master/FWHT.py
+
 """
 
 import time

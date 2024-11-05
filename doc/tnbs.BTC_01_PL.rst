@@ -58,5 +58,6 @@ Subpackage PL
 
 .. toctree::
    :maxdepth: 4
+   :hidden:
 
    tnbs.BTC_01_PL.PL

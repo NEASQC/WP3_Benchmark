@@ -64,5 +64,6 @@ Subpackage PH
 
 .. toctree::
    :maxdepth: 4
+   :hidden:
 
    tnbs.BTC_04_PH.PH

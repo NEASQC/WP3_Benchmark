@@ -58,5 +58,6 @@ Subpackage QPE
 
 .. toctree::
    :maxdepth: 4
+   :hidden:
 
    tnbs.BTC_03_QPE.QPE

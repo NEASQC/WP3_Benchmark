@@ -16,6 +16,7 @@ sys.path.append(os.path.abspath('../tnbs/BTC_03_QPE'))
 sys.path.append(os.path.abspath('../tnbs/BTC_03_QPE/QPE'))
 sys.path.append(os.path.abspath('../tnbs/BTC_04_PH'))
 sys.path.append(os.path.abspath('../tnbs/BTC_04_PH/PH'))
+sys.path.append(os.path.abspath('../tnbs'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -66,7 +67,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'NEASQC documentation'
-copyright = 'UDC & CESGA 2021-2022'
+copyright = 'UDC & CESGA 2021-2024'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
