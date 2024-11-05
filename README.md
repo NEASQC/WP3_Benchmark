@@ -22,7 +22,7 @@ The different **BTC** are located inside the **tnbs** folder:
 1. *BTC_01_PL*: Software implementation for the **BTC** of the *Probability Loading kernel*. See **Annex C. T01: Benchmark for Probability Loading Algorithms** from deliverable D3.5.
 2. *BTC_02_AE*: Software implementation for the **BTC** of the *Amplitude Estimation kernel*. See **Annex D. T02: Benchmark for Amplitude Estimation Algorithms** from deliverable D3.5.
 3. *BTC_03_QPE*: Software implementation for the **BTC** of the *Quantum Amplitude Estimation kernel*. See **Annex E. T03: Benchmark for Phase Estimation Algorithms** from deliverable D3.5.
-3. *BTC_04_PH*: Software implementation for the **BTC** of the *Parent Hamiltonian Kernel*. See **Annex F. **T04: Benchmark for Parent Hamiltonian** from deliverable D3.5.
+3. *BTC_04_PH*: Software implementation for the **BTC** of the *Parent Hamiltonian Kernel*. See **Annex F. T04: Benchmark for Parent Hamiltonian** from deliverable D3.5.
 
 ## Acknowledgements
 
