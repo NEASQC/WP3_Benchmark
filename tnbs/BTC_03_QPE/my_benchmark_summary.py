@@ -23,7 +23,6 @@ def summarize_results(**kwargs):
     benchmark_file = kwargs.get("benchmark_file", None)
     index_columns = [0, 1, 2, 3, 4]
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
-    print(pdf)
     pdf.reset_index(inplace=True)
     n_qbits = list(set(pdf["n_qbits"]))
     angle_methods = list(set(pdf["angle_method"]))
