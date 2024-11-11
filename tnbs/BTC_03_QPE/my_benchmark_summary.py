@@ -23,6 +23,7 @@ def summarize_results(**kwargs):
     benchmark_file = kwargs.get("benchmark_file", None)
     index_columns = [0, 1, 2, 3, 4]
     pdf = pd.read_csv(benchmark_file, header=[0, 1], index_col=index_columns)
+    print(pdf)
     pdf.reset_index(inplace=True)
     n_qbits = list(set(pdf["n_qbits"]))
     angle_methods = list(set(pdf["angle_method"]))
@@ -70,7 +71,7 @@ def summarize_results(**kwargs):
                     metric["COUNT"] = int(step_pdf[metric_name]["count"].iloc[0])
                     metrics.append(metric)
                 result["Metrics"] = metrics
-        results.append(result)
+            results.append(result)
     return results
 
 if __name__ == "__main__":
@@ -85,7 +86,7 @@ if __name__ == "__main__":
     ################## Configuring the files ##########################
 
     configuration = {
-        "benchmark_file" : "Results/kernel_SummaryResults.csv"
+        "benchmark_file" : "2024_11_07_BTC_03_QPE/kernel_SummaryResults.csv"
     }
 
     ######## Execute Validations #####################################
