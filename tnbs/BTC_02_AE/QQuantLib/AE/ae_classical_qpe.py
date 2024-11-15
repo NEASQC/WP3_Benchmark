@@ -66,15 +66,16 @@ class CQPEAE:
         self._oracle = oracle
         self._target = check_list_type(target, int)
         self._index = check_list_type(index, int)
-
+        self.kwargs = kwargs
         # Set the QPU to use
-        self.linalg_qpu = kwargs.get("qpu", None)
+        self.linalg_qpu = self.kwargs.get("qpu", None)
         if self.linalg_qpu is None:
-            raise ValueError("Not QPU was provide")
-        self.auxiliar_qbits_number = kwargs.get("auxiliar_qbits_number", 8)
-        self.shots = int(kwargs.get("shots", 100))
+            raise ValueError("Not QPU was provided")
+        self.auxiliar_qbits_number = self.kwargs.get(
+            "auxiliar_qbits_number", None)
+        self.shots = self.kwargs.get("shots")
 
-        self.mcz_qlm = kwargs.get("mcz_qlm", True)
+        self.mcz_qlm = self.kwargs.get("mcz_qlm", True)
         # First thing is create the grover operator from the oracle
         self._grover_oracle = grover(
             self.oracle, self.target, self.index, mcz_qlm=self.mcz_qlm
@@ -181,15 +182,19 @@ class CQPEAE:
         """
         start = time.time()
         self.circuit_statistics = {}
-        dict_pe_qft = {
+        # dict_pe_qft = {
+        #     "initial_state": self.oracle,
+        #     "unitary_operator": self._grover_oracle,
+        #     "auxiliar_qbits_number": self.auxiliar_qbits_number,
+        #     "shots": self.shots,
+        #     "qpu": self.linalg_qpu,
+        # }
+        self.kwargs.update({
             "initial_state": self.oracle,
             "unitary_operator": self._grover_oracle,
-            "auxiliar_qbits_number": self.auxiliar_qbits_number,
-            "shots": self.shots,
-            "qpu": self.linalg_qpu,
-        }
+        })
 
-        self.cqpe = CQPE(**dict_pe_qft)
+        self.cqpe = CQPE(**self.kwargs)
         self.cqpe.run()
         step_circuit_stats = self.cqpe.circuit.to_circ().statistics()
         step_circuit_stats.update({"n_shots": self.shots})

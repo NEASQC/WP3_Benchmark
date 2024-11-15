@@ -12,6 +12,8 @@
         "ns": [100000],
 
         "auxiliar_qbits_number": [null],
+        "window" : [null],
+        "kaiser_alpha" : [null],
 
         "cbits_number": [null],
 
