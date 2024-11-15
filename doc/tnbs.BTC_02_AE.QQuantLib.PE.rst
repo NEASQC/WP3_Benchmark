@@ -16,3 +16,11 @@ iterative\_quantum\_pe
    :members:
    :undoc-members:
    :show-inheritance:
+
+windows\_pe
+-----------
+
+.. automodule:: tnbs.BTC_02_AE.QQuantLib.PE.windows_pe
+   :members:
+   :undoc-members:
+   :show-inheritance:
