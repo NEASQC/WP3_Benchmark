@@ -70,7 +70,7 @@ def summarize_results(**kwargs):
                     metric["COUNT"] = int(step_pdf[metric_name]["count"].iloc[0])
                     metrics.append(metric)
                 result["Metrics"] = metrics
-            results.append(result)
+                results.append(result)
     return results
 
 if __name__ == "__main__":
