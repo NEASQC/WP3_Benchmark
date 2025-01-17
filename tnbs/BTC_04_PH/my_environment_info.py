@@ -48,27 +48,23 @@ def my_noisy_qpu(qpu_config):
     """
     Define an ideal qpu
     """
-    from PL.qpu.select_qpu import select_qpu
+    sys.path.append("../")
+    from qpu.select_qpu import select_qpu
     my_noisy_qpu = select_qpu(qpu_config)
-    time_gate_dict = my_noisy_qpu.hardware_model.gates_specification.gate_times
+    time_gate_dict = my_noisy_qpu.qpu.hardware_model.gates_specification.gate_times
     gate_list = []
-    for gate_, value_ in my_noisy_qpu.hardware_model.gate_noise.items():
+    for gate_, value_ in my_noisy_qpu.qpu.hardware_model.gate_noise.items():
         if value_.keywords["nqbits"] in [1, 2]:
             gate_step = OrderedDict()
             gate_step["Gate"] = gate_
             if value_.keywords["nqbits"] == 1:
                 gate_step["Type"] = "Single"
+                gate_step["MaxTime"] = qpu_config["t_gate_1qb"]
             if value_.keywords["nqbits"] == 2:
                 gate_step["Type"] = "Entanglement"
+                gate_step["MaxTime"] = qpu_config["t_gate_2qbs"]
             gate_step["Symmetric"] = False
             gate_step["Qubits"] = [0]
-            if time_gate_dict[gate_] is None:
-                gate_step["MaxTime"] = 1.0
-            else:
-                if time_gate_dict[gate_] == 0:
-                    gate_step["MaxTime"] = 1.0
-                else:
-                    gate_step["MaxTime"] = time_gate_dict[gate_]
             gate_step["Error"] = value_.keywords["rb_eps"]
             gate_list.append(gate_step)
         
@@ -159,10 +155,10 @@ def my_qpu(**kwargs):
         #Reading from json file
         json_object = json.load(openfile)
     qpu_model = json_object["qpu_type"]
-    ideal_qpus = ["c", "python", "linalg", "mps", "qlmass_linalg", "qlmass_mps"]
+    ideal_qpus = ["c", "python", "linalg", "mps", "qlmass_linalg", "qlmass_mps", "ideal"]
     if qpu_model in ideal_qpus:
         return my_ideal_qpu(**kwargs)
-    if qpu_model in ["ideal", "noisy"]:
+    if qpu_model in ["noisy"]:
         return my_noisy_qpu(json_object)
         
         
@@ -250,7 +246,7 @@ if __name__ == "__main__":
     ################## Configuring the files ##########################
 
     configuration = {
-        "qpu" : "Results/qpu_configuration.json"
+        "qpu" : "2025_01_PH_noisy_qpu_0/qpu_configuration.json"
     }
     ######## Execute Validations #####################################
 
