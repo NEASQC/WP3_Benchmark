@@ -383,7 +383,7 @@ if __name__ == "__main__":
     id_qpu = 0
 
     # Number of shots
-    nb_shots = 0
+    nb_shots = None
     # For prunning Pauli coefficients
     truncation = None
 
