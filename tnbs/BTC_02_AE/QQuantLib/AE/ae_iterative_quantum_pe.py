@@ -3,12 +3,12 @@ This module contains necessary functions and classes to implement amplitude
 estimation algorithm using Iterative Quantum Phase Estimation (IQPE).
 The implementation is based on following paper:
 
-    Dobšíček, Miroslav and Johansson, Göran and Shumeiko, Vitaly and
+    *Dobšíček, Miroslav and Johansson, Göran and Shumeiko, Vitaly and
     Wendin, Göran*.
     Arbitrary accuracy iterative quantum phase estimation algorithm
     using a single ancillary qubit: A two-qubit benchmark.
     Physical Review A 3(76), 2007.
-    https://arxiv.org/abs/quant-ph/0610214
+    https://arxiv.org/abs/quant-ph/0610214*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -43,13 +43,13 @@ class IQPEAE:
         dictionary that allows the configuration of the IQPEAE algorithm: \\
         Implemented keys:
 
-        qpu : QLM solver
-            solver for simulating the resulting circutis
-        shots : int
-            number of measurements
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circutis
+    shots : kwargs, int
+        number of measurements
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -65,7 +65,6 @@ class IQPEAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
 

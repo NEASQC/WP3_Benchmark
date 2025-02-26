@@ -1,11 +1,12 @@
 """
-This module contains necessary functions and classes to implement
-Iterative Quantum Amplitude Estimation based on the paper:
+This module contains the IQAE class. Given a quantum oracle operator,
+this class estimates the **probability** of a given target state using
+the Iterative Quantum Amplitude Estimation algorithm based on the paper:
 
-    Grinko, D., Gacon, J., Zoufal, C. et al.
+    *Grinko, D., Gacon, J., Zoufal, C. et al.
     Iterative Quantum Amplitude Estimation
     npj Quantum Inf 7, 52 (2021).
-    https://doi.org/10.1038/s41534-021-00379-1
+    https://doi.org/10.1038/s41534-021-00379-1*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -39,21 +40,21 @@ class IQAE:
         qubits which mark the register to do the amplitude
         estimation
 
-    kwars : dictionary
+    kwargs : dictionary
         dictionary that allows the configuration of the IQAE algorithm: \\
         Implemented keys:
 
-        qpu : QLM solver
-            solver for simulating the resulting circuits
-        epsilon : float
-            precision
-        alpha : float
-            accuracy
-        shots : int
-            number of measurements on each iteration
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circuits
+    epsilon : kwargs, float
+        precision
+    alpha : kwargs, float
+        accuracy
+    shots : kwargs, int
+        number of measurements on each iteration
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -68,7 +69,6 @@ class IQAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
         self.epsilon = kwargs.get("epsilon", 0.01)

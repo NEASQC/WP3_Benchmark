@@ -1,10 +1,12 @@
 """
-This module contains necessary functions and classes to implement
+This module contains the RQAE class. Given a quantum oracle operator,
+this class estimates the **amplitude** of a given target state using
 Real Quantum Amplitude Estimation based on the paper:
 
-    Manzano, A., Musso, D., Leitao, A. et al.
+    *Manzano, A., Musso, D., Leitao, A.
     Real Quantum Amplitude Estimation
-    Preprint
+    EPJ Quantum Technol. 10, 2 (2023)
+    https://doi.org/10.1140/epjqt/s40507-023-00159-0*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -36,21 +38,20 @@ class RQAE:
         qubits which mark the register to do the amplitude
         estimation
 
-    kwars : dictionary
-        dictionary that allows the configuration of the IQAE algorithm: \\
-        Implemented keys:
+    kwargs : dictionary
+        dictionary that allows the configuration of the IQAE algorithm
 
-        qpu : QLM solver
-            solver for simulating the resulting circuits
-        q : int
-            amplification ratio
-        epsilon : int
-            precision
-        gamma : float
-            accuracy
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circuits
+    q : kwargs, int
+        amplification ratio
+    epsilon : kwargs, int
+        precision
+    gamma : kwargs, float
+        accuracy
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -67,7 +68,6 @@ class RQAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
 

@@ -1,11 +1,12 @@
 """
-This module contains necessary functions and classes to implement
-Maximum Likelihood Amplitude Estimation based on the paper:
+This module contains the MLAE class. Given a quantum oracle operator,
+this class estimates the **probability** of a given target state using
+the Maximum Likelihood Amplitude Estimation based on the paper:
 
-    Suzuki, Y., Uno, S., Raymond, R., Tanaka, T., Onodera, T., & Yamamoto, N.
+    *Suzuki, Y., Uno, S., Raymond, R., Tanaka, T., Onodera, T., & Yamamoto, N.
     Amplitude estimation without phase estimation
     Quantum Information Processing, 19(2), 2020
-    arXiv: quant-ph/1904.10246v2
+    arXiv: quant-ph/1904.10246v2*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -39,23 +40,22 @@ class MLAE:
     index : list of ints
         qubits which mark the register to do the amplitude
         estimation
-    kwars : dictionary
-        dictionary that allows the configuration of the MLAE algorithm: \\
-        Implemented keys:
+    kwargs : dictionary
+        dictionary that allows the configuration of the MLAE algorithm
 
-        qpu : QLM solver
-            solver for simulating the resulting circuits
-        schedule : list of two lists
-            the schedule for the algorithm
-        optimizer :
-            an optimizer with just one possible entry
-        delta : float
-            tolerance to avoid division by zero warnings
-        ns : int
-            number of grid points for brute scipy optimizer
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circuits
+    schedule : kwargs, list of two lists
+        the schedule for the algorithm
+    optimizer : kwargs,
+        an optimizer with just one possible entry
+    delta : kwargs, float
+        tolerance to avoid division by zero warnings
+    ns : kwargs, int
+        number of grid points for brute scipy optimizer
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -71,7 +71,6 @@ class MLAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
         ##delta for avoid problems in 0 and pi/2 theta limits

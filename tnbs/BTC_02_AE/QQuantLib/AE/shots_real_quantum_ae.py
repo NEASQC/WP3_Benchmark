@@ -1,9 +1,17 @@
 """
-This module contains necessary functions and classes to implemeneal Quantum Amplitude Estimation based on the paper:
+This module contains the sRQAE class. Given a quantum oracle operator,
+this class estimates the **amplitude** of a given target state using
+a modification of the RQAE algorithm where the user can provide the
+number of shots for the generated quantum circuits. Usually
+the experimental performance of this modification is better than the
+original RQAE one.
 
-    Manzano, A., Musso, D., Leitao, A. et al.
+Original RQAE papper:
+
+    *Manzano, A., Musso, D., Leitao, A.
     Real Quantum Amplitude Estimation
-    Preprint
+    EPJ Quantum Technol. 10, 2 (2023)
+    https://doi.org/10.1140/epjqt/s40507-023-00159-0*
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
 
@@ -35,21 +43,20 @@ class sRQAE:
         qubits which mark the register to do the amplitude
         estimation
 
-    kwars : dictionary
-        dictionary that allows the configuration of the IQAE algorithm: \\
-        Implemented keys:
+    kwargs : dictionary
+        dictionary that allows the configuration of the IQAE algorithm
 
-        qpu : QLM solver
-            solver for simulating the resulting circuits
-        q : int
-            amplification ratio
-        epsilon : int
-            precision
-        gamma : float
-            accuracy
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circuits
+    q : kwargs, int
+        amplification ratio
+    epsilon : kwargs, int
+        precision
+    gamma : kwargs, float
+        accuracy
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -66,7 +73,6 @@ class sRQAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
 

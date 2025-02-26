@@ -1,6 +1,7 @@
 """
 This module contains a general class for solving AE problems
 using the algorithm classes from QQuantLib.AE library package
+
 Authors: Alberto Pedro Manzano Herrero & Gonzalo Ferro
 
 """
@@ -16,6 +17,7 @@ from QQuantLib.AE.shots_real_quantum_ae import sRQAE
 from QQuantLib.AE.extended_real_quantum_ae import eRQAE
 from QQuantLib.AE.modified_real_quantum_ae import mRQAE
 from QQuantLib.AE.montecarlo_ae import MCAE
+from QQuantLib.AE.bayesian_ae import BAYESQAE
 from QQuantLib.utils.utils import text_is_none
 
 class AE:
@@ -35,11 +37,11 @@ class AE:
     ae_type : string
         string with the desired AE algorithm:
         MLAE, CQPEAE, IQPEAE, IQAE, RQAE
-    kwars : dictionary
+    kwargs : dictionary
         dictionary that allows the configuration of the AE algorithm. \\
         The different configration keys of the different AE algorithms \\
         can be provided.
-"""
+    """
     def __init__(self, oracle=None, target=None, index=None, ae_type=None, **kwargs):
         """
 
@@ -60,7 +62,7 @@ class AE:
         # self.kwargs = kwargs
         self.linalg_qpu = self.solver_dict.get("qpu", None)
 
-        # Provide QPU
+        # # Set the QPU to use
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
 
@@ -164,6 +166,13 @@ class AE:
             )
         elif self.ae_type == "MCAE":
             self.solver_ae = MCAE(
+                self.oracle,
+                target=self.target,
+                index=self.index,
+                **self.solver_dict
+            )
+        elif self.ae_type == "BAYESQAE":
+            self.solver_ae = BAYESQAE(
                 self.oracle,
                 target=self.target,
                 index=self.index,

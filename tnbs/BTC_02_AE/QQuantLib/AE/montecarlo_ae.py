@@ -1,7 +1,8 @@
 """
-This module contains necessary functions and classes to implement
-a MonterCarlo Amplitude Estimation. In this case not amplification
-is used. The probability of the target stat of the oracle is measured.
+This module contains the necessary functions and classes to implement a
+Monte-Carlo Amplitude Estimation routine. Given a quantum oracle operator,
+the amplitude of a given target state is estimated by evaluating it.
+Grover-like operators are not used in this routine.
 
 
 Author: Gonzalo Ferro Costas & Alberto Manzano Herrero
@@ -32,17 +33,17 @@ class MCAE:
         qubits which mark the register to do the amplitude
         estimation
 
-    kwars : dictionary
+    kwargs : dictionary
         dictionary that allows the configuration of the IQAE algorithm: \\
         Implemented keys:
 
-        qpu : QLM solver
-            solver for simulating the resulting circuits
-        shots : int
-            number of measurements
-        mcz_qlm : bool
-            for using or not QLM implementation of the multi controlled Z
-            gate
+    qpu : kwargs, QLM solver
+        solver for simulating the resulting circuits
+    shots : kwargs, int
+        number of measurements
+    mcz_qlm : kwargs, bool
+        for using or not QLM implementation of the multi controlled Z
+        gate
     """
 
     def __init__(self, oracle: qlm.QRoutine, target: list, index: list, **kwargs):
@@ -57,7 +58,6 @@ class MCAE:
 
         # Set the QPU to use
         self.linalg_qpu = kwargs.get("qpu", None)
-        # Provide QPU
         if self.linalg_qpu is None:
             raise ValueError("Not QPU was provide. Please provide it!")
 
